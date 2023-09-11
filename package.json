@@ -1,0 +1,41 @@
+{
+    "name": "banjodraw",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "turbo dev",
+        "clean": "pnpm run --parallel clean && rimraf node_modules",
+        "build": "turbo build",
+        "web:build": "turbo build --filter web",
+        "lint:all": "turbo lint",
+        "format": "prettier --write .",
+        "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
+        "db:build": "turbo build --filter db",
+        "db:local:logs": "docker compose -f docker/docker-compose.yml logs --follow",
+        "db:local:start": "docker compose -f docker/docker-compose.yml up -d --remove-orphans",
+        "db:local:stop": "docker compose -f docker/docker-compose.yml down --remove-orphans",
+        "db:local:reset": "pnpm --filter db db:reset",
+        "db:reset": "./scripts/reset-db.sh"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@antfu/ni": "^0.21.3",
+        "@banjoanton/eslint-config": "^0.1.11",
+        "@banjoanton/prettier-config": "^0.1.10",
+        "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
+        "eslint": "^8.44.0",
+        "hoks": "^0.1.14",
+        "pino-pretty": "^10.2.0",
+        "prettier": "^3.0.0",
+        "rimraf": "^5.0.1",
+        "tsup": "^7.2.0",
+        "turbo": "^1.10.12",
+        "typescript": "^5.1.6",
+        "zx": "^7.2.3"
+    },
+    "prettier": "@banjoanton/prettier-config",
+    "packageManager": "pnpm@8.6.3"
+}

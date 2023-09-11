@@ -1,0 +1,17 @@
+version: "3.8"
+
+name: local-dev
+services:
+    postgres:
+        image: postgres:15.4
+        environment:
+            POSTGRES_USER: banjo
+            POSTGRES_PASSWORD: banjo
+            POSTGRES_DB: banjodraw
+        ports:
+            - "5432:5432"
+        volumes:
+            - banjo-data:/var/lib/postgresql/data
+
+volumes:
+    banjo-data:

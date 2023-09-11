@@ -1,0 +1,32 @@
+{
+    "name": "db",
+    "version": "1.0.0",
+    "license": "MIT",
+    "type": "module",
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "files": [
+        "dist/**"
+    ],
+    "scripts": {
+        "build": "pnpm run db:generate && tsup",
+        "dev": "tsup --watch --clean",
+        "clean": "rimraf node_modules dist",
+        "db:migrate:dev": "pnpm exec prisma migrate dev && pnpm run db:generate",
+        "db:migrate:prod": "pnpm exec prisma migrate deploy",
+        "db:generate": "pnpm exec prisma generate",
+        "db:push": "pnpm exec prisma db push --skip-generate",
+        "db:reset": "pnpm exec prisma migrate reset --skip-seed --skip-generate --force && pnpm exec prisma db push && pnpm run db:generate && pnpm exec prisma db seed"
+    },
+    "prisma": {
+        "seed": "esno src/seed.ts"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^18.17.1",
+        "prisma": "^5.0.0",
+        "tsconfig": "workspace:*"
+    }
+}
