@@ -23,9 +23,9 @@ model Drawing {
   slug      String   @unique @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  name      String
+  name      String?
   data      Json[]
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  public    Boolean  @default(false)
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    Int?
+  public    Boolean  @default(true)
 }

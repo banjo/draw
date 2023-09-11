@@ -16,6 +16,7 @@ import {
     Info,
     LayoutDashboard as Layout,
     LayoutList,
+    Link,
     ListChecks,
     StretchHorizontal as ListLayout,
     LogOut,
@@ -69,4 +70,5 @@ export const Icons = {
     layoutList: ListLayout,
     arrowRight: ArrowRight,
     arrowLeft: ArrowLeft,
+    link: Link,
 };

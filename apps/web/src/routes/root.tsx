@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
-import { Draw } from "@/features/draw";
+import { Draw } from "@/features/draw/draw";
+import { DrawContainer } from "@/features/draw/draw-container";
 import ErrorPage from "@/routes/error-page";
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from "react-router-dom";
 
@@ -34,7 +35,11 @@ const signedOutRouter = createBrowserRouter([
         children: [
             {
                 path: "/",
-                element: <Draw />,
+                element: <DrawContainer />,
+            },
+            {
+                path: "/draw/:slug",
+                element: <DrawContainer />,
             },
             {
                 path: "*",

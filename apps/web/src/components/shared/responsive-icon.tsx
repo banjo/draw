@@ -1,6 +1,5 @@
-import { iconSizeMapper } from "@/components/shared/icons";
+import { IconSize, iconSizeMapper } from "@/components/shared/icons";
 import { Tooltip } from "@/components/shared/tooltip";
-import { Size } from "@/lib/size";
 import { cn } from "@/lib/utils";
 import { noop } from "@banjoanton/utils";
 import { FC } from "react";
@@ -13,7 +12,7 @@ type FilterIconProps = {
     className?: string;
     onClick?: () => void;
     disabled?: boolean;
-    size?: Size;
+    size?: IconSize;
     enableTooltip?: boolean;
 };
 
@@ -22,7 +21,7 @@ export const ResponsiveIcon: FC<FilterIconProps> = ({
     disabled,
     onClick = noop,
     tooltip,
-    enableTooltip,
+    enableTooltip = false,
     size = "sm",
     className,
 }) => {

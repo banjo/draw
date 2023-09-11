@@ -17,5 +17,4 @@ baseController.use(
 
 baseController.route("/", drawController);
 
-
-export type BaseController = DrawController ;
+export type BaseController = DrawController;
