@@ -125,7 +125,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 <Excalidraw
                     ref={(api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api)}
                     onChange={(e, state) => {
-                        if (e.length === 0) {
+                        if (e.length === 0 || !slug) {
                             return;
                         }
 

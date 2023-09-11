@@ -16,7 +16,9 @@
         "db:local:start": "docker compose -f docker/docker-compose.yml up -d --remove-orphans",
         "db:local:stop": "docker compose -f docker/docker-compose.yml down --remove-orphans",
         "db:local:reset": "pnpm --filter db db:reset",
-        "db:reset": "./scripts/reset-db.sh"
+        "db:reset": "./scripts/reset-db.sh",
+        "deploy:api": "./scripts/deploy.sh banjodraw-api",
+        "logs:api": "./scripts/logs.sh banjodraw-api"
     },
     "keywords": [],
     "author": "",

@@ -1,4 +1,3 @@
-import { useAuth } from "@/contexts/auth-context";
 import { Draw } from "@/features/draw/draw";
 import { DrawContainer } from "@/features/draw/draw-container";
 import ErrorPage from "@/routes/error-page";
@@ -50,11 +49,12 @@ const signedOutRouter = createBrowserRouter([
 ]);
 
 export function Root() {
-    const { userId } = useAuth();
+    return <RouterProvider router={signedOutRouter} />;
+    // const { userId } = useAuth();
 
-    if (!userId) {
-        return <RouterProvider router={signedOutRouter} />;
-    }
+    // if (!userId) {
+    //     return <RouterProvider router={signedOutRouter} />;
+    // }
 
-    return <RouterProvider router={router} />;
+    // return <RouterProvider router={router} />;
 }
