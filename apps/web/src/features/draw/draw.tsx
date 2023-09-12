@@ -3,8 +3,11 @@ import { ResponsiveIcon } from "@/components/shared/responsive-icon";
 import { client } from "@/lib/hc";
 import { debounce, isEqual } from "@banjoanton/utils";
 import { Excalidraw, MainMenu } from "@excalidraw/excalidraw";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import {
+    ExcalidrawElement,
+    ExcalidrawImageElement,
+} from "@excalidraw/excalidraw/types/element/types";
+import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +33,7 @@ export const Draw = ({ slug }: DrawProps) => {
     );
 
     const [isLoading, setIsLoading] = useState(false);
+    const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
     const debouncedSetElements = debounce((elements: readonly ExcalidrawElement[]) => {
         setElements(elements);
@@ -52,6 +56,44 @@ export const Draw = ({ slug }: DrawProps) => {
 
         return currentSlug;
     };
+
+    // get images on load
+    useEffect(() => {
+        if (!elements || !excalidrawAPI) return;
+
+        const images = elements.filter(
+            element => element.type === "image" && !element.isDeleted && element.fileId
+        ) as ExcalidrawImageElement[];
+        if (images.length === 0) return;
+
+        const fetchImages = async (ids: string[]) => {
+            const res = await client.images.get.$post({
+                json: {
+                    imageIds: ids,
+                },
+            });
+
+            const json = await res.json();
+
+            if (!json.success) {
+                toast.error("Failed to fetch images");
+                return;
+            }
+
+            const images = json.data;
+
+            const files: BinaryFileData[] = images.map(image => ({
+                id: image.imageId as any,
+                dataURL: image.data as any,
+                mimeType: image.mimeType as any,
+                created: new Date().getMilliseconds(),
+            }));
+
+            excalidrawAPI.addFiles(files);
+        };
+
+        fetchImages(images.map(image => image.fileId!));
+    }, [excalidrawAPI]);
 
     useEffect(() => {
         if (!slug) return;
@@ -96,6 +138,49 @@ export const Draw = ({ slug }: DrawProps) => {
             ignore = true;
         };
     }, [elements]);
+
+    useEffect(() => {
+        if (!excalidrawAPI) return;
+
+        const files = excalidrawAPI.getFiles();
+        const images = Object.values(files).filter(file => file.mimeType.startsWith("image/"));
+        const imagesReferencedOnCanvas = images.filter(
+            image =>
+                elements?.some(
+                    element =>
+                        element.type === "image" &&
+                        element.fileId === image.id &&
+                        element.isDeleted !== true
+                )
+        );
+
+        const notUploadedImages = imagesReferencedOnCanvas.filter(
+            image => !uploadedImages.includes(image.id)
+        );
+
+        if (!notUploadedImages.length) return;
+
+        const saveImages = async () => {
+            const res = await client.images.$post({
+                json: notUploadedImages.map(image => ({
+                    id: image.id,
+                    data: image.dataURL,
+                    mimeType: image.mimeType,
+                })),
+            });
+
+            const json = await res.json();
+
+            if (!json.success) {
+                toast.error("Failed to save images");
+                return;
+            }
+
+            setUploadedImages([...uploadedImages, ...notUploadedImages.map(image => image.id)]);
+        };
+
+        saveImages();
+    }, [excalidrawAPI, elements]);
 
     const renderMenu = () => {
         return (

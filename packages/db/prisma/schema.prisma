@@ -29,3 +29,13 @@ model Drawing {
   userId    Int?
   public    Boolean  @default(true)
 }
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  imageId   String   @unique
+  name      String?
+  data      String
+  mimeType  String
+}

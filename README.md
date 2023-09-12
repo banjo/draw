@@ -30,3 +30,8 @@ turbo run build --filter={./apps/web}...
 ```bash 
 nr clean && find . -name '.turbo' | xargs rm -rf && ni && nr build --filter api && node apps/api/dist/index.cjs
 ```
+
+## TODO
+
+- [ ] Clear local storage on change from slug to non-slug
+- [x] Save images to database
