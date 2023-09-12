@@ -8,6 +8,7 @@ import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useLocalStorage } from "react-use";
 import { v4 as uuidv4 } from "uuid";
 
 type DrawProps = {
@@ -20,16 +21,19 @@ const copyToClipboard = (text: string) => {
 
 export const Draw = ({ slug }: DrawProps) => {
     const navigate = useNavigate();
+    const localStorageKey = `drawing-${slug ?? "base"}`;
 
     const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
-    const [elements, setElements] = useState<readonly ExcalidrawElement[]>([]);
-    const [shouldSave, setShouldSave] = useState(() => !!slug);
+    const [elements, setElements, remove] = useLocalStorage<readonly ExcalidrawElement[]>(
+        localStorageKey,
+        []
+    );
 
     const [isLoading, setIsLoading] = useState(false);
 
     const debouncedSetElements = debounce((elements: readonly ExcalidrawElement[]) => {
         setElements(elements);
-    }, 1500);
+    }, 500);
 
     const save = async () => {
         const currentSlug = slug ?? uuidv4();
@@ -80,7 +84,7 @@ export const Draw = ({ slug }: DrawProps) => {
 
     useEffect(() => {
         let ignore = false;
-        if (!shouldSave || elements.length === 0) {
+        if (!slug || !elements || elements.length === 0) {
             return;
         }
 
@@ -98,7 +102,6 @@ export const Draw = ({ slug }: DrawProps) => {
             <MainMenu>
                 <MainMenu.Item
                     onSelect={async () => {
-                        setShouldSave(true);
                         const updatedSlug = await save();
                         copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
                         toast.success("Link copied to clipboard");
@@ -125,10 +128,6 @@ export const Draw = ({ slug }: DrawProps) => {
                 <Excalidraw
                     ref={(api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api)}
                     onChange={(e, state) => {
-                        if (e.length === 0 || !slug) {
-                            return;
-                        }
-
                         if (!isEqual(e, elements)) {
                             debouncedSetElements([...e]);
                         }
