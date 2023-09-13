@@ -37,7 +37,7 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const debouncedSetElements = debounce((elements: readonly ExcalidrawElement[]) => {
         setElements(elements);
-    }, 500);
+    }, 2000);
 
     const save = async () => {
         const currentSlug = slug ?? uuidv4();
