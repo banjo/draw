@@ -1,7 +1,7 @@
 import { Icons } from "@/components/shared/icons";
 import { ResponsiveIcon } from "@/components/shared/responsive-icon";
 import { client } from "@/lib/hc";
-import { isEqual, throttle } from "@banjoanton/utils";
+import { isDefined, isEqual, throttle } from "@banjoanton/utils";
 import { Excalidraw, MainMenu } from "@excalidraw/excalidraw";
 import {
     ExcalidrawElement,
@@ -57,10 +57,13 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const save = async () => {
         const currentSlug = slug ?? uuidv4();
+        const notDeletedElements =
+            elements?.filter(element => !element.isDeleted).filter(isDefined) ?? [];
+
         setIsSaving(true);
         const res = await client.draw.$post({
             json: {
-                elements: elements as any,
+                elements: notDeletedElements,
                 slug: currentSlug,
             },
         });
