@@ -318,29 +318,8 @@ export const Draw = ({ slug }: DrawProps) => {
                             return;
                         }
 
-                        const updatedElements = allButDeletedNewElements.filter(e => {
-                            const oldElement = allButDeletedOldElements.find(el => el.id === e.id);
-                            if (!oldElement) return true;
-
-                            return oldElement.version < e.version;
-                        });
-
-                        const deletedElements = allButDeletedOldElements
-                            .filter(e => {
-                                const newElement = allButDeletedNewElements.find(
-                                    el => el.id === e.id
-                                );
-                                if (!newElement) return true;
-
-                                return newElement.version < e.version;
-                            })
-                            .map(e => ({
-                                ...e,
-                                isDeleted: true,
-                            }));
-
                         debouncedSetElements(structuredClone(allButDeletedNewElements));
-                        debouncedSave([...updatedElements, ...deletedElements]);
+                        debouncedSave(allButDeletedNewElements);
                     }}
                     initialData={{ elements }}
                     onPointerUpdate={e => {

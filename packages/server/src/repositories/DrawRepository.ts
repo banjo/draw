@@ -31,34 +31,30 @@ const saveDrawing = async (slug: string, elements: ExcalidrawElement[]) => {
     });
 
     if (drawingExists) {
-        await Promise.all(
-            elements.map(async element => {
-                if (element.isDeleted) {
-                    await prisma.drawingElement.delete({
-                        where: {
-                            elementId: element.id,
-                        },
-                    });
-                    return;
-                }
+        const deleteAll = await prisma.drawingElement.deleteMany({
+            where: {
+                drawingId: drawingExists.id,
+            },
+        });
 
-                await prisma.drawingElement.upsert({
-                    where: {
-                        elementId: element.id,
-                    },
-                    create: {
-                        elementId: element.id,
-                        data: element as Prisma.InputJsonValue,
-                        version: element.version,
-                        drawingId: drawingExists.id,
-                    },
-                    update: {
-                        data: element as Prisma.InputJsonValue,
-                        version: element.version,
-                    },
-                });
-            })
-        );
+        if (!deleteAll) {
+            logger.error(`Error deleting drawing elements: ${slug}`);
+            return Result.error("Error deleting drawing elements", "InternalError");
+        }
+
+        const createMany = await prisma.drawingElement.createMany({
+            data: elements.map(element => ({
+                data: element as Prisma.InputJsonValue,
+                drawingId: drawingExists.id,
+                elementId: element.id,
+                version: element.version,
+            })),
+        });
+
+        if (!createMany) {
+            logger.error(`Error saving drawing elements: ${slug}`);
+            return Result.error("Error saving drawing elements", "InternalError");
+        }
 
         return Result.ok(drawingExists.id);
     }
