@@ -211,9 +211,10 @@ export const Draw = ({ slug }: DrawProps) => {
 
             if (!elements) return;
 
-            setElements(prev => elements);
+            const allButDeletedElements = removeDeletedElements(elements);
+            setElements(allButDeletedElements);
             excalidrawAPI.updateScene({
-                elements: elements,
+                elements: allButDeletedElements,
             });
         };
 
@@ -297,10 +298,15 @@ export const Draw = ({ slug }: DrawProps) => {
                 <Excalidraw
                     ref={(api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api)}
                     onChange={(e, state) => {
-                        if (!isEqual(e, elements)) {
-                            debouncedSetElements(e);
-                            debouncedSave(e);
+                        const deletedNewElements = removeDeletedElements(e);
+                        const deletedOldElements = removeDeletedElements(elements);
+
+                        if (isEqual(deletedNewElements, deletedOldElements)) {
+                            return;
                         }
+
+                        debouncedSetElements(deletedNewElements);
+                        debouncedSave(deletedNewElements);
                     }}
                     initialData={{ elements }}
                     onPointerUpdate={e => {
