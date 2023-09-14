@@ -32,17 +32,14 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
 
-    const [localStorageElements, setLocalStorageElements, remove] = useLocalStorage<
-        readonly ExcalidrawElement[]
-    >(localStorageKey, []);
-
-    const [elements, setElements] = useState<readonly ExcalidrawElement[]>(
-        () => localStorageElements ?? []
+    const [elements, setElements, remove] = useLocalStorage<readonly ExcalidrawElement[]>(
+        localStorageKey,
+        []
     );
 
-    useEffect(() => {
-        setLocalStorageElements(elements);
-    }, [elements]);
+    // const [elements, setElements] = useState<readonly ExcalidrawElement[]>(
+    //     () => localStorageElements ?? []
+    // );
 
     const debouncedSetElements = useMemo(() => {
         return debounce((updatedElements: readonly ExcalidrawElement[]) => {
