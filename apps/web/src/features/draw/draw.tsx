@@ -11,6 +11,7 @@ import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/
 import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useLocalStorage } from "react-use";
 import { v4 as uuidv4 } from "uuid";
 
 type DrawProps = {
@@ -30,16 +31,23 @@ export const Draw = ({ slug }: DrawProps) => {
     const localStorageKey = `drawing-${slug ?? "base"}`;
 
     const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
-    // const [elements, setElements, remove] = useLocalStorage<readonly ExcalidrawElement[]>(
-    //     localStorageKey,
-    //     []
-    // );
-    const [elements, setElements] = useState<readonly ExcalidrawElement[]>([]);
+
+    const [localStorageElements, setLocalStorageElements, remove] = useLocalStorage<
+        readonly ExcalidrawElement[]
+    >(localStorageKey, []);
+
+    const [elements, setElements] = useState<readonly ExcalidrawElement[]>(
+        () => localStorageElements ?? []
+    );
+
+    useEffect(() => {
+        setLocalStorageElements(elements);
+    }, [elements]);
 
     const debouncedSetElements = useMemo(() => {
         return debounce((updatedElements: readonly ExcalidrawElement[]) => {
             setElements([...updatedElements]);
-        }, 1000);
+        }, 300);
     }, []);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +96,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 if (!slug) return;
                 console.log("saving");
                 await save(elements);
-            }, 2000),
+            }, 1000),
         []
     );
 
