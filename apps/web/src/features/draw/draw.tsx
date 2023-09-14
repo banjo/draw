@@ -85,6 +85,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const debouncedSave = useMemo(
         () =>
             debounce(async (elements: readonly ExcalidrawElement[]) => {
+                if (!slug) return;
                 console.log("saving");
                 await save(elements);
             }, 2000),
