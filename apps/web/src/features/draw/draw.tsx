@@ -85,6 +85,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const debouncedSave = useMemo(
         () =>
             debounce(async (elements: readonly ExcalidrawElement[]) => {
+                console.log("saving");
                 await save(elements);
             }, 2000),
         []
@@ -298,15 +299,15 @@ export const Draw = ({ slug }: DrawProps) => {
                 <Excalidraw
                     ref={(api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api)}
                     onChange={(e, state) => {
-                        const deletedNewElements = removeDeletedElements(e);
-                        const deletedOldElements = removeDeletedElements(elements);
+                        const allButDeletedNewElements = removeDeletedElements(e);
+                        const allButDeletedOldElements = removeDeletedElements(elements);
 
-                        if (isEqual(deletedNewElements, deletedOldElements)) {
+                        if (isEqual(allButDeletedNewElements, allButDeletedOldElements)) {
                             return;
                         }
 
-                        debouncedSetElements(deletedNewElements);
-                        debouncedSave(deletedNewElements);
+                        debouncedSetElements(structuredClone(allButDeletedNewElements));
+                        debouncedSave(allButDeletedNewElements);
                     }}
                     initialData={{ elements }}
                     onPointerUpdate={e => {
