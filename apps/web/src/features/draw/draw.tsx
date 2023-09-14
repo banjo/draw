@@ -36,11 +36,14 @@ export const Draw = ({ slug }: DrawProps) => {
         readonly ExcalidrawElement[]
     >(localStorageKey, []);
 
-    const [elements, setElements] = useState<readonly ExcalidrawElement[]>(
-        () => localStorageElements ?? []
-    );
+    const [elements, setElements] = useState<readonly ExcalidrawElement[]>(() => {
+        if (slug) return [];
+
+        return localStorageElements ?? [];
+    });
 
     useEffect(() => {
+        if (slug) return;
         setLocalStorageElements(elements);
     }, [elements]);
 
