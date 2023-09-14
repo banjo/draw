@@ -1,5 +1,6 @@
 import { Prisma, prisma } from "db";
 import { Result, createLogger } from "utils";
+import { ExcalidrawElement } from "../controller/DrawController";
 
 const logger = createLogger("DrawRepository");
 
@@ -7,6 +8,9 @@ const getDrawingBySlug = async (slug: string) => {
     const drawing = await prisma.drawing.findUnique({
         where: {
             slug,
+        },
+        include: {
+            elements: true,
         },
     });
 
@@ -19,26 +23,66 @@ const getDrawingBySlug = async (slug: string) => {
     return Result.ok(drawing);
 };
 
-const saveDrawing = async (slug: string, elements: Prisma.JsonObject[]) => {
-    const drawing = await prisma.drawing.upsert({
+const saveDrawing = async (slug: string, elements: ExcalidrawElement[]) => {
+    const drawingExists = await prisma.drawing.findUnique({
         where: {
             slug,
         },
-        create: {
+    });
+
+    if (drawingExists) {
+        const deleteAll = await prisma.drawingElement.deleteMany({
+            where: {
+                drawingId: drawingExists.id,
+            },
+        });
+
+        if (!deleteAll) {
+            logger.error(`Error deleting drawing elements: ${slug}`);
+            return Result.error("Error deleting drawing elements", "InternalError");
+        }
+
+        const createMany = await prisma.drawingElement.createMany({
+            data: elements.map(element => ({
+                data: element as Prisma.InputJsonValue,
+                drawingId: drawingExists.id,
+                elementId: element.id,
+                version: element.version,
+            })),
+        });
+
+        if (!createMany) {
+            logger.error(`Error saving drawing elements: ${slug}`);
+            return Result.error("Error saving drawing elements", "InternalError");
+        }
+
+        return Result.ok(drawingExists.id);
+    }
+
+    const createNewDrawing = await prisma.drawing.create({
+        data: {
             slug,
-            data: elements,
-        },
-        update: {
-            data: elements,
+            elements: {
+                connectOrCreate: elements.map(element => ({
+                    where: {
+                        elementId: element.id,
+                    },
+                    create: {
+                        data: element as Prisma.InputJsonValue,
+                        elementId: element.id,
+                        version: element.version,
+                    },
+                })),
+            },
         },
     });
 
-    if (!drawing) {
+    if (!createNewDrawing) {
         logger.error(`Error saving drawing: ${slug}`);
         return Result.error("Error saving drawing", "InternalError");
     }
 
-    return Result.ok(drawing.id);
+    return Result.ok(createNewDrawing.id);
 };
 
 const saveImages = async (images: { data: string; id: string; mimeType: string }[]) => {

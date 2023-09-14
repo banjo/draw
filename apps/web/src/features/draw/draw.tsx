@@ -1,17 +1,16 @@
 import { Icons } from "@/components/shared/icons";
 import { ResponsiveIcon } from "@/components/shared/responsive-icon";
 import { client } from "@/lib/hc";
-import { isDefined, isEqual, throttle } from "@banjoanton/utils";
+import { debounce, isEqual } from "@banjoanton/utils";
 import { Excalidraw, MainMenu } from "@excalidraw/excalidraw";
 import {
     ExcalidrawElement,
     ExcalidrawImageElement,
 } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useLocalStorage } from "react-use";
 import { v4 as uuidv4 } from "uuid";
 
 type DrawProps = {
@@ -22,15 +21,26 @@ const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
 };
 
+const removeDeletedElements = (elements: readonly ExcalidrawElement[]) => {
+    return elements.filter(element => !element.isDeleted);
+};
+
 export const Draw = ({ slug }: DrawProps) => {
     const navigate = useNavigate();
     const localStorageKey = `drawing-${slug ?? "base"}`;
 
     const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
-    const [elements, setElements, remove] = useLocalStorage<readonly ExcalidrawElement[]>(
-        localStorageKey,
-        []
-    );
+    // const [elements, setElements, remove] = useLocalStorage<readonly ExcalidrawElement[]>(
+    //     localStorageKey,
+    //     []
+    // );
+    const [elements, setElements] = useState<readonly ExcalidrawElement[]>([]);
+
+    const debouncedSetElements = useMemo(() => {
+        return debounce((updatedElements: readonly ExcalidrawElement[]) => {
+            setElements([...updatedElements]);
+        }, 1000);
+    }, []);
 
     const [isLoading, setIsLoading] = useState(false);
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -51,19 +61,13 @@ export const Draw = ({ slug }: DrawProps) => {
         isSavingRef.current = isSaving;
     }, [isSaving]);
 
-    const debouncedSetElements = throttle((elements: readonly ExcalidrawElement[]) => {
-        setElements(elements);
-    }, 2000);
-
-    const save = async () => {
+    const save = async (e: readonly ExcalidrawElement[]) => {
         const currentSlug = slug ?? uuidv4();
-        const notDeletedElements =
-            elements?.filter(element => !element.isDeleted).filter(isDefined) ?? [];
 
         setIsSaving(true);
         const res = await client.draw.$post({
             json: {
-                elements: notDeletedElements,
+                elements: e as any,
                 slug: currentSlug,
             },
         });
@@ -77,6 +81,14 @@ export const Draw = ({ slug }: DrawProps) => {
 
         return currentSlug;
     };
+
+    const debouncedSave = useMemo(
+        () =>
+            debounce(async (elements: readonly ExcalidrawElement[]) => {
+                await save(elements);
+            }, 2000),
+        []
+    );
 
     const fetchImages = async (ids: string[]) => {
         if (!excalidrawAPI) return;
@@ -124,50 +136,56 @@ export const Draw = ({ slug }: DrawProps) => {
             return;
         }
 
-        return json.data.data as unknown as ExcalidrawElement[];
+        // @ts-ignore
+        return json.data as unknown as ExcalidrawElement[];
     };
 
-    const fetchDrawingData = async () => {
-        if (!excalidrawAPI || !slug) return;
-        if (isPointerDownRef.current || isSavingRef.current) return;
+    // const fetchDrawingData = async () => {
+    //     if (!excalidrawAPI || !slug) return;
+    //     if (isPointerDownRef.current || isSavingRef.current) return;
 
-        const latestDrawing = await fetchDrawing(slug);
-        if (!latestDrawing) return;
+    //     const latestDrawing = await fetchDrawing(slug);
+    //     if (!latestDrawing) return;
 
-        if (isEqual(latestDrawing, elements)) {
-            return;
-        }
+    //     if (isEqual(latestDrawing, elements)) {
+    //         return;
+    //     }
 
-        const updatedLocalElements = elements?.map(element => {
-            const latestElement = latestDrawing.find(e => e.id === element.id);
-            if (!latestElement) return element;
+    //     const updatedLocalElements = elements?.map(element => {
+    //         const latestElement = latestDrawing.find(e => e.id === element.id);
+    //         if (!latestElement) return element;
 
-            if (latestElement.version > element.version) {
-                return latestElement;
-            }
+    //         if (latestElement.version > element.version) {
+    //             return latestElement;
+    //         }
 
-            return element;
-        });
+    //         return element;
+    //     });
 
-        const missedElements = latestDrawing.filter(
-            element => !updatedLocalElements?.some(e => e.id === element.id)
-        );
+    //     const missedElements = latestDrawing.filter(
+    //         element => !updatedLocalElements?.some(e => e.id === element.id)
+    //     );
 
-        const mergedElements = [...(updatedLocalElements ?? []), ...missedElements];
+    //     const mergedElements = [...(updatedLocalElements ?? []), ...missedElements];
 
-        excalidrawAPI.updateScene({
-            elements: mergedElements,
-        });
-        setElements(mergedElements);
-    };
+    //     excalidrawAPI.updateScene({
+    //         elements: mergedElements,
+    //     });
+    //     setElements(mergedElements);
+    // };
 
+    // useEffect(() => {
+    //     const interval = setInterval(fetchDrawingData, toMilliseconds({ seconds: 15 }));
+
+    //     return () => {
+    //         clearInterval(interval);
+    //     };
+    // }, [excalidrawAPI]);
+
+    // update isFirstRun on slug change
     useEffect(() => {
-        const interval = setInterval(fetchDrawingData, 10000);
-
-        return () => {
-            clearInterval(interval);
-        };
-    }, [excalidrawAPI]);
+        firstRun.current = true;
+    }, [slug]);
 
     // get images on load
     useEffect(() => {
@@ -181,37 +199,27 @@ export const Draw = ({ slug }: DrawProps) => {
         fetchImages(images.map(image => image.fileId!));
     }, [excalidrawAPI]);
 
+    const firstRun = useRef(true);
+
     // fetch drawing on load
     useEffect(() => {
-        if (!slug) return;
-        const getImages = async () => {
+        if (!slug || !excalidrawAPI || firstRun.current === false) return;
+        const getDrawing = async () => {
             setIsLoading(true);
             const elements = await fetchDrawing(slug);
             setIsLoading(false);
 
             if (!elements) return;
 
-            setElements(elements);
+            setElements(prev => elements);
+            excalidrawAPI.updateScene({
+                elements: elements,
+            });
         };
 
-        getImages();
-    }, [slug]);
-
-    // save drawing on change
-    useEffect(() => {
-        let ignore = false;
-        if (!slug || !elements || elements.length === 0) {
-            return;
-        }
-
-        if (!ignore) {
-            save();
-        }
-
-        return () => {
-            ignore = true;
-        };
-    }, [elements]);
+        firstRun.current = false;
+        getDrawing();
+    }, [excalidrawAPI]);
 
     // save images on change
     useEffect(() => {
@@ -262,7 +270,8 @@ export const Draw = ({ slug }: DrawProps) => {
             <MainMenu>
                 <MainMenu.Item
                     onSelect={async () => {
-                        const updatedSlug = await save();
+                        const elements = excalidrawAPI!.getSceneElementsIncludingDeleted();
+                        const updatedSlug = await save(elements);
                         copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
                         toast.success("Link copied to clipboard");
 
@@ -289,7 +298,8 @@ export const Draw = ({ slug }: DrawProps) => {
                     ref={(api: ExcalidrawImperativeAPI) => setExcalidrawAPI(api)}
                     onChange={(e, state) => {
                         if (!isEqual(e, elements)) {
-                            debouncedSetElements([...e]);
+                            debouncedSetElements(e);
+                            debouncedSave(e);
                         }
                     }}
                     initialData={{ elements }}

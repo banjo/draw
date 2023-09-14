@@ -24,10 +24,22 @@ model Drawing {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String?
-  data      Json[]
+  data      Json[]    
   user      User?     @relation(fields: [userId], references: [id])
   userId    Int?
   public    Boolean  @default(true)
+  elements  DrawingElement[]
+}
+
+model DrawingElement {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  data      Json
+  elementId String   @unique
+  version   Int
+  drawing   Drawing  @relation(fields: [drawingId], references: [id])
+  drawingId Int
 }
 
 model Image {

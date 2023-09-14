@@ -68,13 +68,22 @@ const getDraw = drawController.get("/draw/:slug", async c => {
         return c.jsonT({ success: false, message: drawing.message });
     }
 
-    return c.jsonT(Result.ok(drawing.data));
+    return c.jsonT(Result.ok(drawing.data.elements.map(e => e.data)));
 });
 type GetDrawRoute = typeof getDraw;
 
+export const elementSchema = z
+    .object({
+        id: z.string(),
+        version: z.number(),
+    })
+    .passthrough();
+
+export type ExcalidrawElement = z.infer<typeof elementSchema>;
+
 const saveDrawingSchema = z.object({
     slug: z.string(),
-    elements: z.any().array(),
+    elements: elementSchema.array(),
 });
 const createDrawing = drawController.post(
     "/draw",
