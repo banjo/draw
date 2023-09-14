@@ -3,5 +3,5 @@ const raise = (error: string) => {
 };
 
 export const ensureDbReady = () => {
-    process.env.POSTGRES_URL ?? raise("POSTGRES_URL is not set");
+    process.env.DATABASE_URL ?? raise("DATABASE_URL is not set");
 };

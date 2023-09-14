@@ -4,7 +4,7 @@
         "build": {
             "dependsOn": ["^db:generate"],
             "env": [
-                "POSTGRES_URL",
+                "DATABASE_URL",
                 "FIREBASE_TYPE",
                 "FIREBASE_PROJECT_ID",
                 "FIREBASE_PRIVATE_KEY_ID",
