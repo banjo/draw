@@ -68,7 +68,7 @@ const getDraw = drawController.get("/draw/:slug", async c => {
         return c.jsonT({ success: false, message: drawing.message });
     }
 
-    return c.jsonT(Result.ok(drawing.data.elements.map(e => e.data)));
+    return c.jsonT(Result.ok(drawing.data.map(e => e.data)));
 });
 type GetDrawRoute = typeof getDraw;
 
@@ -84,14 +84,15 @@ export type ExcalidrawElement = z.infer<typeof elementSchema>;
 const saveDrawingSchema = z.object({
     slug: z.string(),
     elements: elementSchema.array(),
+    order: z.string().array(),
 });
 const createDrawing = drawController.post(
     "/draw",
     zValidator("json", saveDrawingSchema),
     async c => {
-        const { slug, elements } = c.req.valid("json");
+        const { slug, elements, order } = c.req.valid("json");
 
-        const drawingResult = await DrawRepository.saveDrawing(slug, elements);
+        const drawingResult = await DrawRepository.saveDrawing(slug, elements, order);
 
         if (!drawingResult.success) {
             // TODO: use Result when it works

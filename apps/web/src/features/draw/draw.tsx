@@ -80,6 +80,7 @@ export const Draw = ({ slug }: DrawProps) => {
             json: {
                 elements: e as any,
                 slug: currentSlug,
+                order: e.map(e => e.id),
             },
         });
 

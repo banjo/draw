@@ -1,3 +1,4 @@
+import { isDefined } from "@banjoanton/utils";
 import { Prisma, prisma } from "db";
 import { Result, createLogger } from "utils";
 import { ExcalidrawElement } from "../controller/DrawController";
@@ -19,11 +20,24 @@ const getDrawingBySlug = async (slug: string) => {
         return Result.error("Drawing not found", "NotFound");
     }
 
+    const orderedElements = drawing.order
+        .map(id => {
+            const element = drawing.elements.find(e => e.elementId === id);
+            if (!element) {
+                logger.error(`Element not found: ${id}`);
+                return;
+            }
+
+            return element;
+        })
+        // eslint-disable-next-line unicorn/no-array-callback-reference
+        .filter(isDefined);
+
     logger.trace(`Drawing found: ${slug}`);
-    return Result.ok(drawing);
+    return Result.ok(orderedElements);
 };
 
-const saveDrawing = async (slug: string, elements: ExcalidrawElement[]) => {
+const saveDrawing = async (slug: string, elements: ExcalidrawElement[], order: string[]) => {
     const drawingExists = await prisma.drawing.findUnique({
         where: {
             slug,
@@ -56,12 +70,28 @@ const saveDrawing = async (slug: string, elements: ExcalidrawElement[]) => {
             return Result.error("Error saving drawing elements", "InternalError");
         }
 
+        const orderUpdate = await prisma.drawing.update({
+            where: {
+                id: drawingExists.id,
+            },
+            data: {
+                order,
+            },
+        });
+
+        if (!orderUpdate) {
+            logger.error(`Error saving drawing order: ${slug}`);
+            return Result.error("Error saving drawing order", "InternalError");
+        }
+
         return Result.ok(drawingExists.id);
     }
 
+    console.log({ order });
     const createNewDrawing = await prisma.drawing.create({
         data: {
             slug,
+            order,
             elements: {
                 connectOrCreate: elements.map(element => ({
                     where: {
