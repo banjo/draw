@@ -72,7 +72,7 @@ export const Draw = ({ slug }: DrawProps) => {
         isSavingRef.current = isSaving;
     }, [isSaving]);
 
-    const save = async (e: readonly ExcalidrawElement[]) => {
+    const save = async (e: readonly ExcalidrawElement[], order: string[]) => {
         const currentSlug = slug ?? uuidv4();
 
         setIsSaving(true);
@@ -80,7 +80,7 @@ export const Draw = ({ slug }: DrawProps) => {
             json: {
                 elements: e as any,
                 slug: currentSlug,
-                order: e.map(e => e.id),
+                order: order,
             },
         });
 
@@ -96,11 +96,11 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const debouncedSave = useMemo(
         () =>
-            debounce(async (elements: readonly ExcalidrawElement[]) => {
+            debounce(async (elements: readonly ExcalidrawElement[], order: string[]) => {
                 if (!slug) return;
                 console.log("saving");
-                await save(elements);
-            }, 1000),
+                await save(elements, order);
+            }, 300),
         []
     );
 
@@ -232,8 +232,8 @@ export const Draw = ({ slug }: DrawProps) => {
             });
         };
 
-        firstRun.current = false;
         getDrawing();
+        firstRun.current = false;
     }, [excalidrawAPI]);
 
     // save images on change
@@ -286,7 +286,8 @@ export const Draw = ({ slug }: DrawProps) => {
                 <MainMenu.Item
                     onSelect={async () => {
                         const elements = excalidrawAPI!.getSceneElementsIncludingDeleted();
-                        const updatedSlug = await save(elements);
+                        const order = elements.map(e => e.id);
+                        const updatedSlug = await save(elements, order);
                         copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
                         toast.success("Link copied to clipboard");
 
@@ -319,8 +320,31 @@ export const Draw = ({ slug }: DrawProps) => {
                             return;
                         }
 
-                        debouncedSetElements(structuredClone(allButDeletedNewElements));
-                        debouncedSave(allButDeletedNewElements);
+                        const updatedElements = allButDeletedNewElements.filter(newElement => {
+                            const oldElement = allButDeletedOldElements.find(
+                                el => el.id === newElement.id
+                            );
+                            if (!oldElement) return true;
+                            if (oldElement.version < newElement.version) return true;
+                            return false;
+                        });
+
+                        const elementsToDelete = allButDeletedOldElements
+                            .filter(oldElement => {
+                                const newElement = allButDeletedNewElements.find(
+                                    el => el.id === oldElement.id
+                                );
+                                if (!newElement) return true;
+                                return false;
+                            })
+                            .map(element => ({ ...element, isDeleted: true }));
+
+                        const allElements = structuredClone(allButDeletedNewElements);
+                        const currentOrder = allElements.map(e => e.id);
+                        const elementsToSave = [...updatedElements, ...elementsToDelete];
+
+                        debouncedSetElements(allElements);
+                        debouncedSave(elementsToSave, currentOrder);
                     }}
                     initialData={{ elements }}
                     onPointerUpdate={e => {

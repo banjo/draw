@@ -47,7 +47,9 @@ const saveDrawing = async (slug: string, elements: ExcalidrawElement[], order: s
     if (drawingExists) {
         const deleteAll = await prisma.drawingElement.deleteMany({
             where: {
-                drawingId: drawingExists.id,
+                elementId: {
+                    in: elements.map(element => element.id),
+                },
             },
         });
 
@@ -56,16 +58,18 @@ const saveDrawing = async (slug: string, elements: ExcalidrawElement[], order: s
             return Result.error("Error deleting drawing elements", "InternalError");
         }
 
-        const createMany = await prisma.drawingElement.createMany({
-            data: elements.map(element => ({
+        const toUpdate = elements.filter(element => !element.isDeleted);
+
+        const update = await prisma.drawingElement.createMany({
+            data: toUpdate.map(element => ({
                 data: element as Prisma.InputJsonValue,
-                drawingId: drawingExists.id,
                 elementId: element.id,
                 version: element.version,
+                drawingId: drawingExists.id,
             })),
         });
 
-        if (!createMany) {
+        if (!update) {
             logger.error(`Error saving drawing elements: ${slug}`);
             return Result.error("Error saving drawing elements", "InternalError");
         }
@@ -87,7 +91,6 @@ const saveDrawing = async (slug: string, elements: ExcalidrawElement[], order: s
         return Result.ok(drawingExists.id);
     }
 
-    console.log({ order });
     const createNewDrawing = await prisma.drawing.create({
         data: {
             slug,
