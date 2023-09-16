@@ -5,6 +5,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +17,7 @@ type In = {
 
 export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
     const navigate = useNavigate();
-    const onShareDrawing = async () => {
+    const onShareDrawing = useCallback(async () => {
         const elements = excalidrawApi!.getSceneElementsIncludingDeleted();
         const order = elements.map(e => e.id);
         const updatedSlug = await saveDrawing(elements, order);
@@ -26,7 +27,7 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
         if (updatedSlug && slug !== updatedSlug) {
             navigate(`/draw/${updatedSlug}`);
         }
-    };
+    }, [excalidrawApi, slug]);
 
     const renderMenu = () => {
         return (

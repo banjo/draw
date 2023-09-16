@@ -28,10 +28,9 @@ export const useElementsState = ({ slug }: In) => {
     }, []);
 
     useEffect(() => {
-        console.log("elements changed", elements);
         if (slug) return;
         setLocalStorageElements(elements);
-    }, [elements]);
+    }, [elements, slug]);
 
     return {
         elements,

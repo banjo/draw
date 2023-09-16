@@ -34,27 +34,30 @@ export const useDrawing = ({
         isSavingDrawingRef.current = isSavingDrawing;
     }, [isSavingDrawing]);
 
-    const saveDrawing: SaveDrawing = async (e: ExcalidrawElements, order: string[]) => {
-        const currentSlug = slug ?? uuidv4();
+    const saveDrawing: SaveDrawing = useMemo(
+        () => async (e: ExcalidrawElements, order: string[]) => {
+            const currentSlug = slug ?? uuidv4();
 
-        setIsSavingDrawing(true);
-        const res = await client.draw.$post({
-            json: {
-                elements: e as any,
-                slug: currentSlug,
-                order: order,
-            },
-        });
+            setIsSavingDrawing(true);
+            const res = await client.draw.$post({
+                json: {
+                    elements: e as any,
+                    slug: currentSlug,
+                    order: order,
+                },
+            });
 
-        const data = await res.json();
-        setIsSavingDrawing(false);
+            const data = await res.json();
+            setIsSavingDrawing(false);
 
-        if (!data.success) {
-            return;
-        }
+            if (!data.success) {
+                return;
+            }
 
-        return currentSlug;
-    };
+            return currentSlug;
+        },
+        [slug]
+    );
 
     const debouncedSaveDrawing: (elements: ExcalidrawElements, order: string[]) => void = useMemo(
         () =>
@@ -62,13 +65,13 @@ export const useDrawing = ({
                 if (!slug) return;
                 await saveDrawing(elements, order);
             }, 300),
-        []
+        [saveDrawing, slug]
     );
 
-    const fetchDrawing = async (slug: string) => {
+    const fetchDrawing = async (s: string) => {
         const res = await client.draw[":slug"].$get({
             param: {
-                slug,
+                slug: s,
             },
         });
         const json = await res.json();
@@ -98,12 +101,12 @@ export const useDrawing = ({
     useEffect(() => {
         if (!slug || !excalidrawApi || firstRun.current === false) return;
         const getDrawing = async () => {
-            const elements = await fetchDrawing(slug);
+            const drawingElements = await fetchDrawing(slug);
 
-            if (!elements) return;
+            if (!drawingElements) return;
 
-            const allButDeletedElements = removeDeletedElements(elements);
-            setElements(allButDeletedElements);
+            const allButDeletedElements = removeDeletedElements(drawingElements);
+            setElements(structuredClone(allButDeletedElements));
             excalidrawApi.updateScene({
                 elements: allButDeletedElements,
             });
