@@ -12,7 +12,7 @@ read -p "Press enter to continue"
 SERVICE=$1
 GIT_TAG="deploy-$SERVICE"
 
-caprover deploy --caproverName banjo --caproverApp "$SERVICE" --branch main
 
+git push banjodraw-api main 
 git tag -d "$GIT_TAG"
 git tag "$GIT_TAG"
