@@ -70,8 +70,8 @@ importers:
         version: 3.21.4
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@types/express':
         specifier: ^4.17.17
         version: 4.17.17
@@ -173,8 +173,8 @@ importers:
         version: 4.4.1(@types/react@18.2.15)(react@18.2.0)
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@tanstack/eslint-plugin-query':
         specifier: ^4.32.5
         version: 4.32.5
@@ -274,8 +274,8 @@ importers:
         version: link:../tsconfig
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@types/node':
         specifier: ^17.0.45
         version: 17.0.45
@@ -290,8 +290,8 @@ importers:
         version: 3.21.4
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@types/node':
         specifier: ^17.0.45
         version: 17.0.45
@@ -321,8 +321,8 @@ importers:
         version: 3.21.4
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@types/node':
         specifier: ^17.0.45
         version: 17.0.45
@@ -369,8 +369,8 @@ importers:
         version: 1.0.5(tailwindcss@3.3.2)
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@types/react':
         specifier: ^18.0.9
         version: 18.2.15
@@ -424,8 +424,8 @@ importers:
         version: 3.21.4
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.44
-        version: 0.1.44
+        specifier: ^0.1.48
+        version: 0.1.48
       '@types/node':
         specifier: ^17.0.45
         version: 17.0.45
@@ -1961,8 +1961,8 @@ packages:
       prettier: 3.0.0
     dev: true
 
-  /@banjoanton/utils@0.1.44:
-    resolution: {integrity: sha512-Bb12XzvTAdjO4cg/kCzromSIzPiC0hOy+7Rn+iPdd8US6fQmqvwd63o6Cqz5UNxr+qGOQUwoEb22L4STMJP4aw==}
+  /@banjoanton/utils@0.1.48:
+    resolution: {integrity: sha512-N295sZofE9SvWPeGyhQrwbhKi4Dbhp8dpDYZPmOZZPTestAtjA7GjWiFYPGQYs6pmqkXekq82ggpmIJApHzc2w==}
     dev: true
 
   /@emotion/is-prop-valid@0.8.8:
