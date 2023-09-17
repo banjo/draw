@@ -1,10 +1,11 @@
-import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
-import { FC } from "react";
+import { Maybe } from "@banjoanton/utils";
 
-export const GlobalLoading: FC = () => {
-    const isLoading = useGlobalLoadingStore(state => state.isLoading);
-    const loadingText = useGlobalLoadingStore(state => state.loadingText);
+type Props = {
+    isLoading: boolean;
+    text: Maybe<string>;
+};
 
+export const GlobalLoading = ({ isLoading, text }: Props) => {
     if (!isLoading) {
         return null;
     }
@@ -16,7 +17,7 @@ export const GlobalLoading: FC = () => {
                     className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
                     role="status"
                 />
-                <span>{loadingText}</span>
+                <span>{text}</span>
             </div>
         </>
     );
