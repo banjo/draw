@@ -1,5 +1,3 @@
-import { Icons } from "@/components/shared/icons";
-import { ResponsiveIcon } from "@/components/shared/responsive-icon";
 import { SaveDrawing } from "@/features/draw/hooks/use-drawing";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe } from "@banjoanton/utils";
@@ -8,6 +6,7 @@ import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { Icons, ResponsiveIcon } from "ui";
 
 type In = {
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;

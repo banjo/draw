@@ -1,5 +1,5 @@
-import { Icon, ResponsiveIcon } from "@/components/shared/responsive-icon";
 import { FC, ReactNode } from "react";
+import { Icon, ResponsiveIcon } from "./responsive-icon";
 
 type Props = {
     icon: Icon;

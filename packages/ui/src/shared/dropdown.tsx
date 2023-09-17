@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -5,9 +6,8 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
+} from "../ui/dropdown-menu";
+import { cn } from "../utils";
 
 export type MenuEntries<T> =
     | {

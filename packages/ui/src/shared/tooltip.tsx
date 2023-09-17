@@ -1,10 +1,10 @@
+import { FC, ReactNode } from "react";
 import {
     Tooltip as TooltipBase,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { FC, ReactNode } from "react";
+} from "../ui/tooltip";
 
 type Props = {
     tooltip?: string;

@@ -46,6 +46,7 @@
         "@vitejs/plugin-react": "^4.0.3",
         "autoprefixer": "^10.4.14",
         "db": "workspace:*",
+        "ui": "workspace:*",
         "eslint": "^8.45.0",
         "eslint-plugin-prettier": "^5.0.0",
         "eslint-plugin-react-hooks": "^4.6.0",

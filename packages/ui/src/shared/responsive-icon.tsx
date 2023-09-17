@@ -1,8 +1,8 @@
-import { IconSize, iconSizeMapper } from "@/components/shared/icons";
-import { Tooltip } from "@/components/shared/tooltip";
-import { cn } from "@/lib/utils";
 import { noop } from "@banjoanton/utils";
 import { FC } from "react";
+import { cn } from "../utils";
+import { IconSize, iconSizeMapper } from "./icons";
+import { Tooltip } from "./tooltip";
 
 export type Icon = FC<{ className: string; onClick: () => void; disabled: boolean }>;
 

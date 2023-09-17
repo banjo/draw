@@ -1,4 +1,3 @@
-import { ErrorPage } from "@/components/shared/error";
 import { GlobalLoading } from "@/components/shared/global-loading";
 import { Root } from "@/routes/root";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -6,6 +5,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "react-hot-toast";
+import { ErrorPage } from "ui";
 import "./index.css";
 
 const queryClient = new QueryClient();
