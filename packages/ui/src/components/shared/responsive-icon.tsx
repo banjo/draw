@@ -1,6 +1,6 @@
 import { noop } from "@banjoanton/utils";
 import { FC } from "react";
-import { cn } from "../utils";
+import { cn } from "../../utils";
 import { IconSize, iconSizeMapper } from "./icons";
 import { Tooltip } from "./tooltip";
 
