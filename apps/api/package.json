@@ -19,7 +19,6 @@
         "@types/morgan": "^1.9.4",
         "db": "workspace:*",
         "firebase-server": "workspace:*",
-        "model": "workspace:*",
         "server": "workspace:*",
         "tsconfig": "workspace:*",
         "tsx": "^3.12.7",

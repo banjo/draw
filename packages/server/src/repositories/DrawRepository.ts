@@ -1,6 +1,6 @@
-import { isDefined } from "@banjoanton/utils";
+import { isDefined, Result } from "@banjoanton/utils";
 import { Prisma, prisma } from "db";
-import { Result, createLogger } from "utils";
+import { createLogger } from "utils";
 import { ExcalidrawElement } from "../controller/DrawController";
 
 const logger = createLogger("DrawRepository");

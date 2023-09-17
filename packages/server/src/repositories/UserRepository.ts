@@ -1,6 +1,6 @@
-import { prisma, User } from "db";
-import { AsyncResultType } from "model";
-import { createLogger, Result } from "utils";
+import { AsyncResultType, Result } from "@banjoanton/utils";
+import { User, prisma } from "db";
+import { createLogger } from "utils";
 
 const logger = createLogger("UserRepository");
 

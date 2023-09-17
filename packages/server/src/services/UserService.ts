@@ -1,4 +1,5 @@
-import { createLogger, Result } from "utils";
+import { Result } from "@banjoanton/utils";
+import { createLogger } from "utils";
 import { UserRepository } from "../repositories/UserRepository";
 
 const logger = createLogger("UserService");

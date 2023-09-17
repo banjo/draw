@@ -1,5 +1,5 @@
+import { Result } from "@banjoanton/utils";
 import { zValidator } from "@hono/zod-validator";
-import { Result } from "utils";
 import { z } from "zod";
 import { createHonoInstance } from "..";
 import { DrawRepository } from "../repositories/DrawRepository";
