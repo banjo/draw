@@ -6,7 +6,6 @@ import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "react-hot-toast";
 import { ErrorPage } from "ui";
-import "ui/styles/globals.css";
 import "./index.css";
 
 const queryClient = new QueryClient();
