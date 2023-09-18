@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/auth-context";
 import { SaveDrawing } from "@/features/draw/hooks/use-drawing";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe } from "@banjoanton/utils";
@@ -16,6 +17,7 @@ type In = {
 
 export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
     const navigate = useNavigate();
+    const { signInWithGoogle } = useAuth();
     const onShareDrawing = useCallback(async () => {
         const elements = excalidrawApi!.getSceneElementsIncludingDeleted();
         const order = elements.map(e => e.id);
@@ -31,6 +33,12 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
     const renderMenu = () => {
         return (
             <MainMenu>
+                <MainMenu.Item
+                    onSelect={signInWithGoogle}
+                    icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
+                >
+                    Sign in
+                </MainMenu.Item>
                 <MainMenu.Item
                     onSelect={onShareDrawing}
                     icon={<ResponsiveIcon Icon={Icons.link} />}

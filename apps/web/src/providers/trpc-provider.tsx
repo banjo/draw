@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
 import { getUrl } from "@/utils/runtime";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -6,6 +7,7 @@ import { FC, PropsWithChildren, useState } from "react";
 import superjson from "superjson";
 
 export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
+    const { token } = useAuth();
     const [queryClient] = useState(() => new QueryClient());
     const [trpcClient] = useState(() => {
         const url = getUrl();
@@ -20,10 +22,14 @@ export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
                             credentials: "include",
                         });
                     },
-                    async headers() {
-                        return {
-                            authorization: "Bearer 123",
-                        };
+                    headers: async () => {
+                        if (token && token.length > 0) {
+                            return {
+                                authorization: `Bearer ${token}`,
+                            };
+                        }
+
+                        return {};
                     },
                 }),
             ],
