@@ -1,13 +1,11 @@
 import { noop } from "@banjoanton/utils";
 import { FC } from "react";
 import { cn } from "../../utils";
-import { IconSize, iconSizeMapper } from "./icons";
+import { IconSize, IconType, iconSizeMapper } from "./icons";
 import { Tooltip } from "./tooltip";
 
-export type Icon = FC<{ className: string; onClick: () => void; disabled: boolean }>;
-
 type FilterIconProps = {
-    Icon: Icon;
+    Icon: IconType;
     tooltip?: string;
     className?: string;
     onClick?: () => void;

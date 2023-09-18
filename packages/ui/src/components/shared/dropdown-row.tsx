@@ -1,8 +1,9 @@
 import { FC, ReactNode } from "react";
-import { Icon, ResponsiveIcon } from "./responsive-icon";
+import { IconType } from "./icons";
+import { ResponsiveIcon } from "./responsive-icon";
 
 type Props = {
-    icon: Icon;
+    icon: IconType;
     text: ReactNode;
 };
 

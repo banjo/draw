@@ -28,10 +28,15 @@ import {
     Star,
     SunMedium,
     Twitter,
-    type Icon as LucideIcon,
+    type LucideProps,
 } from "lucide-react";
+import { FC } from "react";
 
-export type IconType = LucideIcon;
+export type IconType = FC<
+    LucideProps & {
+        disabled?: boolean;
+    }
+>;
 export type IconSize = "xs" | "sm" | "md" | "lg";
 
 export const iconSizeMapper: Record<IconSize, string> = {

@@ -7,7 +7,7 @@
     "types": "./src/index.ts",
     "devDependencies": {
         "@banjoanton/utils": "^0.1.48",
-        "@types/node": "^17.0.45",
+        "@types/node": "^20.6.2",
         "tsconfig": "workspace:*"
     },
     "dependencies": {
