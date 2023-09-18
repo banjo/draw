@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Maybe } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 type In = {
@@ -40,9 +40,10 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
         excalidrawApi.addFiles(files);
     };
 
+    const isFirstRunRef = useRef(true);
     // get images on load
     useEffect(() => {
-        if (!elements || !excalidrawApi) return;
+        if (!elements || !excalidrawApi || isFirstRunRef.current === false) return;
 
         const images = elements.filter(
             element => element.type === "image" && !element.isDeleted && element.fileId
@@ -50,7 +51,8 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
         if (images.length === 0) return;
 
         fetchImages(images.map(image => image.fileId!));
-    }, [excalidrawApi]);
+        isFirstRunRef.current = false;
+    }, [excalidrawApi, elements]);
 
     // save images on change
     useEffect(() => {
