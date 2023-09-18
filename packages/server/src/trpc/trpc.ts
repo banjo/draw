@@ -13,6 +13,7 @@ import { auth } from "firebase-server";
 import superjson from "superjson";
 import { createLogger } from "utils";
 import { ZodError } from "zod";
+import { UserRepository } from "../repositories/UserRepository";
 
 const logger = createLogger("auth");
 
@@ -33,7 +34,7 @@ const logger = createLogger("auth");
  */
 export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressContextOptions) => {
     const authHeader = req?.headers.authorization;
-    const createResponse = (userId?: string) => {
+    const createResponse = (userId?: number) => {
         return {
             req,
             res,
@@ -66,7 +67,37 @@ export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressC
         return createResponse();
     }
 
-    return createResponse(decodedToken.uid);
+    const userIdResponse = await UserRepository.getIdByExternalId(decodedToken.uid);
+
+    if (!userIdResponse.success) {
+        logger.info("No user id in database, creating user");
+
+        const externalId = decodedToken.uid;
+        const email = decodedToken.email;
+        const name = decodedToken.name;
+
+        if (!externalId || !email || !name) {
+            logger.error("No externalId, email or name in decoded token");
+            return new Response("Unauthorized", { status: 401 });
+        }
+
+        const user = await UserRepository.createUser({
+            externalId,
+            email,
+            name,
+        });
+
+        if (!user.success) {
+            logger.error("Could not create user");
+            return new Response("Unauthorized", { status: 401 });
+        }
+
+        logger.info("Created user with id: ", user.data.id);
+
+        return createResponse(user.data.id);
+    }
+
+    return createResponse(userIdResponse.data);
 };
 
 /**

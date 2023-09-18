@@ -1,21 +1,19 @@
-import "dotenv/config";
-import { appRouter, createTRPCContext } from "server";
-
-import express from "express";
-
+import { getUrl } from "@app/utils";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import cors from "cors";
+import "dotenv/config";
+import express from "express";
+import { appRouter, createTRPCContext } from "server";
 
 const app = express();
-
-// TODO: set origin to production URL or dev url
+const url = getUrl();
 
 app.use(
     "/trpc",
     trpcExpress.createExpressMiddleware({
         middleware: cors({
             credentials: true,
-            origin: "http://localhost:3005",
+            origin: url,
             allowedHeaders: ["Authorization", "Content-Type"],
         }),
         router: appRouter,
