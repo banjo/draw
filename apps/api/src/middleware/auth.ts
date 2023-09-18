@@ -25,7 +25,7 @@ export const authMiddleware = async (c: Context, next: Next) => {
         return;
     }
 
-    const authHeader = c.req.headers.get("Authorization");
+    const authHeader = c.req.raw.headers.get("Authorization");
 
     if (!authHeader) {
         logger.info("No auth header");

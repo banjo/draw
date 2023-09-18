@@ -4,6 +4,7 @@
     "rules": {
         "n/no-unpublished-import": "off",
         "import/no-unresolved": "off",
-        "n/no-unsupported-features/node-builtins": "off"
+        "n/no-unsupported-features/node-builtins": "off",
+        "no-unused-vars": ["error", { "args": "none" }]
     }
 }

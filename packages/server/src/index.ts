@@ -1,5 +1,4 @@
-export * from "./controller/BaseController";
-export * from "./controller/DrawController";
-export * from "./instance";
+export * from "./repositories/DrawRepository";
 export * from "./repositories/UserRepository";
 export * from "./services/UserService";
+export * from "./trpc";

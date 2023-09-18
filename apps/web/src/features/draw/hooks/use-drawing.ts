@@ -1,6 +1,6 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
 import { removeDeletedElements } from "@/features/draw/utils/element-utils";
-import { client } from "@/lib/hc";
+import { trpc } from "@/lib/trpc";
 import { Maybe, debounce, isEqual } from "@banjoanton/utils";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,6 +26,8 @@ export const useDrawing = ({
 }: In) => {
     const navigate = useNavigate();
 
+    const utils = trpc.useContext();
+
     const [isSavingDrawing, setIsSavingDrawing] = useState(false);
     const isSavingDrawingRef = useRef(isSavingDrawing);
 
@@ -39,18 +41,15 @@ export const useDrawing = ({
             const currentSlug = slug ?? uuidv4();
 
             setIsSavingDrawing(true);
-            const res = await client.draw.$post({
-                json: {
-                    elements: e as any,
-                    slug: currentSlug,
-                    order: order,
-                },
+            const res = await utils.client.draw.saveDrawing.mutate({
+                elements: e as any,
+                slug: currentSlug,
+                order: order,
             });
 
-            const data = await res.json();
             setIsSavingDrawing(false);
 
-            if (!data.success) {
+            if (!res.success) {
                 return;
             }
 
@@ -69,25 +68,17 @@ export const useDrawing = ({
     );
 
     const fetchDrawing = async (s: string) => {
-        const res = await client.draw[":slug"].$get({
-            param: {
-                slug: s,
-            },
+        const res = await utils.client.draw.getDrawing.query({
+            slug: s,
         });
-        const json = await res.json();
 
-        if (!json.success) {
-            navigate("/");
-            return;
-        }
-
-        if (!json.success) {
+        if (!res.success) {
             navigate("/");
             return;
         }
 
         // @ts-ignore
-        return json.data as unknown as ExcalidrawElement[];
+        return res.data as unknown as ExcalidrawElement[];
     };
 
     // update isFirstRun on slug change
@@ -97,7 +88,7 @@ export const useDrawing = ({
 
     const firstRun = useRef(true);
 
-    // fetch drawing on load
+    // // fetch drawing on load
     useEffect(() => {
         if (!slug || !excalidrawApi || firstRun.current === false) return;
         const getDrawing = async () => {

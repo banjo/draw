@@ -1,5 +1,5 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
-import { client } from "@/lib/hc";
+import { trpc } from "@/lib/trpc";
 import { Maybe } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
@@ -14,23 +14,21 @@ type In = {
 export const useImages = ({ excalidrawApi, elements }: In) => {
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
+    const utils = trpc.useContext();
+
     const fetchImages = async (ids: string[]) => {
         if (!excalidrawApi) return;
 
-        const res = await client.images.get.$post({
-            json: {
-                imageIds: ids,
-            },
+        const res = await utils.client.image.getImages.query({
+            imageIds: ids,
         });
 
-        const json = await res.json();
-
-        if (!json.success) {
+        if (!res.success) {
             toast.error("Failed to fetch images");
             return;
         }
 
-        const images = json.data;
+        const images = res.data;
 
         const files: BinaryFileData[] = images.map(image => ({
             id: image.imageId as any,
@@ -77,17 +75,15 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
         if (!notUploadedImages.length) return;
 
         const saveImages = async () => {
-            const res = await client.images.$post({
-                json: notUploadedImages.map(image => ({
+            const res = await utils.client.image.saveImages.mutate(
+                notUploadedImages.map(image => ({
                     id: image.id,
                     data: image.dataURL,
                     mimeType: image.mimeType,
-                })),
-            });
+                }))
+            );
 
-            const json = await res.json();
-
-            if (!json.success) {
+            if (!res.success) {
                 toast.error("Failed to save images");
                 return;
             }
