@@ -6,14 +6,11 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { DecodedIdToken } from "firebase-admin/auth";
-import { auth } from "firebase-server";
 import superjson from "superjson";
 import { createLogger } from "utils";
 import { ZodError } from "zod";
-import { UserRepository } from "../repositories/UserRepository";
 
 const logger = createLogger("auth");
 
@@ -33,71 +30,72 @@ const logger = createLogger("auth");
  * @link https://trpc.io/docs/context
  */
 export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressContextOptions) => {
-    const authHeader = req?.headers.authorization;
-    const createResponse = (userId?: number) => {
-        return {
-            req,
-            res,
-            userId,
-        };
-    };
+    return { req, res }
+    // const authHeader = req?.headers.authorization;
+    // const createResponse = (userId?: number) => {
+    //     return {
+    //         req,
+    //         res,
+    //         userId,
+    //     };
+    // };
 
-    if (!authHeader) {
-        logger.info("No auth header");
-        return createResponse();
-    }
+    // if (!authHeader) {
+    //     logger.info("No auth header");
+    //     return createResponse();
+    // }
 
-    if (!authHeader?.startsWith("Bearer ")) {
-        logger.info("No bearer token");
-        return createResponse();
-    }
+    // if (!authHeader?.startsWith("Bearer ")) {
+    //     logger.info("No bearer token");
+    //     return createResponse();
+    // }
 
-    const idToken = authHeader.split("Bearer ")[1];
+    // const idToken = authHeader.split("Bearer ")[1];
 
-    if (!idToken) {
-        logger.info("No id token");
-        return createResponse();
-    }
+    // if (!idToken) {
+    //     logger.info("No id token");
+    //     return createResponse();
+    // }
 
-    let decodedToken: DecodedIdToken;
-    try {
-        decodedToken = await auth.verifyIdToken(idToken);
-    } catch (error) {
-        console.log(error);
-        return createResponse();
-    }
+    // let decodedToken: DecodedIdToken;
+    // try {
+    //     decodedToken = await auth.verifyIdToken(idToken);
+    // } catch (error) {
+    //     console.log(error);
+    //     return createResponse();
+    // }
 
-    const userIdResponse = await UserRepository.getIdByExternalId(decodedToken.uid);
+    // const userIdResponse = await UserRepository.getIdByExternalId(decodedToken.uid);
 
-    if (!userIdResponse.success) {
-        logger.info("No user id in database, creating user");
+    // if (!userIdResponse.success) {
+    //     logger.info("No user id in database, creating user");
 
-        const externalId = decodedToken.uid;
-        const email = decodedToken.email;
-        const name = decodedToken.name;
+    //     const externalId = decodedToken.uid;
+    //     const email = decodedToken.email;
+    //     const name = decodedToken.name;
 
-        if (!externalId || !email || !name) {
-            logger.error("No externalId, email or name in decoded token");
-            return new Response("Unauthorized", { status: 401 });
-        }
+    //     if (!externalId || !email || !name) {
+    //         logger.error("No externalId, email or name in decoded token");
+    //         return new Response("Unauthorized", { status: 401 });
+    //     }
 
-        const user = await UserRepository.createUser({
-            externalId,
-            email,
-            name,
-        });
+    //     const user = await UserRepository.createUser({
+    //         externalId,
+    //         email,
+    //         name,
+    //     });
 
-        if (!user.success) {
-            logger.error("Could not create user");
-            return new Response("Unauthorized", { status: 401 });
-        }
+    //     if (!user.success) {
+    //         logger.error("Could not create user");
+    //         return new Response("Unauthorized", { status: 401 });
+    //     }
 
-        logger.info("Created user with id: ", user.data.id);
+    //     logger.info("Created user with id: ", user.data.id);
 
-        return createResponse(user.data.id);
-    }
+    //     return createResponse(user.data.id);
+    // }
 
-    return createResponse(userIdResponse.data);
+    // return createResponse(userIdResponse.data);
 };
 
 /**
@@ -145,17 +143,18 @@ export const publicProcedure = t.procedure;
  * Reusable middleware that enforces users are logged in before running the
  * procedure
  */
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-    if (!ctx.userId) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-    return next({
-        ctx: {
-            // infers the `session` as non-nullable
-            session: { userId: ctx.userId },
-        },
-    });
-});
+// const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+//     if (!ctx.userId) {
+    
+//         throw new TRPCError({ code: "UNAUTHORIZED" });
+//     }
+//     return next({
+//         ctx: {
+//             // infers the `session` as non-nullable
+//             session: { userId: ctx.userId },
+//         },
+//     });
+// });
 
 /**
  * Protected (authed) procedure
@@ -166,4 +165,4 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+// export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
