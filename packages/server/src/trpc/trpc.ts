@@ -9,10 +9,10 @@
 import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import superjson from "superjson";
-import { createLogger } from "utils";
+// import { createLogger } from "utils";
 import { ZodError } from "zod";
 
-const logger = createLogger("auth");
+// const logger = createLogger("auth");
 
 /**
  * 1. CONTEXT
@@ -30,7 +30,7 @@ const logger = createLogger("auth");
  * @link https://trpc.io/docs/context
  */
 export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressContextOptions) => {
-    return { req, res }
+    return { req, res };
     // const authHeader = req?.headers.authorization;
     // const createResponse = (userId?: number) => {
     //     return {
@@ -145,7 +145,7 @@ export const publicProcedure = t.procedure;
  */
 // const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 //     if (!ctx.userId) {
-    
+
 //         throw new TRPCError({ code: "UNAUTHORIZED" });
 //     }
 //     return next({
