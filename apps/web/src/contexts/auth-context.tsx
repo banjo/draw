@@ -1,26 +1,33 @@
 import { auth } from "@/lib/firebase";
 import { isDev } from "@/utils/runtime";
-import { raise } from "@banjoanton/utils";
-import { GoogleAuthProvider, User, signInWithPopup } from "firebase/auth";
-import jwt_decode from "jwt-decode";
-import { createContext, useContext, useEffect, useState } from "react";
+import { Maybe, raise } from "@banjoanton/utils";
+import {
+    GoogleAuthProvider,
+    User,
+    onAuthStateChanged,
+    signInWithPopup,
+    signOut,
+} from "firebase/auth";
+
+import jwtDecode from "jwt-decode";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 export type AuthContextType = {
+    user: User | null;
     userId: string | undefined;
-    loading: boolean;
-    logout: () => Promise<void>;
+    isLoading: boolean;
+    signOut: () => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     token: string | undefined;
-    getToken: () => Promise<string>;
 };
 
 const emptyContext: AuthContextType = {
     userId: undefined,
-    loading: false,
-    logout: async () => {},
+    isLoading: false,
     signInWithGoogle: async () => {},
+    signOut: async () => {},
+    user: null,
     token: undefined,
-    getToken: async () => "",
 };
 
 const AuthContext = createContext<AuthContextType>(emptyContext);
@@ -33,90 +40,116 @@ type AuthProviderProps = {
     children: React.ReactNode;
 };
 
-export function AuthProvider({ children }: AuthProviderProps) {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | undefined>(undefined);
-    const [loading, setLoading] = useState(true);
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [token, setToken] = useState<Maybe<string>>();
+    const [isLoading, setIsLoading] = useState(true);
 
-    const signInWithGoogle = async () => {
+    const timeoutRef = useRef<NodeJS.Timeout>();
+    const initialLoadCompletedRef = useRef(false);
+
+    const signInWithGoogle = useCallback(async () => {
         const provider = new GoogleAuthProvider();
-        const signInResponse = await signInWithPopup(auth, provider);
-        setCurrentUser(signInResponse.user);
-    };
+        try {
+            const result = await signInWithPopup(auth, provider);
+            setUser(result.user);
+        } catch (error) {
+            console.error(error);
+        }
+    }, []);
 
-    const logout = () => auth.signOut();
-    const userId = currentUser?.uid;
+    const handleSignOut = useCallback(async () => {
+        try {
+            await signOut(auth);
+            setUser(null);
+            setToken(undefined);
+        } catch (error) {
+            console.error(error);
+        }
+    }, []);
 
+    const refreshToken = useCallback(async () => {
+        if (!user) return;
+
+        if (!initialLoadCompletedRef.current) {
+            setIsLoading(true);
+        }
+
+        try {
+            const newToken = await user.getIdToken(true);
+            setToken(newToken);
+            const decodedToken: { exp: number } = jwtDecode(newToken);
+            const expirationTime = decodedToken.exp * 1000 - 5 * 60 * 1000; // Safe margin 5 min
+            const id = setTimeout(refreshToken, expirationTime - Date.now());
+            timeoutRef.current = id;
+
+            if (!initialLoadCompletedRef.current) {
+                initialLoadCompletedRef.current = true;
+            }
+
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Error refreshing token", error);
+            setIsLoading(false);
+        }
+    }, [user]);
+
+    // Development mode without authentication
     useEffect(() => {
         if (isDev()) {
             const uid =
                 import.meta.env.VITE_DEVELOPMENT_UID ?? raise("VITE_DEVELOPMENT_UID not specified");
 
-            setCurrentUser({
+            setUser({
                 uid,
             } as User);
             setToken("development");
-            setLoading(false);
-            return;
+            setIsLoading(false);
         }
-
-        const unsubscribe = auth.onAuthStateChanged(user => {
-            setLoading(true);
-            setCurrentUser(user);
-            setToken(undefined);
-            if (!user) {
-                setLoading(false);
-                return;
-            }
-
-            user.getIdToken().then(token => {
-                setToken(token);
-                setLoading(false);
-            });
-        });
-
-        return unsubscribe;
     }, []);
 
     useEffect(() => {
-        if (!currentUser || isDev()) return;
+        if (isDev()) return;
 
-        let timeout: NodeJS.Timeout;
-        let isCancelled = false;
-
-        const refresh = async () => {
-            try {
-                const token = await currentUser.getIdToken();
-
-                if (isCancelled) return;
-                setToken(token);
-
-                const decodedToken: { exp: number } = jwt_decode(token);
-                const expirationTime = decodedToken.exp * 1000 - 60000;
-                timeout = setTimeout(refresh, expirationTime - Date.now());
-            } catch (error) {
-                // TODO: better refresh logic
-                console.error("Failed to refresh token", error);
-                await logout();
+        const unsubscribe = onAuthStateChanged(auth, async currentUser => {
+            setUser(currentUser);
+            if (currentUser) {
+                await refreshToken();
+            } else {
+                setIsLoading(false);
             }
-        };
-
-        refresh();
+        });
 
         return () => {
-            isCancelled = true;
-            clearTimeout(timeout);
+            unsubscribe();
+            clearTimeout(timeoutRef.current);
         };
-    }, [currentUser]);
+    }, [refreshToken]);
 
-    const value = {
-        logout,
-        loading,
-        signInWithGoogle,
-        userId,
+    useEffect(() => {
+        if (isDev()) return;
+
+        if (!user) {
+            setToken(undefined);
+            initialLoadCompletedRef.current = false;
+            return;
+        }
+
+        refreshToken();
+    }, [user, refreshToken]);
+
+    const contextValue: AuthContextType = {
+        user,
+        userId: user?.uid,
         token,
-        getToken: currentUser?.getIdToken ?? (async () => ""),
+        isLoading,
+        signInWithGoogle,
+        signOut: handleSignOut,
     };
 
-    return <AuthContext.Provider value={value}> {!loading && children}</AuthContext.Provider>;
-}
+    return (
+        <AuthContext.Provider value={contextValue}>
+            {isLoading ? <div>Loading...</div> : children}
+        </AuthContext.Provider>
+    );
+};

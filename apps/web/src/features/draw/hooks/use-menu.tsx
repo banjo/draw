@@ -17,7 +17,7 @@ type In = {
 
 export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
     const navigate = useNavigate();
-    const { signInWithGoogle } = useAuth();
+    const { signInWithGoogle, user, signOut } = useAuth();
     const onShareDrawing = useCallback(async () => {
         const elements = excalidrawApi!.getSceneElementsIncludingDeleted();
         const order = elements.map(e => e.id);
@@ -33,12 +33,22 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
     const renderMenu = () => {
         return (
             <MainMenu>
-                <MainMenu.Item
-                    onSelect={signInWithGoogle}
-                    icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
-                >
-                    Sign in
-                </MainMenu.Item>
+                {user ? (
+                    <MainMenu.Item
+                        onSelect={signOut}
+                        icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
+                    >
+                        Sign out
+                    </MainMenu.Item>
+                ) : (
+                    <MainMenu.Item
+                        onSelect={signInWithGoogle}
+                        icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
+                    >
+                        Sign in
+                    </MainMenu.Item>
+                )}
+
                 <MainMenu.Item
                     onSelect={onShareDrawing}
                     icon={<ResponsiveIcon Icon={Icons.link} />}
