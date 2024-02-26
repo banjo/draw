@@ -1,7 +1,8 @@
-import { isDefined, Result } from "@banjoanton/utils";
+import { isDefined, Maybe, Result } from "@banjoanton/utils";
 import { Prisma, prisma } from "db";
 import { createLogger } from "utils";
 import { ExcalidrawElement } from "../trpc/router/draw";
+import { UserRepository } from "./UserRepository";
 
 const logger = createLogger("DrawRepository");
 
@@ -37,7 +38,12 @@ const getDrawingBySlug = async (slug: string) => {
     return Result.ok(orderedElements);
 };
 
-const saveDrawing = async (slug: string, elements: ExcalidrawElement[], order: string[]) => {
+const saveDrawing = async (
+    slug: string,
+    elements: ExcalidrawElement[],
+    order: string[],
+    userId?: string
+) => {
     const drawingExists = await prisma.drawing.findUnique({
         where: {
             slug,
@@ -91,10 +97,28 @@ const saveDrawing = async (slug: string, elements: ExcalidrawElement[], order: s
         return Result.ok(drawingExists.id);
     }
 
+    let ownerId: Maybe<number>;
+    if (userId) {
+        const userIdResult = await UserRepository.getIdByExternalId(userId);
+
+        if (!userIdResult.success) {
+            return Result.error("Error getting user", "InternalError");
+        }
+
+        ownerId = userIdResult.data;
+    }
+
     const createNewDrawing = await prisma.drawing.create({
         data: {
             slug,
             order,
+            owner: ownerId
+                ? {
+                      connect: {
+                          id: ownerId,
+                      },
+                  }
+                : undefined,
             elements: {
                 connectOrCreate: elements.map(element => ({
                     where: {

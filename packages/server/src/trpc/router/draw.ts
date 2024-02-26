@@ -29,12 +29,13 @@ export const drawRouter = createTRPCRouter({
                 slug: z.string(),
                 elements: elementSchema.array(),
                 order: z.string().array(),
+                userId: z.string().optional(),
             })
         )
         .mutation(async ({ input }) => {
-            const { slug, elements, order } = input;
+            const { slug, elements, order, userId } = input;
 
-            const drawingResult = await DrawRepository.saveDrawing(slug, elements, order);
+            const drawingResult = await DrawRepository.saveDrawing(slug, elements, order, userId);
 
             if (!drawingResult.success) {
                 return Result.error(drawingResult.message, "InternalError");

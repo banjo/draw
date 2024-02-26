@@ -15,7 +15,14 @@ model User {
   email      String   @unique
   name       String?
   externalId String   @unique
-  drawings   Drawing[]
+  drawings   Drawing[] @relation("OwnerDrawings")
+  savedDrawings Drawing[] @relation("SavedDrawings")
+}
+
+enum Access {
+  public
+  private
+  restricted
 }
 
 model Drawing {
@@ -25,9 +32,10 @@ model Drawing {
   updatedAt DateTime @updatedAt
   name      String?
   data      Json[]    
-  user      User?     @relation(fields: [userId], references: [id])
-  userId    Int?
-  public    Boolean  @default(true)
+  owner     User?     @relation("OwnerDrawings", fields: [ownerId], references: [id]) 
+  ownerId   Int?
+  users     User[]    @relation("SavedDrawings")
+  access    Access   @default(public)
   order     String[]
   elements  DrawingElement[]
 }

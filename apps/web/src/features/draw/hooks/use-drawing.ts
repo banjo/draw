@@ -1,7 +1,8 @@
+import { useAuth } from "@/contexts/auth-context";
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
 import { removeDeletedElements } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
-import { Maybe, debounce, isEqual } from "@banjoanton/utils";
+import { Maybe, attemptAsync, debounce, isEqual } from "@banjoanton/utils";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +26,7 @@ export const useDrawing = ({
     debouncedSetElements,
 }: In) => {
     const navigate = useNavigate();
+    const { userId } = useAuth();
 
     const utils = trpc.useContext();
 
@@ -45,17 +47,15 @@ export const useDrawing = ({
                 elements: e as any,
                 slug: currentSlug,
                 order: order,
+                userId,
             });
 
             setIsSavingDrawing(false);
 
-            if (!res.success) {
-                return;
-            }
-
+            if (!res.success) return;
             return currentSlug;
         },
-        [slug]
+        [slug, userId]
     );
 
     const debouncedSaveDrawing: (elements: ExcalidrawElements, order: string[]) => void = useMemo(
@@ -68,9 +68,11 @@ export const useDrawing = ({
     );
 
     const fetchDrawing = async (s: string) => {
-        const res = await utils.client.draw.getDrawing.query({
-            slug: s,
-        });
+        const res = await attemptAsync(() =>
+            utils.client.draw.getDrawing.query({
+                slug: s,
+            })
+        );
 
         if (!res.success) {
             navigate("/");

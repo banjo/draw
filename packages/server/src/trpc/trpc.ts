@@ -8,11 +8,14 @@
  */
 import { initTRPC } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
+import { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
+import { auth } from "firebase-server";
 import superjson from "superjson";
-// import { createLogger } from "utils";
+import { createLogger } from "utils";
 import { ZodError } from "zod";
+import { UserRepository } from "../repositories/UserRepository";
 
-// const logger = createLogger("auth");
+const logger = createLogger("auth");
 
 /**
  * 1. CONTEXT
@@ -30,72 +33,71 @@ import { ZodError } from "zod";
  * @link https://trpc.io/docs/context
  */
 export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressContextOptions) => {
-    return { req, res };
-    // const authHeader = req?.headers.authorization;
-    // const createResponse = (userId?: number) => {
-    //     return {
-    //         req,
-    //         res,
-    //         userId,
-    //     };
-    // };
+    const authHeader = req?.headers.authorization;
+    const createResponse = (userId?: number) => {
+        return {
+            req,
+            res,
+            userId,
+        };
+    };
 
-    // if (!authHeader) {
-    //     logger.info("No auth header");
-    //     return createResponse();
-    // }
+    if (!authHeader) {
+        logger.info("No auth header");
+        return createResponse();
+    }
 
-    // if (!authHeader?.startsWith("Bearer ")) {
-    //     logger.info("No bearer token");
-    //     return createResponse();
-    // }
+    if (!authHeader?.startsWith("Bearer ")) {
+        logger.info("No bearer token");
+        return createResponse();
+    }
 
-    // const idToken = authHeader.split("Bearer ")[1];
+    const idToken = authHeader.split("Bearer ")[1];
 
-    // if (!idToken) {
-    //     logger.info("No id token");
-    //     return createResponse();
-    // }
+    if (!idToken) {
+        logger.info("No id token");
+        return createResponse();
+    }
 
-    // let decodedToken: DecodedIdToken;
-    // try {
-    //     decodedToken = await auth.verifyIdToken(idToken);
-    // } catch (error) {
-    //     console.log(error);
-    //     return createResponse();
-    // }
+    let decodedToken: DecodedIdToken;
+    try {
+        decodedToken = await auth.verifyIdToken(idToken);
+    } catch (error) {
+        console.log(error);
+        return createResponse();
+    }
 
-    // const userIdResponse = await UserRepository.getIdByExternalId(decodedToken.uid);
+    const userIdResponse = await UserRepository.getIdByExternalId(decodedToken.uid);
 
-    // if (!userIdResponse.success) {
-    //     logger.info("No user id in database, creating user");
+    if (!userIdResponse.success) {
+        logger.info("No user id in database, creating user");
 
-    //     const externalId = decodedToken.uid;
-    //     const email = decodedToken.email;
-    //     const name = decodedToken.name;
+        const externalId = decodedToken.uid;
+        const email = decodedToken.email;
+        const name = decodedToken.name;
 
-    //     if (!externalId || !email || !name) {
-    //         logger.error("No externalId, email or name in decoded token");
-    //         return new Response("Unauthorized", { status: 401 });
-    //     }
+        if (!externalId || !email || !name) {
+            logger.error("No externalId, email or name in decoded token");
+            return new Response("Unauthorized", { status: 401 });
+        }
 
-    //     const user = await UserRepository.createUser({
-    //         externalId,
-    //         email,
-    //         name,
-    //     });
+        const user = await UserRepository.createUser({
+            externalId,
+            email,
+            name,
+        });
 
-    //     if (!user.success) {
-    //         logger.error("Could not create user");
-    //         return new Response("Unauthorized", { status: 401 });
-    //     }
+        if (!user.success) {
+            logger.error("Could not create user");
+            return new Response("Unauthorized", { status: 401 });
+        }
 
-    //     logger.info("Created user with id: ", user.data.id);
+        logger.info(`Created user with id: ${user.data.id}`);
 
-    //     return createResponse(user.data.id);
-    // }
+        return createResponse(user.data.id);
+    }
 
-    // return createResponse(userIdResponse.data);
+    return createResponse(userIdResponse.data);
 };
 
 /**

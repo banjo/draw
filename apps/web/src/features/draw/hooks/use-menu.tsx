@@ -4,6 +4,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { BrushIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -13,9 +14,10 @@ type In = {
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
     slug: Maybe<string>;
     saveDrawing: SaveDrawing;
+    toggleSidebar: () => void;
 };
 
-export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
+export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In) => {
     const navigate = useNavigate();
     const { signInWithGoogle, user, signOut } = useAuth();
     const onShareDrawing = useCallback(async () => {
@@ -36,7 +38,7 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
                 {user ? (
                     <MainMenu.Item
                         onSelect={signOut}
-                        icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
+                        icon={<ResponsiveIcon Icon={Icons.signOut} />}
                     >
                         Sign out
                     </MainMenu.Item>
@@ -46,6 +48,15 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing }: In) => {
                         icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
                     >
                         Sign in
+                    </MainMenu.Item>
+                )}
+
+                {user && (
+                    <MainMenu.Item
+                        onSelect={toggleSidebar}
+                        icon={<ResponsiveIcon Icon={BrushIcon} />}
+                    >
+                        Drawings
                     </MainMenu.Item>
                 )}
 
