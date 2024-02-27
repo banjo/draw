@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
 import { removeDeletedElements } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
-import { Maybe, attemptAsync, debounce, isEqual } from "@banjoanton/utils";
+import { Maybe, debounce, isEqual } from "@banjoanton/utils";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -68,11 +68,9 @@ export const useDrawing = ({
     );
 
     const fetchDrawing = async (s: string) => {
-        const res = await attemptAsync(() =>
-            utils.client.draw.getDrawing.query({
-                slug: s,
-            })
-        );
+        const res = await utils.client.draw.getDrawing.query({
+            slug: s,
+        });
 
         if (!res.success) {
             navigate("/");
@@ -92,7 +90,7 @@ export const useDrawing = ({
 
     // // fetch drawing on load
     useEffect(() => {
-        if (!slug || !excalidrawApi || firstRun.current === false) return;
+        if (!slug || !excalidrawApi) return;
         const getDrawing = async () => {
             const drawingElements = await fetchDrawing(slug);
 
@@ -106,8 +104,7 @@ export const useDrawing = ({
         };
 
         getDrawing();
-        firstRun.current = false;
-    }, [excalidrawApi]);
+    }, [slug, excalidrawApi]);
 
     const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
         const allButDeletedNewElements = removeDeletedElements(e);

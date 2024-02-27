@@ -1,7 +1,8 @@
 import { Result } from "@banjoanton/utils";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { DrawRepository } from "../../repositories/DrawRepository";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 export const elementSchema = z
     .object({
@@ -42,5 +43,78 @@ export const drawRouter = createTRPCRouter({
             }
 
             return Result.ok(drawingResult.data);
+        }),
+    saveToMyDrawings: protectedProcedure
+        .input(z.object({ slug: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            const { slug } = input;
+            const { userId } = ctx;
+
+            if (!userId) {
+                return Result.error("Unauthorized", "Unauthorized");
+            }
+
+            const drawingResult = await DrawRepository.saveToMyDrawings(slug, userId);
+
+            if (!drawingResult.success) {
+                return Result.error(drawingResult.message, "InternalError");
+            }
+
+            return Result.okEmpty();
+        }),
+    getMyDrawings: protectedProcedure.query(async ({ ctx }) => {
+        const { userId } = ctx;
+
+        if (!userId) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
+        const drawings = await DrawRepository.getMyDrawings(userId);
+
+        if (!drawings.success) {
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        }
+
+        return drawings.data;
+    }),
+    deleteDrawingFromMyDrawings: protectedProcedure
+        .input(z.object({ slug: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            const { slug } = input;
+            const { userId } = ctx;
+
+            if (!userId) {
+                throw new TRPCError({ code: "UNAUTHORIZED" });
+            }
+
+            const drawingResult = await DrawRepository.deleteDrawingFromMyDrawings(userId, slug);
+
+            if (!drawingResult.success) {
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+            }
+
+            return Result.okEmpty();
+        }),
+    updateDrawingName: protectedProcedure
+        .input(z.object({ slug: z.string(), name: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            const { slug, name } = input;
+            const { userId } = ctx;
+
+            if (!userId) {
+                throw new TRPCError({ code: "UNAUTHORIZED" });
+            }
+
+            const drawingResult = await DrawRepository.updateDrawingName(slug, name, userId);
+
+            if (!drawingResult.success) {
+                if (drawingResult.type === "Unauthorized") {
+                    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not owner of drawing" });
+                }
+
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+            }
+
+            return Result.okEmpty();
         }),
 });

@@ -6,7 +6,7 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { DecodedIdToken } from "firebase-admin/lib/auth/token-verifier";
 import { auth } from "firebase-server";
@@ -78,7 +78,7 @@ export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressC
 
         if (!externalId || !email || !name) {
             logger.error("No externalId, email or name in decoded token");
-            return new Response("Unauthorized", { status: 401 });
+            return createResponse();
         }
 
         const user = await UserRepository.createUser({
@@ -89,7 +89,7 @@ export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressC
 
         if (!user.success) {
             logger.error("Could not create user");
-            return new Response("Unauthorized", { status: 401 });
+            return createResponse();
         }
 
         logger.info(`Created user with id: ${user.data.id}`);
@@ -145,18 +145,17 @@ export const publicProcedure = t.procedure;
  * Reusable middleware that enforces users are logged in before running the
  * procedure
  */
-// const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
-//     if (!ctx.userId) {
-
-//         throw new TRPCError({ code: "UNAUTHORIZED" });
-//     }
-//     return next({
-//         ctx: {
-//             // infers the `session` as non-nullable
-//             session: { userId: ctx.userId },
-//         },
-//     });
-// });
+const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
+    if (!ctx.userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({
+        ctx: {
+            // infers the `session` as non-nullable
+            session: { userId: ctx.userId },
+        },
+    });
+});
 
 /**
  * Protected (authed) procedure
@@ -167,4 +166,4 @@ export const publicProcedure = t.procedure;
  *
  * @see https://trpc.io/docs/procedures
  */
-// export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const protectedProcedure = t.procedure.use(enforceUserIsAuthenticated);

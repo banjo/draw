@@ -176,9 +176,149 @@ const getImages = async (imageIds: string[]) => {
     return Result.ok(images);
 };
 
+const saveToMyDrawings = async (slug: string, userId: number) => {
+    const drawing = await prisma.drawing.findUnique({
+        where: {
+            slug,
+        },
+    });
+
+    if (!drawing) {
+        logger.error(`Drawing not found: ${slug}`);
+        return Result.error("Drawing not found", "NotFound");
+    }
+
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        },
+    });
+
+    if (!user) {
+        logger.error(`User not found: ${userId}`);
+        return Result.error("User not found", "NotFound");
+    }
+
+    const saveToMyDrawingsResult = await prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            savedDrawings: {
+                connect: {
+                    id: drawing.id,
+                },
+            },
+        },
+    });
+
+    if (!saveToMyDrawingsResult) {
+        logger.error(`Error saving drawing to user: ${slug}`);
+        return Result.error("Error saving drawing to user", "InternalError");
+    }
+
+    return Result.okEmpty();
+};
+
+const getMyDrawings = async (userId: number) => {
+    const drawings = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        },
+        include: {
+            savedDrawings: true,
+        },
+    });
+
+    if (!drawings) {
+        logger.error(`Error getting user drawings: ${userId}`);
+        return Result.error("Error getting user drawings", "InternalError");
+    }
+
+    const mapped = drawings.savedDrawings.map(drawing => ({
+        slug: drawing.slug,
+        name: drawing.name ?? "untitled",
+        isOwner: drawing.ownerId === userId,
+    }));
+
+    return Result.ok(mapped);
+};
+
+const deleteDrawingFromMyDrawings = async (userId: number, slug: string) => {
+    const drawing = await prisma.drawing.findUnique({
+        where: {
+            slug,
+        },
+    });
+
+    if (!drawing) {
+        logger.error(`Drawing not found: ${slug}`);
+        return Result.error("Drawing not found", "NotFound");
+    }
+
+    const deleteDrawingResult = await prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            savedDrawings: {
+                disconnect: {
+                    id: drawing.id,
+                },
+            },
+        },
+    });
+
+    if (!deleteDrawingResult) {
+        logger.error(`Error deleting drawing from user: ${slug}`);
+        return Result.error("Error deleting drawing from user", "InternalError");
+    }
+
+    return Result.okEmpty();
+};
+
+const updateDrawingName = async (slug: string, name: string, userId: number) => {
+    // only update if the drawings owner id matches the user id
+    const drawing = await prisma.drawing.findUnique({
+        where: {
+            slug,
+        },
+    });
+
+    if (!drawing) {
+        logger.error(`Drawing not found: ${slug}`);
+        return Result.error("Drawing not found", "NotFound");
+    }
+
+    if (drawing.ownerId !== userId) {
+        logger.error(`User not authorized to update drawing: ${slug}`);
+        return Result.error("User not authorized to update drawing", "Unauthorized");
+    }
+
+    const updateDrawingResult = await prisma.drawing.update({
+        where: {
+            id: drawing.id,
+        },
+        data: {
+            name,
+        },
+    });
+
+    if (!updateDrawingResult) {
+        logger.error(`Error updating drawing name: ${slug}`);
+        return Result.error("Error updating drawing name", "InternalError");
+    }
+
+    return Result.okEmpty();
+};
+
 export const DrawRepository = {
     getDrawingBySlug,
     saveDrawing,
     saveImages,
     getImages,
+    saveToMyDrawings,
+    getMyDrawings,
+    deleteDrawingFromMyDrawings,
+    updateDrawingName,
 };
