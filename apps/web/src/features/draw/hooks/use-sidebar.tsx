@@ -1,11 +1,12 @@
 import { useAuth } from "@/contexts/auth-context";
+import { DrawingCard } from "@/features/draw/components/drawing-card";
 import { trpc } from "@/lib/trpc";
 import { Maybe } from "@banjoanton/utils";
 import { Sidebar } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { BrushIcon } from "lucide-react";
 import { useLocalStorage } from "react-use";
-import { DrawingCard, ResponsiveIcon } from "ui";
+import { ResponsiveIcon } from "ui";
 
 type In = {
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
@@ -41,6 +42,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
                                 currentSlug={currentSlug}
                                 isOwner={isOwner}
                                 name={name}
+                                key={slug}
                             />
                         ))}
                     </div>

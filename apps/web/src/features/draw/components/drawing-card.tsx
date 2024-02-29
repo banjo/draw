@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { attemptAsync, isUndefined } from "@banjoanton/utils";
+import { Maybe, attemptAsync, isUndefined } from "@banjoanton/utils";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { useRef } from "react";
 import toast from "react-hot-toast";
@@ -9,7 +9,7 @@ import { ResponsiveIcon } from "../../../../../../packages/ui/src/components/sha
 
 type Props = {
     cardSlug: string;
-    currentSlug: string;
+    currentSlug: Maybe<string>;
     name: string;
     isOwner: boolean;
 };
@@ -65,8 +65,6 @@ export const DrawingCard = ({ cardSlug, currentSlug, name, isOwner }: Props) => 
                                     px-4 py-2 flex gap-2 items-center 
                                     ${cardSlug === currentSlug ? "bg-zinc-50" : ""}`}
             onClick={() => navigate(`/draw/${cardSlug}`)}
-            key={cardSlug}
-            data-key={cardSlug}
         >
             <EditableLabel
                 initialText={name}
