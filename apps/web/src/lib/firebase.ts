@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyC5NivaQBepaTuukr2kbaeAIR9QW7QmDUY",
-    authDomain: "banjodraw-4d63e.firebaseapp.com",
-    projectId: "banjodraw-4d63e",
-    storageBucket: "banjodraw-4d63e.appspot.com",
-    messagingSenderId: "363187421088",
-    appId: "1:363187421088:web:fc795dddf6be53dfe36ec5",
-    measurementId: "G-7T61V0QKVX",
+    apiKey: "AIzaSyCn-wpkNDt6tm04-wKmrOl0BGUcqDo4iGc",
+    authDomain: "banjo-draw.firebaseapp.com",
+    projectId: "banjo-draw",
+    storageBucket: "banjo-draw.appspot.com",
+    messagingSenderId: "109015338205",
+    appId: "1:109015338205:web:b74553cfa82990a31adf34",
+    measurementId: "G-DQTP9D16Z9",
 };
 
 export const app = initializeApp(firebaseConfig);
