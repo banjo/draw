@@ -5,9 +5,10 @@ import { Maybe, attemptAsync, isUndefined } from "@banjoanton/utils";
 import { Sidebar } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { BrushIcon, EditIcon, TrashIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useLocalStorage } from "react-use";
 import { ResponsiveIcon } from "ui";
 
 type In = {
@@ -20,8 +21,10 @@ type EditableLabelRef = {
     stopEditing: () => void;
 };
 
+const KEY_DOCKED_STATE = "banjo-docked-state";
+
 export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
-    const [docked, setDocked] = useState(false);
+    const [docked, setDocked] = useLocalStorage(KEY_DOCKED_STATE, false);
     const navigate = useNavigate();
     const { user } = useAuth();
     const utils = trpc.useContext();
