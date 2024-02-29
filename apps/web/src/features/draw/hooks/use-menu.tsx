@@ -24,10 +24,18 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
 
     const utils = trpc.useContext();
 
-    const onShareDrawing = useCallback(async () => {
-        const elements = excalidrawApi!.getSceneElementsIncludingDeleted();
+    const saveDrawingToDatabase = useCallback(() => {
+        if (!excalidrawApi) return;
+
+        const elements = excalidrawApi.getSceneElementsIncludingDeleted();
         const order = elements.map(e => e.id);
-        const updatedSlug = await saveDrawing(elements, order);
+        return saveDrawing(elements, order);
+    }, [excalidrawApi, saveDrawing]);
+
+    const onShareDrawing = useCallback(async () => {
+        if (!excalidrawApi) return;
+
+        const updatedSlug = await saveDrawingToDatabase();
         copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
         toast.success("Link copied to clipboard");
 
@@ -37,9 +45,17 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
     }, [excalidrawApi, slug]);
 
     const saveToCollection = useCallback(async () => {
-        if (!slug) return;
+        let currentSlug = slug;
+        if (!currentSlug) {
+            currentSlug = await saveDrawingToDatabase();
 
-        const res = await utils.client.draw.saveToCollection.mutate({ slug });
+            if (!currentSlug) {
+                toast.error("Error saving drawing");
+                return;
+            }
+        }
+
+        const res = await utils.client.draw.saveToCollection.mutate({ slug: currentSlug });
 
         if (!res.success) {
             toast.error(res.message);
@@ -48,7 +64,8 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
 
         utils.draw.getCollection.invalidate();
         toast.success("Drawing saved to my collection!");
-    }, [slug]);
+        navigate(`/draw/${currentSlug}`);
+    }, [slug, excalidrawApi]);
 
     const renderMenu = () => {
         return (

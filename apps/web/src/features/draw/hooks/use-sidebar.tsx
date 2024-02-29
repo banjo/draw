@@ -75,7 +75,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
 
                 <div className="p-4">
                     {isLoading && "Loading..."}
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3">
                         {data?.map(({ name, slug, isOwner }) => (
                             <div
                                 className={`rounded-lg border text-card-foreground 

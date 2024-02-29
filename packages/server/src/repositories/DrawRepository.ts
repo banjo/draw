@@ -226,7 +226,11 @@ const getCollection = async (userId: number) => {
             id: userId,
         },
         include: {
-            collection: true,
+            collection: {
+                orderBy: {
+                    createdAt: "desc",
+                },
+            },
         },
     });
 
