@@ -1,17 +1,9 @@
 import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { elementSchema } from "../../model/element";
 import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-
-export const elementSchema = z
-    .object({
-        id: z.string(),
-        version: z.number(),
-    })
-    .passthrough();
-
-export type ExcalidrawElement = z.infer<typeof elementSchema>;
 
 export const drawRouter = createTRPCRouter({
     getDrawing: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {

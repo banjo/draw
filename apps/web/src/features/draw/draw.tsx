@@ -1,6 +1,7 @@
 import { useDrawing } from "@/features/draw/hooks/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/use-elements-state";
 import { useImages } from "@/features/draw/hooks/use-images";
+import { useLibrary } from "@/features/draw/hooks/use-library";
 import { useMenu } from "@/features/draw/hooks/use-menu";
 import { useSidebar } from "@/features/draw/hooks/use-sidebar";
 import { Maybe } from "@banjoanton/utils";
@@ -15,6 +16,8 @@ type DrawProps = {
 export const Draw = ({ slug }: DrawProps) => {
     const { elements, setElements, debouncedSetElements } = useElementsState({ slug });
     const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawImperativeAPI>>(undefined);
+
+    const { onLibraryChange, library } = useLibrary();
 
     const { saveDrawing, onDrawingChange } = useDrawing({
         excalidrawApi,
@@ -36,7 +39,8 @@ export const Draw = ({ slug }: DrawProps) => {
             <Excalidraw
                 excalidrawAPI={(api: ExcalidrawImperativeAPI) => setExcalidrawApi(api)}
                 onChange={onDrawingChange}
-                initialData={{ elements, scrollToContent: true }}
+                onLibraryChange={onLibraryChange}
+                initialData={{ elements, scrollToContent: true, libraryItems: library }}
                 UIOptions={{
                     dockedSidebarBreakpoint: 0,
                 }}
