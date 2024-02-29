@@ -36,6 +36,8 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
     const deleteDrawingFromCollection = async (e: React.MouseEvent, slug: string) => {
         e.stopPropagation();
 
+        if (!window.confirm("Are you sure you want to delete this drawing?")) return;
+
         const res = await attemptAsync(
             async () => await utils.client.draw.deleteFromCollection.mutate({ slug })
         );
