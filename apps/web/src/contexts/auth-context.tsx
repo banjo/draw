@@ -11,6 +11,7 @@ import {
 
 import jwtDecode from "jwt-decode";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Loader } from "ui";
 
 export type AuthContextType = {
     user: User | null;
@@ -149,7 +150,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return (
         <AuthContext.Provider value={contextValue}>
-            {isLoading ? <div>Loading...</div> : children}
+            {isLoading ? <Loader>Loading...</Loader> : children}
         </AuthContext.Provider>
     );
 };
