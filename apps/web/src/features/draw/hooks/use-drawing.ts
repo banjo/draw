@@ -114,6 +114,7 @@ export const useDrawing = ({
             excalidrawApi.updateScene({
                 elements: allButDeletedElements,
             });
+            excalidrawApi.scrollToContent();
         };
 
         getDrawing();

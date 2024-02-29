@@ -36,7 +36,7 @@ export const Draw = ({ slug }: DrawProps) => {
             <Excalidraw
                 excalidrawAPI={(api: ExcalidrawImperativeAPI) => setExcalidrawApi(api)}
                 onChange={onDrawingChange}
-                initialData={{ elements }}
+                initialData={{ elements, scrollToContent: true }}
                 UIOptions={{
                     dockedSidebarBreakpoint: 0,
                 }}
