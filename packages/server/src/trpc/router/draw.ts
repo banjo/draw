@@ -44,7 +44,7 @@ export const drawRouter = createTRPCRouter({
 
             return Result.ok(drawingResult.data);
         }),
-    saveToMyDrawings: protectedProcedure
+    saveToCollection: protectedProcedure
         .input(z.object({ slug: z.string() }))
         .mutation(async ({ input, ctx }) => {
             const { slug } = input;
@@ -54,7 +54,7 @@ export const drawRouter = createTRPCRouter({
                 return Result.error("Unauthorized", "Unauthorized");
             }
 
-            const drawingResult = await DrawRepository.saveToMyDrawings(slug, userId);
+            const drawingResult = await DrawRepository.saveToCollection(slug, userId);
 
             if (!drawingResult.success) {
                 return Result.error(drawingResult.message, "InternalError");
@@ -62,22 +62,22 @@ export const drawRouter = createTRPCRouter({
 
             return Result.okEmpty();
         }),
-    getMyDrawings: protectedProcedure.query(async ({ ctx }) => {
+    getCollection: protectedProcedure.query(async ({ ctx }) => {
         const { userId } = ctx;
 
         if (!userId) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
-        const drawings = await DrawRepository.getMyDrawings(userId);
+        const collection = await DrawRepository.getCollection(userId);
 
-        if (!drawings.success) {
+        if (!collection.success) {
             throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         }
 
-        return drawings.data;
+        return collection.data;
     }),
-    deleteDrawingFromMyDrawings: protectedProcedure
+    deleteFromCollection: protectedProcedure
         .input(z.object({ slug: z.string() }))
         .mutation(async ({ input, ctx }) => {
             const { slug } = input;
@@ -87,9 +87,9 @@ export const drawRouter = createTRPCRouter({
                 throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
-            const drawingResult = await DrawRepository.deleteDrawingFromMyDrawings(userId, slug);
+            const collectionResult = await DrawRepository.deleteDrawingFromCollection(userId, slug);
 
-            if (!drawingResult.success) {
+            if (!collectionResult.success) {
                 throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
             }
 

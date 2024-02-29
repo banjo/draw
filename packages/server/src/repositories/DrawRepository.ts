@@ -176,7 +176,7 @@ const getImages = async (imageIds: string[]) => {
     return Result.ok(images);
 };
 
-const saveToMyDrawings = async (slug: string, userId: number) => {
+const saveToCollection = async (slug: string, userId: number) => {
     const drawing = await prisma.drawing.findUnique({
         where: {
             slug,
@@ -199,12 +199,12 @@ const saveToMyDrawings = async (slug: string, userId: number) => {
         return Result.error("User not found", "NotFound");
     }
 
-    const saveToMyDrawingsResult = await prisma.user.update({
+    const saveToCollectionResult = await prisma.user.update({
         where: {
             id: userId,
         },
         data: {
-            savedDrawings: {
+            collection: {
                 connect: {
                     id: drawing.id,
                 },
@@ -212,7 +212,7 @@ const saveToMyDrawings = async (slug: string, userId: number) => {
         },
     });
 
-    if (!saveToMyDrawingsResult) {
+    if (!saveToCollectionResult) {
         logger.error(`Error saving drawing to user: ${slug}`);
         return Result.error("Error saving drawing to user", "InternalError");
     }
@@ -220,22 +220,22 @@ const saveToMyDrawings = async (slug: string, userId: number) => {
     return Result.okEmpty();
 };
 
-const getMyDrawings = async (userId: number) => {
-    const drawings = await prisma.user.findUnique({
+const getCollection = async (userId: number) => {
+    const collection = await prisma.user.findUnique({
         where: {
             id: userId,
         },
         include: {
-            savedDrawings: true,
+            collection: true,
         },
     });
 
-    if (!drawings) {
-        logger.error(`Error getting user drawings: ${userId}`);
-        return Result.error("Error getting user drawings", "InternalError");
+    if (!collection) {
+        logger.error(`Error getting user collection: ${userId}`);
+        return Result.error("Error getting user collection", "InternalError");
     }
 
-    const mapped = drawings.savedDrawings.map(drawing => ({
+    const mapped = collection.collection.map(drawing => ({
         slug: drawing.slug,
         name: drawing.name ?? "untitled",
         isOwner: drawing.ownerId === userId,
@@ -244,7 +244,7 @@ const getMyDrawings = async (userId: number) => {
     return Result.ok(mapped);
 };
 
-const deleteDrawingFromMyDrawings = async (userId: number, slug: string) => {
+const deleteDrawingFromCollection = async (userId: number, slug: string) => {
     const drawing = await prisma.drawing.findUnique({
         where: {
             slug,
@@ -261,7 +261,7 @@ const deleteDrawingFromMyDrawings = async (userId: number, slug: string) => {
             id: userId,
         },
         data: {
-            savedDrawings: {
+            collection: {
                 disconnect: {
                     id: drawing.id,
                 },
@@ -278,7 +278,6 @@ const deleteDrawingFromMyDrawings = async (userId: number, slug: string) => {
 };
 
 const updateDrawingName = async (slug: string, name: string, userId: number) => {
-    // only update if the drawings owner id matches the user id
     const drawing = await prisma.drawing.findUnique({
         where: {
             slug,
@@ -317,8 +316,8 @@ export const DrawRepository = {
     saveDrawing,
     saveImages,
     getImages,
-    saveToMyDrawings,
-    getMyDrawings,
-    deleteDrawingFromMyDrawings,
+    saveToCollection,
+    getCollection,
+    deleteDrawingFromCollection,
     updateDrawingName,
 };

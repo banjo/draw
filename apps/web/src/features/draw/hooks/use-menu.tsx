@@ -36,18 +36,18 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
         }
     }, [excalidrawApi, slug]);
 
-    const saveToMyDrawings = useCallback(async () => {
+    const saveToCollection = useCallback(async () => {
         if (!slug) return;
 
-        const res = await utils.client.draw.saveToMyDrawings.mutate({ slug });
+        const res = await utils.client.draw.saveToCollection.mutate({ slug });
 
         if (!res.success) {
             toast.error(res.message);
             return;
         }
 
-        utils.draw.getMyDrawings.invalidate();
-        toast.success("Drawing saved to my drawings!");
+        utils.draw.getCollection.invalidate();
+        toast.success("Drawing saved to my collection!");
     }, [slug]);
 
     const renderMenu = () => {
@@ -77,14 +77,14 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
                             onSelect={toggleSidebar}
                             icon={<ResponsiveIcon Icon={BrushIcon} />}
                         >
-                            My drawings
+                            Collection
                         </MainMenu.Item>
 
                         <MainMenu.Item
-                            onSelect={saveToMyDrawings}
+                            onSelect={saveToCollection}
                             icon={<ResponsiveIcon Icon={SaveIcon} />}
                         >
-                            Save to my drawings
+                            Save to my collection
                         </MainMenu.Item>
 
                         <MainMenu.Separator />

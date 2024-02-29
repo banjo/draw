@@ -29,7 +29,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
     const editableLabelRef = useRef<EditableLabelRef>(null);
     const startEditing = () => editableLabelRef.current?.startEditing();
 
-    const { data, isLoading } = trpc.draw.getMyDrawings.useQuery();
+    const { data, isLoading } = trpc.draw.getCollection.useQuery();
 
     const toggleSidebar = () => excalidrawApi?.toggleSidebar({ name: "user" });
 
@@ -37,7 +37,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
         e.stopPropagation();
 
         const res = await attemptAsync(
-            async () => await utils.client.draw.deleteDrawingFromMyDrawings.mutate({ slug })
+            async () => await utils.client.draw.deleteFromCollection.mutate({ slug })
         );
 
         if (isUndefined(res)) {
@@ -45,7 +45,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
             return;
         }
 
-        utils.draw.getMyDrawings.invalidate();
+        utils.draw.getCollection.invalidate();
         toast.success("Drawing deleted from collection");
     };
 
@@ -59,7 +59,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
             return;
         }
 
-        utils.draw.getMyDrawings.invalidate();
+        utils.draw.getCollection.invalidate();
         toast.success("Drawing name updated");
     };
 
@@ -69,7 +69,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
         return (
             <Sidebar name="user" docked={docked} onDock={setDocked}>
                 <Sidebar.Header
-                    children="My drawings"
+                    children="My collection"
                     className="text-xl font-bold text-[--color-primary]"
                 />
 
@@ -124,7 +124,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
         return (
             <button className="sidebar-trigger" onClick={() => toggleSidebar()}>
                 <ResponsiveIcon Icon={BrushIcon} />
-                <span>Drawings</span>
+                <span>Collection</span>
             </button>
         );
     };

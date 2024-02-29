@@ -16,7 +16,7 @@ model User {
   name       String?
   externalId String   @unique
   drawings   Drawing[] @relation("OwnerDrawings")
-  savedDrawings Drawing[] @relation("SavedDrawings")
+  collection Drawing[] @relation("Collection")
 }
 
 enum Access {
@@ -34,7 +34,7 @@ model Drawing {
   data      Json[]    
   owner     User?     @relation("OwnerDrawings", fields: [ownerId], references: [id]) 
   ownerId   Int?
-  users     User[]    @relation("SavedDrawings")
+  users     User[]    @relation("Collection")
   access    Access   @default(public)
   order     String[]
   elements  DrawingElement[]
