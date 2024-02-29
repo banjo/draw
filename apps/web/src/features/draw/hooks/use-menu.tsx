@@ -5,7 +5,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { BrushIcon, SaveIcon } from "lucide-react";
+import { BrushIcon, CopyIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -24,13 +24,16 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
 
     const utils = trpc.useContext();
 
-    const saveDrawingToDatabase = useCallback(() => {
-        if (!excalidrawApi) return;
+    const saveDrawingToDatabase = useCallback(
+        (createNewDrawing = false) => {
+            if (!excalidrawApi) return;
 
-        const elements = excalidrawApi.getSceneElementsIncludingDeleted();
-        const order = elements.map(e => e.id);
-        return saveDrawing(elements, order);
-    }, [excalidrawApi, saveDrawing]);
+            const elements = excalidrawApi.getSceneElementsIncludingDeleted();
+            const order = elements.map(e => e.id);
+            return saveDrawing(elements, order, createNewDrawing);
+        },
+        [excalidrawApi, saveDrawing]
+    );
 
     const onShareDrawing = useCallback(async () => {
         if (!excalidrawApi) return;
@@ -67,6 +70,23 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
         navigate(`/draw/${currentSlug}`);
     }, [slug, excalidrawApi]);
 
+    const copyToNewDrawing = useCallback(async () => {
+        const newSlug = await saveDrawingToDatabase(true);
+        if (newSlug) {
+            toast.success("Drawing copied to new drawing");
+            navigate(`/draw/${newSlug}`);
+        }
+    }, [excalidrawApi]);
+
+    const createNewDrawing = useCallback(async () => {
+        if (!excalidrawApi) return;
+        const newSlug = await saveDrawing([], [], true);
+        toast.success("New drawing created");
+        if (newSlug) {
+            navigate(`/draw/${newSlug}`);
+        }
+    }, [excalidrawApi]);
+
     const renderMenu = () => {
         return (
             <MainMenu>
@@ -85,6 +105,22 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
                         Sign in
                     </MainMenu.Item>
                 )}
+
+                <MainMenu.Separator />
+
+                <MainMenu.Item
+                    onSelect={createNewDrawing}
+                    icon={<ResponsiveIcon Icon={PlusIcon} />}
+                >
+                    New drawing
+                </MainMenu.Item>
+
+                <MainMenu.Item
+                    onSelect={copyToNewDrawing}
+                    icon={<ResponsiveIcon Icon={CopyIcon} />}
+                >
+                    Copy drawing
+                </MainMenu.Item>
 
                 <MainMenu.Separator />
 

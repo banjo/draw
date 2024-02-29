@@ -16,7 +16,11 @@ type In = {
     elements: ExcalidrawElements;
 };
 
-export type SaveDrawing = (elements: ExcalidrawElements, order: string[]) => Promise<Maybe<string>>;
+export type SaveDrawing = (
+    elements: ExcalidrawElements,
+    order: string[],
+    createNewDrawing?: boolean
+) => Promise<Maybe<string>>;
 
 export const useDrawing = ({
     slug,
@@ -39,31 +43,40 @@ export const useDrawing = ({
     }, [isSavingDrawing]);
 
     const saveDrawing: SaveDrawing = useMemo(
-        () => async (e: ExcalidrawElements, order: string[]) => {
-            const currentSlug = slug ?? uuidv4();
+        () =>
+            async (e: ExcalidrawElements, order: string[], createNewDrawing = false) => {
+                const shouldCreateNewDrawing = createNewDrawing || !slug;
+                const currentSlug = shouldCreateNewDrawing ? uuidv4() : slug;
 
-            setIsSavingDrawing(true);
-            const res = await utils.client.draw.saveDrawing.mutate({
-                elements: e as any,
-                slug: currentSlug,
-                order: order,
-                userId,
-            });
+                setIsSavingDrawing(true);
+                const res = await utils.client.draw.saveDrawing.mutate({
+                    elements: e as any,
+                    slug: currentSlug,
+                    order: order,
+                    userId,
+                });
 
-            setIsSavingDrawing(false);
+                setIsSavingDrawing(false);
 
-            if (!res.success) return;
-            return currentSlug;
-        },
+                if (!res.success) return;
+                return currentSlug;
+            },
         [slug, userId]
     );
 
-    const debouncedSaveDrawing: (elements: ExcalidrawElements, order: string[]) => void = useMemo(
+    const debouncedSaveDrawing: (
+        elements: ExcalidrawElements,
+        order: string[],
+        createNewDrawing?: boolean
+    ) => void = useMemo(
         () =>
-            debounce(async (elements: ExcalidrawElements, order: string[]) => {
-                if (!slug) return;
-                await saveDrawing(elements, order);
-            }, 300),
+            debounce(
+                async (elements: ExcalidrawElements, order: string[], createNewDrawing = false) => {
+                    if (!slug) return;
+                    await saveDrawing(elements, order, createNewDrawing);
+                },
+                300
+            ),
         [saveDrawing, slug]
     );
 

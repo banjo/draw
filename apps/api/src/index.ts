@@ -4,9 +4,11 @@ import cors from "cors";
 import "dotenv/config";
 import express from "express";
 import { appRouter, createTRPCContext } from "server";
+import { createLogger } from "utils";
 
 const app = express();
 const url = getUrl();
+const logger = createLogger("api");
 
 app.use(
     "/trpc",
@@ -29,6 +31,6 @@ app.use(
 const PORT = Number(process.env.PORT) || 3003;
 const isProd = process.env.NODE_ENV === "production";
 
-console.log(`🚀 Server ready at port ${PORT} - Mode: ${isProd ? "production" : "development"}`);
+logger.info(`🚀 Server ready at port ${PORT} - Mode: ${isProd ? "production" : "development"}`);
 
 app.listen(PORT);

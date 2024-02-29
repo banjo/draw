@@ -43,6 +43,7 @@ const saveDrawing = async (
     elements: ExcalidrawElement[],
     order: string[],
     userId?: string
+    // eslint-disable-next-line max-params
 ) => {
     const drawingExists = await prisma.drawing.findUnique({
         where: {
