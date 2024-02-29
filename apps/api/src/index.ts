@@ -31,6 +31,18 @@ app.use(
 const PORT = Number(process.env.PORT) || 3003;
 const isProd = process.env.NODE_ENV === "production";
 
-logger.info(`🚀 Server ready at port ${PORT} - Mode: ${isProd ? "production" : "development"}`);
+app.on("error", error => {
+    logger.error("Server error", error);
+});
 
-app.listen(PORT);
+app.listen(PORT, () => {
+    logger.info(`🚀 Server ready at port ${PORT} - Mode: ${isProd ? "production" : "development"}`);
+});
+
+process.on("unhandledRejection", error => {
+    logger.error("Unhandled rejection", error);
+});
+
+process.on("uncaughtException", error => {
+    logger.error("Uncaught exception", error);
+});
