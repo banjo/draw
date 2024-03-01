@@ -12,8 +12,8 @@ importers:
         specifier: ^0.21.8
         version: 0.21.8
       '@banjoanton/eslint-config':
-        specifier: ^0.1.11
-        version: 0.1.11(eslint@8.49.0)(prettier@3.0.3)(typescript@5.2.2)
+        specifier: ^0.1.17
+        version: 0.1.17(eslint@8.49.0)(prettier@3.0.3)(typescript@5.2.2)
       '@banjoanton/prettier-config':
         specifier: ^0.1.10
         version: 0.1.10(prettier@3.0.3)
@@ -82,8 +82,8 @@ importers:
         version: 3.22.2
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.74
-        version: 0.1.74
+        specifier: ^0.1.77
+        version: 0.1.77
       '@types/cors':
         specifier: ^2.8.14
         version: 2.8.14
@@ -197,8 +197,8 @@ importers:
         version: 4.4.1(@types/react@18.2.22)(react@18.2.0)
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.74
-        version: 0.1.74
+        specifier: ^0.1.77
+        version: 0.1.77
       '@tanstack/eslint-plugin-query':
         specifier: ^4.34.1
         version: 4.34.1(eslint@8.49.0)
@@ -262,6 +262,9 @@ importers:
       ui:
         specifier: workspace:*
         version: link:../../packages/ui
+      utils:
+        specifier: workspace:*
+        version: link:../../packages/utils
       vite:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.6.2)
@@ -298,8 +301,8 @@ importers:
         version: link:../tsconfig
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.74
-        version: 0.1.74
+        specifier: ^0.1.77
+        version: 0.1.77
       '@types/node':
         specifier: ^20.6.2
         version: 20.6.2
@@ -326,8 +329,8 @@ importers:
         version: 3.22.2
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.74
-        version: 0.1.74
+        specifier: ^0.1.77
+        version: 0.1.77
       '@types/node':
         specifier: ^20.6.2
         version: 20.6.2
@@ -380,8 +383,8 @@ importers:
         version: 1.0.7(tailwindcss@3.3.3)
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.74
-        version: 0.1.74
+        specifier: ^0.1.77
+        version: 0.1.77
       '@types/react':
         specifier: ^18.2.22
         version: 18.2.22
@@ -427,10 +430,13 @@ importers:
       tsconfig:
         specifier: workspace:*
         version: link:../tsconfig
+      zod:
+        specifier: ^3.22.2
+        version: 3.22.2
     devDependencies:
       '@banjoanton/utils':
-        specifier: ^0.1.74
-        version: 0.1.74
+        specifier: ^0.1.77
+        version: 0.1.77
       '@types/node':
         specifier: ^20.6.2
         version: 20.6.2
@@ -714,8 +720,8 @@ packages:
       - '@types/eslint'
     dev: true
 
-  /@banjoanton/eslint-config@0.1.11(eslint@8.49.0)(prettier@3.0.3)(typescript@5.2.2):
-    resolution: {integrity: sha512-VDQiW1IuJJ9GWfLEyr/ZttV5VuIoXQLE9x97WzraZCNWOIBNZ+YXT2Rtg5G/rfy3irlE7bpWffljSTc2hBIbOw==}
+  /@banjoanton/eslint-config@0.1.17(eslint@8.49.0)(prettier@3.0.3)(typescript@5.2.2):
+    resolution: {integrity: sha512-UeSfdMdmVJrN2CyLSUxNrmmjL1Ice5Q0BFl52YfbxDqaFsrDkvjYZpv2leT+k+p9f37+0dojmYP33UuhtvFm0g==}
     peerDependencies:
       eslint: ^8.44.0
     dependencies:
@@ -748,8 +754,8 @@ packages:
       prettier: 3.0.3
     dev: true
 
-  /@banjoanton/utils@0.1.74:
-    resolution: {integrity: sha512-726gfsguSJBxwNB/tIfMrgXH8CJ0pm1nNd4FNfUMojXCBp/mVkUOm8j7b4eoswlnC+m0ulP/VPRxvemLJSznUA==}
+  /@banjoanton/utils@0.1.77:
+    resolution: {integrity: sha512-hB4HqhAk00c+NATRJZK0ymS34m2yCXuWS3aJejQ4nZkprmA/Orh2Dtl0xHON1tNI+UZ1yLPvf+6mPG/9WIzp4Q==}
     dependencies:
       ohash: 1.1.3
       uncrypto: 0.1.3

@@ -39,7 +39,7 @@
         "zustand": "^4.4.1"
     },
     "devDependencies": {
-        "@banjoanton/utils": "^0.1.74",
+        "@banjoanton/utils": "^0.1.77",
         "@tanstack/eslint-plugin-query": "^4.34.1",
         "@types/node": "^20.6.2",
         "@types/react": "^18.2.22",
@@ -51,6 +51,7 @@
         "api": "workspace:*",
         "autoprefixer": "^10.4.15",
         "db": "workspace:*",
+        "utils": "workspace:*",
         "eslint": "^8.49.0",
         "eslint-plugin-prettier": "^5.0.0",
         "eslint-plugin-react-hooks": "^4.6.0",

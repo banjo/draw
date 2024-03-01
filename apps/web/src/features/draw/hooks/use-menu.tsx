@@ -1,8 +1,9 @@
 import { useAuth } from "@/contexts/auth-context";
 import { SaveDrawing } from "@/features/draw/hooks/use-drawing";
+import { useError } from "@/features/draw/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { copyToClipboard } from "@/utils/clipboard";
-import { Maybe } from "@banjoanton/utils";
+import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { BrushIcon, CopyIcon, PlusIcon, SaveIcon } from "lucide-react";
@@ -21,6 +22,7 @@ type In = {
 export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In) => {
     const navigate = useNavigate();
     const { signInWithGoogle, user, signOut } = useAuth();
+    const { handleError } = useError();
 
     const utils = trpc.useContext();
 
@@ -47,18 +49,28 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
         }
     }, [excalidrawApi, slug]);
 
-    const saveToCollection = useCallback(async () => {
+    const saveToCollection = async () => {
         let currentSlug = slug;
         if (!currentSlug) {
             currentSlug = await saveDrawingToDatabase();
-
-            if (!currentSlug) {
-                toast.error("Error saving drawing");
-                return;
-            }
         }
 
-        const res = await utils.client.draw.saveToCollection.mutate({ slug: currentSlug });
+        if (!currentSlug) {
+            toast.error("Error saving drawing");
+            return;
+        }
+
+        const [res, error] = await wrapAsync(
+            async () => await utils.client.draw.saveToCollection.mutate({ slug: currentSlug! }) // currentSlug is not undefined here
+        );
+
+        if (error) {
+            await handleError(error, {
+                toast: true,
+                errorMessage: "Error saving drawing to collection",
+            });
+            return;
+        }
 
         if (!res.success) {
             toast.error(res.message);
@@ -68,7 +80,7 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
         utils.draw.getCollection.invalidate();
         toast.success("Drawing saved to my collection!");
         navigate(`/draw/${currentSlug}`);
-    }, [slug, excalidrawApi]);
+    };
 
     const copyToNewDrawing = useCallback(async () => {
         const newSlug = await saveDrawingToDatabase(true);

@@ -20,6 +20,7 @@ export type AuthContextType = {
     signOut: () => Promise<void>;
     signInWithGoogle: () => Promise<void>;
     token: string | undefined;
+    refreshToken: () => Promise<void>;
 };
 
 const emptyContext: AuthContextType = {
@@ -29,6 +30,7 @@ const emptyContext: AuthContextType = {
     signOut: async () => {},
     user: null,
     token: undefined,
+    refreshToken: async () => {},
 };
 
 const AuthContext = createContext<AuthContextType>(emptyContext);
@@ -146,6 +148,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isLoading,
         signInWithGoogle,
         signOut: handleSignOut,
+        refreshToken,
     };
 
     return (

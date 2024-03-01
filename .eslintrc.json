@@ -5,6 +5,7 @@
         "n/no-unpublished-import": "off",
         "import/no-unresolved": "off",
         "n/no-unsupported-features/node-builtins": "off",
-        "no-unused-vars": ["error", { "args": "none" }]
+        "no-unused-vars": ["error", { "args": "none" }],
+        "unicorn/no-array-reduce": "off"
     }
 }

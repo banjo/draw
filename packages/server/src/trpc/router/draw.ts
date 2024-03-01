@@ -16,10 +16,10 @@ export const drawRouter = createTRPCRouter({
 
         if (!drawing.success) {
             logger.error(`Failed to get drawing: ${slug}`);
-            return Result.error(drawing.message, "InternalError");
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: drawing.message });
         }
 
-        return Result.ok(drawing.data.map(e => e.data));
+        return drawing.data.map(e => e.data);
     }),
     saveDrawing: publicProcedure
         .input(

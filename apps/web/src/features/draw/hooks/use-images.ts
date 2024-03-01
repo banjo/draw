@@ -1,6 +1,7 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
+import { useError } from "@/features/draw/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { Maybe } from "@banjoanton/utils";
+import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useRef, useState } from "react";
@@ -13,15 +14,23 @@ type In = {
 
 export const useImages = ({ excalidrawApi, elements }: In) => {
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-
+    const { handleError } = useError();
     const utils = trpc.useContext();
 
     const fetchImages = async (ids: string[]) => {
         if (!excalidrawApi) return;
 
-        const res = await utils.client.image.getImages.query({
-            imageIds: ids,
-        });
+        const [res, error] = await wrapAsync(
+            async () =>
+                await utils.client.image.getImages.query({
+                    imageIds: ids,
+                })
+        );
+
+        if (error) {
+            await handleError(error, { toast: true, errorMessage: "Failed to fetch images" });
+            return;
+        }
 
         if (!res.success) {
             toast.error("Failed to fetch images");
@@ -77,13 +86,21 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
         if (!notUploadedImages.length) return;
 
         const saveImages = async () => {
-            const res = await utils.client.image.saveImages.mutate(
-                notUploadedImages.map(image => ({
-                    id: image.id,
-                    data: image.dataURL,
-                    mimeType: image.mimeType,
-                }))
+            const [res, error] = await wrapAsync(
+                async () =>
+                    await utils.client.image.saveImages.mutate(
+                        notUploadedImages.map(image => ({
+                            id: image.id,
+                            data: image.dataURL,
+                            mimeType: image.mimeType,
+                        }))
+                    )
             );
+
+            if (error) {
+                await handleError(error, { toast: true, errorMessage: "Failed to save images" });
+                return;
+            }
 
             if (!res.success) {
                 toast.error("Failed to save images");

@@ -1,8 +1,9 @@
 import { useAuth } from "@/contexts/auth-context";
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
+import { useError } from "@/features/draw/hooks/use-error";
 import { removeDeletedElements } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
-import { Maybe, debounce, isEqual } from "@banjoanton/utils";
+import { Maybe, debounce, isEqual, wrapAsync } from "@banjoanton/utils";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ export const useDrawing = ({
 }: In) => {
     const navigate = useNavigate();
     const { userId } = useAuth();
+    const { handleError } = useError();
 
     const utils = trpc.useContext();
 
@@ -49,12 +51,21 @@ export const useDrawing = ({
                 const currentSlug = shouldCreateNewDrawing ? uuidv4() : slug;
 
                 setIsSavingDrawing(true);
-                const res = await utils.client.draw.saveDrawing.mutate({
-                    elements: e as any,
-                    slug: currentSlug,
-                    order: order,
-                    userId,
-                });
+                const [res, error] = await wrapAsync(
+                    async () =>
+                        await utils.client.draw.saveDrawing.mutate({
+                            elements: e as any,
+                            slug: currentSlug,
+                            order: order,
+                            userId,
+                        })
+                );
+
+                if (error) {
+                    await handleError(error);
+                    setIsSavingDrawing(false);
+                    return;
+                }
 
                 setIsSavingDrawing(false);
 
@@ -81,17 +92,21 @@ export const useDrawing = ({
     );
 
     const fetchDrawing = async (s: string) => {
-        const res = await utils.client.draw.getDrawing.query({
-            slug: s,
-        });
+        const [res, error] = await wrapAsync(
+            async () =>
+                await utils.client.draw.getDrawing.query({
+                    slug: s,
+                })
+        );
 
-        if (!res.success) {
+        if (error) {
+            await handleError(error);
             navigate("/");
             return;
         }
 
         // @ts-ignore
-        return res.data as unknown as ExcalidrawElement[];
+        return res as unknown as ExcalidrawElement[];
     };
 
     // update isFirstRun on slug change

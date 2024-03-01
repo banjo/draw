@@ -19,7 +19,9 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
     const [docked, setDocked] = useLocalStorage(KEY_DOCKED_STATE, false);
     const { user } = useAuth();
 
-    const { data, isLoading } = trpc.draw.getCollection.useQuery();
+    const { data, isLoading } = trpc.draw.getCollection.useQuery(undefined, {
+        enabled: !!user,
+    });
 
     const toggleSidebar = () => excalidrawApi?.toggleSidebar({ name: "user" });
 
