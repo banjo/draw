@@ -1,4 +1,5 @@
 import { Result } from "@banjoanton/utils";
+import { TRPCError } from "@trpc/server";
 import { createLogger } from "utils";
 import { z } from "zod";
 import { DrawRepository } from "../../repositories/DrawRepository";
@@ -22,10 +23,10 @@ export const imageRouter = createTRPCRouter({
 
             if (!images.success) {
                 logger.error(`Failed to get images: ${imageIds.join(", ")}`);
-                return Result.error(images.message, "InternalError");
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: images.message });
             }
 
-            return Result.ok(images.data);
+            return images.data;
         }),
     saveImages: publicProcedure
         .input(
@@ -45,7 +46,10 @@ export const imageRouter = createTRPCRouter({
                 logger.error(
                     `Failed to get images to compare: ${files.map(file => file.id).join(", ")}`
                 );
-                return Result.error(currentImages.message, "InternalError");
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: currentImages.message,
+                });
             }
 
             const existingImages = new Set(currentImages.data.map(image => image.imageId));
@@ -55,9 +59,9 @@ export const imageRouter = createTRPCRouter({
 
             if (!image.success) {
                 logger.error(`Failed to save images: ${newImages.map(file => file.id).join(", ")}`);
-                return Result.error(image.message, "InternalError");
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: image.message });
             }
 
-            return Result.okEmpty();
+            return Result.okEmpty(); 
         }),
 });

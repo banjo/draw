@@ -38,10 +38,13 @@ export const drawRouter = createTRPCRouter({
 
             if (!drawingResult.success) {
                 logger.error(`Failed to save drawing: ${slug}`);
-                return Result.error(drawingResult.message, "InternalError");
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: drawingResult.message,
+                });
             }
 
-            return Result.ok(drawingResult.data);
+            return drawingResult.data;
         }),
     saveToCollection: protectedProcedure
         .input(z.object({ slug: z.string() }))
@@ -53,14 +56,17 @@ export const drawRouter = createTRPCRouter({
 
             if (!userId) {
                 logger.error("Unauthorized");
-                return Result.error("Unauthorized", "Unauthorized");
+                throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
             const drawingResult = await DrawRepository.saveToCollection(slug, userId);
 
             if (!drawingResult.success) {
                 logger.error(`Failed to save drawing to collection: ${slug}`);
-                return Result.error(drawingResult.message, "InternalError");
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: drawingResult.message,
+                });
             }
 
             return Result.okEmpty();

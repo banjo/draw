@@ -69,7 +69,6 @@ export const useDrawing = ({
 
                 setIsSavingDrawing(false);
 
-                if (!res.success) return;
                 return currentSlug;
             },
         [slug, userId]

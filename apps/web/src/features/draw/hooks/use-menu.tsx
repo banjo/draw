@@ -72,11 +72,6 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
             return;
         }
 
-        if (!res.success) {
-            toast.error(res.message);
-            return;
-        }
-
         utils.draw.getCollection.invalidate();
         toast.success("Drawing saved to my collection!");
         navigate(`/draw/${currentSlug}`);

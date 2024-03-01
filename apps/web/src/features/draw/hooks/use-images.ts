@@ -5,7 +5,6 @@ import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 
 type In = {
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
@@ -20,7 +19,7 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
     const fetchImages = async (ids: string[]) => {
         if (!excalidrawApi) return;
 
-        const [res, error] = await wrapAsync(
+        const [images, error] = await wrapAsync(
             async () =>
                 await utils.client.image.getImages.query({
                     imageIds: ids,
@@ -31,13 +30,6 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
             await handleError(error, { toast: true, errorMessage: "Failed to fetch images" });
             return;
         }
-
-        if (!res.success) {
-            toast.error("Failed to fetch images");
-            return;
-        }
-
-        const images = res.data;
 
         const files: BinaryFileData[] = images.map(image => ({
             id: image.imageId as any,
@@ -99,11 +91,6 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
 
             if (error) {
                 await handleError(error, { toast: true, errorMessage: "Failed to save images" });
-                return;
-            }
-
-            if (!res.success) {
-                toast.error("Failed to save images");
                 return;
             }
 
