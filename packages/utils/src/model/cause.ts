@@ -16,11 +16,7 @@ type ErrorWithCause = Error & { cause?: Error };
 const from = (error: ErrorWithCause): Maybe<Cause> => {
     const res = schema.safeParse(error.cause?.message);
 
-    if (res.success) {
-        return res.data;
-    }
-
-    return undefined;
+    return res.success ? res.data : undefined;
 };
 
 export const Cause = {

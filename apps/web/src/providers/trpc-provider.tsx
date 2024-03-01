@@ -54,6 +54,20 @@ export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
                             return failureCount < 3;
                         },
                     },
+                    mutations: {
+                        retry(failureCount, error) {
+                            if (error instanceof TRPCClientError) {
+                                if (
+                                    error.data.code === "UNAUTHORIZED" &&
+                                    error.shape?.cause === Cause.EXPIRED_TOKEN
+                                ) {
+                                    refreshToken(); // not best solution, but it works
+                                }
+                            }
+
+                            return failureCount < 3;
+                        },
+                    },
                 },
             })
     );
