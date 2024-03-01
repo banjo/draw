@@ -1,7 +1,7 @@
 import { Maybe } from "@banjoanton/utils";
 import { z } from "zod";
 
-export const causes = ["EXPIRED_TOKEN"] as const;
+export const causes = ["EXPIRED_TOKEN", "NOT_OWNER"] as const;
 export type Cause = (typeof causes)[number];
 
 const select: Record<Cause, Cause> = causes.reduce(

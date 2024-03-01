@@ -1,6 +1,6 @@
 import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import { createLogger } from "utils";
+import { Cause, createLogger } from "utils";
 import { z } from "zod";
 import { elementSchema } from "../../model/element";
 import { DrawRepository } from "../../repositories/DrawRepository";
@@ -127,7 +127,11 @@ export const drawRouter = createTRPCRouter({
             if (!drawingResult.success) {
                 if (drawingResult.type === "Unauthorized") {
                     logger.error(`User not authorized to update drawing: ${slug}`);
-                    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not owner of drawing" });
+                    throw new TRPCError({
+                        code: "UNAUTHORIZED",
+                        message: "Not owner of drawing",
+                        cause: Cause.NOT_OWNER,
+                    });
                 }
 
                 logger.error(`Failed to update drawing name: ${slug}`);

@@ -1,5 +1,6 @@
+import { useError } from "@/features/draw/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { Maybe, attemptAsync, isUndefined } from "@banjoanton/utils";
+import { Maybe, attemptAsync, isUndefined, wrapAsync } from "@banjoanton/utils";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { useRef } from "react";
 import toast from "react-hot-toast";
@@ -22,17 +23,18 @@ type EditableLabelRef = {
 export const DrawingCard = ({ cardSlug, currentSlug, name, isOwner }: Props) => {
     const navigate = useNavigate();
     const utils = trpc.useContext();
+    const { handleError } = useError();
 
     const editableLabelRef = useRef<EditableLabelRef>(null);
     const startEditing = () => editableLabelRef.current?.startEditing();
 
     const updateDrawingName = async (slug: string, name: string) => {
-        const res = await attemptAsync(
+        const [_, error] = await wrapAsync(
             async () => await utils.client.draw.updateDrawingName.mutate({ slug, name })
         );
 
-        if (isUndefined(res)) {
-            toast.error("Only the owner can update the drawing name");
+        if (error) {
+            await handleError(error, { toast: true });
             return;
         }
 
