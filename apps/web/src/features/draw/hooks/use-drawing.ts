@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
-import { useError } from "@/features/draw/hooks/use-error";
 import { removeDeletedElements } from "@/features/draw/utils/element-utils";
+import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { Maybe, debounce, isEqual, wrapAsync } from "@banjoanton/utils";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";

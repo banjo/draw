@@ -1,5 +1,5 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
-import { useError } from "@/features/draw/hooks/use-error";
+import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";

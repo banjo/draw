@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
 import { SaveDrawing } from "@/features/draw/hooks/use-drawing";
-import { useError } from "@/features/draw/hooks/use-error";
+import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";

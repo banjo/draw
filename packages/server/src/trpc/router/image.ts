@@ -62,6 +62,6 @@ export const imageRouter = createTRPCRouter({
                 throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: image.message });
             }
 
-            return Result.okEmpty(); 
+            return Result.okEmpty();
         }),
 });

@@ -1,4 +1,4 @@
-import { useError } from "@/features/draw/hooks/use-error";
+import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { Maybe, attemptAsync, isUndefined, wrapAsync } from "@banjoanton/utils";
 import { EditIcon, TrashIcon } from "lucide-react";
