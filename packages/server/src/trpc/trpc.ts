@@ -149,7 +149,11 @@ export const publicProcedure = t.procedure;
  */
 const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
     if (ctx.expired) {
-        throw new TRPCError({ code: "UNAUTHORIZED", cause: "expired", message: "Token expired" });
+        throw new TRPCError({
+            code: "UNAUTHORIZED",
+            cause: Cause.EXPIRED_TOKEN,
+            message: "Token expired",
+        });
     }
 
     if (!ctx.userId) {
