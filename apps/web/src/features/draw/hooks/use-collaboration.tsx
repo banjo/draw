@@ -89,6 +89,7 @@ export const useCollaboration = ({ slug, excalidrawApi }: In) => {
         }
     );
 
+    const updateCollaborator = trpc.collaboration.updateCollaborator.useMutation();
     const [isCollaborating, setIsCollaborating] = useState(false);
 
     const renderCollabButton = useCallback(() => {
@@ -110,7 +111,7 @@ export const useCollaboration = ({ slug, excalidrawApi }: In) => {
 
     useEffect(() => {
         if (!slug) return;
-        utils.client.collaboration.updateCollaborator.mutate({
+        updateCollaborator.mutate({
             avatarUrl,
             id: localId,
             name: displayName,

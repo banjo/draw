@@ -20,7 +20,7 @@ const createTrpcClient = ({
     return trpc.createClient({
         links: [
             splitLink({
-                condition: op => op.type === "subscription",
+                condition: op => op.type === "subscription" || op.path.includes("collaboration"),
                 false: httpBatchLink({
                     url: `${httpUrl}/trpc`,
                     fetch(url, options) {
