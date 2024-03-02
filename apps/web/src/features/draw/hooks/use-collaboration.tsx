@@ -81,6 +81,7 @@ export const useCollaboration = ({ slug, excalidrawApi }: In) => {
 
                 excalidrawApi.updateScene({
                     collaborators,
+                    elements: excalidrawApi.getSceneElements(),
                 });
             },
             onError: error => {
