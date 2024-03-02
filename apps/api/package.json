@@ -5,8 +5,12 @@
     "main": "src/index.ts",
     "type": "module",
     "scripts": {
-        "run": "tsx src/index.ts",
-        "dev": "tsx watch src/index.ts",
+        "run-http": "tsx src/http-server.ts",
+        "dev-http": "tsx watch src/http-server.ts",
+        "run-ws": "tsx src/ws-server.ts",
+        "dev-ws": "tsx watch src/ws-server.ts",
+        "run": "run-p run-http run-ws",
+        "dev": "run-p dev-http dev-ws",
         "build": "tsup",
         "clean": "rimraf node_modules dist"
     },
@@ -21,8 +25,10 @@
         "@types/ws": "^8.5.10",
         "db": "workspace:*",
         "firebase-server": "workspace:*",
+        "npm-run-all": "^4.1.5",
         "server": "workspace:*",
         "tsconfig": "workspace:*",
+        "tsup": "^7.2.0",
         "tsx": "^3.12.10",
         "utils": "workspace:*",
         "vitest": "^0.34.4"

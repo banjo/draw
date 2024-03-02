@@ -53,4 +53,4 @@ EXPOSE 3003
 EXPOSE 3004
 
 # Set the command to run your app
-CMD ["node", "dist/index.cjs"]
+CMD ["node", "dist/http-server.cjs"]
