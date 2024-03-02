@@ -46,6 +46,11 @@ COPY --from=installer /app/node_modules ./node_modules
 # Change workdir to the worker app
 WORKDIR /app/apps/api
 
+# HTTP SERVER
 EXPOSE 3003
+
+# WSS SERVER 
+EXPOSE 3004
+
 # Set the command to run your app
 CMD ["node", "dist/index.cjs"]
