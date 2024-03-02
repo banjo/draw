@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
-import { getApiUrl } from "@/utils/runtime";
+import { getHttpUrl, getWsUrl } from "@/utils/runtime";
 import { Maybe } from "@banjoanton/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TRPCClientError, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
@@ -8,17 +8,21 @@ import { FC, PropsWithChildren, useState } from "react";
 import superjson from "superjson";
 import { Cause } from "utils";
 
-const wsClient = createWSClient({
-    url: `ws://localhost:3004`, // TODO: get from env
-});
-
-const createTrpcClient = (backendUrl: string, token: Maybe<string>) => {
+const createTrpcClient = ({
+    httpUrl,
+    token,
+    wsUrl,
+}: {
+    httpUrl: string;
+    token: Maybe<string>;
+    wsUrl: string;
+}) => {
     return trpc.createClient({
         links: [
             splitLink({
                 condition: op => op.type === "subscription",
                 false: httpBatchLink({
-                    url: `${backendUrl}/trpc`,
+                    url: `${httpUrl}/trpc`,
                     fetch(url, options) {
                         return fetch(url, {
                             ...options,
@@ -36,7 +40,9 @@ const createTrpcClient = (backendUrl: string, token: Maybe<string>) => {
                     },
                 }),
                 true: wsLink({
-                    client: wsClient,
+                    client: createWSClient({
+                        url: wsUrl,
+                    }),
                 }),
             }),
         ],
@@ -81,7 +87,9 @@ export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
                 },
             })
     );
-    const [trpcClient] = useState(() => createTrpcClient(getApiUrl(), token));
+    const [trpcClient] = useState(() =>
+        createTrpcClient({ httpUrl: getHttpUrl(), token, wsUrl: getWsUrl() })
+    );
 
     return (
         <trpc.Provider client={trpcClient} queryClient={queryClient}>
