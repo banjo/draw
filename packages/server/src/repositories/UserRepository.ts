@@ -6,7 +6,7 @@ const logger = createLogger("UserRepository");
 
 const getIdByExternalId = async (externalId: string): AsyncResultType<number> => {
     try {
-        logger.info(`Getting user by externalId: ${externalId}`);
+        logger.trace(`Getting user by externalId: ${externalId}`);
         const user = await prisma.user.findUnique({
             where: {
                 externalId,

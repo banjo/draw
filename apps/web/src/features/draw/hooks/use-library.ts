@@ -1,5 +1,5 @@
 import { LibraryItems } from "@excalidraw/excalidraw/types/types";
-import { useLocalStorage } from "react-use";
+import { useLocalStorage } from "@uidotdev/usehooks";
 
 const KEY = "banjo-library";
 

@@ -8,7 +8,8 @@
  */
 import { wrapAsync } from "@banjoanton/utils";
 import { initTRPC, TRPCError } from "@trpc/server";
-import * as trpcExpress from "@trpc/server/adapters/express";
+import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { auth } from "firebase-server";
 import superjson from "superjson";
 import { Cause, createLogger } from "utils";
@@ -32,7 +33,10 @@ const logger = createLogger("auth");
  * process every request that goes through your tRPC endpoint
  * @link https://trpc.io/docs/context
  */
-export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressContextOptions) => {
+export const createTRPCContext = async ({
+    req,
+    res,
+}: CreateExpressContextOptions | CreateWSSContextFnOptions) => {
     const createResponse = (userId?: number, expired = false) => ({
         req,
         res,
@@ -43,19 +47,19 @@ export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressC
     const authHeader = req?.headers.authorization;
 
     if (!authHeader) {
-        logger.info("No auth header");
+        logger.trace("No auth header");
         return createResponse();
     }
 
     if (!authHeader?.startsWith("Bearer ")) {
-        logger.info("No bearer token");
+        logger.trace("No bearer token");
         return createResponse();
     }
 
     const idToken = authHeader.split("Bearer ")[1];
 
     if (!idToken) {
-        logger.info("No id token");
+        logger.trace("No id token");
         return createResponse();
     }
 
@@ -91,7 +95,7 @@ export const createTRPCContext = async ({ req, res }: trpcExpress.CreateExpressC
             return createResponse();
         }
 
-        logger.info(`Created user with id: ${user.data.id}`);
+        logger.trace(`Created user with id: ${user.data.id}`);
 
         return createResponse(user.data.id);
     }

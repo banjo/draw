@@ -4,8 +4,8 @@ import { trpc } from "@/lib/trpc";
 import { Maybe } from "@banjoanton/utils";
 import { Sidebar } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { useLocalStorage } from "@uidotdev/usehooks";
 import { BrushIcon } from "lucide-react";
-import { useLocalStorage } from "react-use";
 import { ResponsiveIcon } from "ui";
 
 type In = {

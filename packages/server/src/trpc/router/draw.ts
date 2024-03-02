@@ -11,7 +11,7 @@ const logger = createLogger("DrawRouter");
 export const drawRouter = createTRPCRouter({
     getDrawing: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {
         const { slug } = input;
-        logger.info(`Getting drawing: ${slug}`);
+        logger.trace(`Getting drawing: ${slug}`);
         const drawing = await DrawRepository.getDrawingBySlug(slug);
 
         if (!drawing.success) {
@@ -32,7 +32,7 @@ export const drawRouter = createTRPCRouter({
         )
         .mutation(async ({ input }) => {
             const { slug, elements, order, userId } = input;
-            logger.info(`Saving drawing: ${slug}`);
+            logger.trace(`Saving drawing: ${slug}`);
 
             const drawingResult = await DrawRepository.saveDrawing(slug, elements, order, userId);
 
@@ -52,7 +52,7 @@ export const drawRouter = createTRPCRouter({
             const { slug } = input;
             const { userId } = ctx;
 
-            logger.info(`Saving drawing to collection: ${slug}`);
+            logger.trace(`Saving drawing to collection: ${slug}`);
 
             if (!userId) {
                 logger.error("Unauthorized");
@@ -79,7 +79,7 @@ export const drawRouter = createTRPCRouter({
             throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
-        logger.info(`Getting collection for user: ${userId}`);
+        logger.trace(`Getting collection for user: ${userId}`);
         const collection = await DrawRepository.getCollection(userId);
 
         if (!collection.success) {
@@ -100,7 +100,7 @@ export const drawRouter = createTRPCRouter({
                 throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
-            logger.info(`Deleting drawing from collection: ${slug}`);
+            logger.trace(`Deleting drawing from collection: ${slug}`);
             const collectionResult = await DrawRepository.deleteDrawingFromCollection(userId, slug);
 
             if (!collectionResult.success) {
@@ -121,7 +121,7 @@ export const drawRouter = createTRPCRouter({
                 throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
-            logger.info(`Updating drawing name: ${slug}`);
+            logger.trace(`Updating drawing name: ${slug}`);
             const drawingResult = await DrawRepository.updateDrawingName(slug, name, userId);
 
             if (!drawingResult.success) {

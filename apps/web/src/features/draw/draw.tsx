@@ -1,3 +1,4 @@
+import { useCollaboration } from "@/features/draw/hooks/use-collaboration";
 import { useDrawing } from "@/features/draw/hooks/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/use-elements-state";
 import { useImages } from "@/features/draw/hooks/use-images";
@@ -18,6 +19,10 @@ export const Draw = ({ slug }: DrawProps) => {
     const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawImperativeAPI>>(undefined);
 
     const { onLibraryChange, library } = useLibrary();
+    const { onPointerUpdate, renderCollabButton, isCollaborating } = useCollaboration({
+        slug,
+        excalidrawApi,
+    });
 
     const { saveDrawing, onDrawingChange } = useDrawing({
         excalidrawApi,
@@ -40,11 +45,18 @@ export const Draw = ({ slug }: DrawProps) => {
                 excalidrawAPI={(api: ExcalidrawImperativeAPI) => setExcalidrawApi(api)}
                 onChange={onDrawingChange}
                 onLibraryChange={onLibraryChange}
+                isCollaborating={isCollaborating}
+                onPointerUpdate={onPointerUpdate}
                 initialData={{ elements, scrollToContent: true, libraryItems: library }}
                 UIOptions={{
                     dockedSidebarBreakpoint: 0,
                 }}
-                renderTopRightUI={() => renderSidebarButton()}
+                renderTopRightUI={() => (
+                    <>
+                        {renderCollabButton()}
+                        {renderSidebarButton()}
+                    </>
+                )}
             >
                 {renderMenu()}
                 {renderSidebar()}

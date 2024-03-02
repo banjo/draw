@@ -3,31 +3,41 @@ import { trpc } from "@/lib/trpc";
 import { getApiUrl } from "@/utils/runtime";
 import { Maybe } from "@banjoanton/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TRPCClientError, httpBatchLink } from "@trpc/client";
+import { TRPCClientError, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { FC, PropsWithChildren, useState } from "react";
 import superjson from "superjson";
 import { Cause } from "utils";
 
+const wsClient = createWSClient({
+    url: `ws://localhost:3004`, // TODO: get from env
+});
+
 const createTrpcClient = (backendUrl: string, token: Maybe<string>) => {
     return trpc.createClient({
         links: [
-            httpBatchLink({
-                url: `${backendUrl}/trpc`,
-                fetch(url, options) {
-                    return fetch(url, {
-                        ...options,
-                        credentials: "include",
-                    });
-                },
-                headers: async () => {
-                    if (token) {
-                        return {
-                            authorization: `Bearer ${token}`,
-                        };
-                    }
+            splitLink({
+                condition: op => op.type === "subscription",
+                false: httpBatchLink({
+                    url: `${backendUrl}/trpc`,
+                    fetch(url, options) {
+                        return fetch(url, {
+                            ...options,
+                            credentials: "include",
+                        });
+                    },
+                    headers: async () => {
+                        if (token) {
+                            return {
+                                authorization: `Bearer ${token}`,
+                            };
+                        }
 
-                    return {};
-                },
+                        return {};
+                    },
+                }),
+                true: wsLink({
+                    client: wsClient,
+                }),
             }),
         ],
         transformer: superjson,
