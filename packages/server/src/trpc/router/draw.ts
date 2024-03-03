@@ -2,7 +2,7 @@ import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import { Cause, createLogger } from "utils";
 import { z } from "zod";
-import { elementSchema } from "../../model/element";
+import { ExcalidrawSimpleElementSchema } from "../../../../utils/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
@@ -25,7 +25,7 @@ export const drawRouter = createTRPCRouter({
         .input(
             z.object({
                 slug: z.string(),
-                elements: elementSchema.array(),
+                elements: ExcalidrawSimpleElementSchema.array(),
                 order: z.string().array(),
                 userId: z.string().optional(),
             })

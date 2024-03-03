@@ -90,49 +90,12 @@ export const useDrawing = ({
         [saveDrawing, slug]
     );
 
-    const fetchDrawing = async (s: string) => {
-        const [res, error] = await wrapAsync(
-            async () =>
-                await utils.client.draw.getDrawing.query({
-                    slug: s,
-                })
-        );
-
-        if (error) {
-            await handleError(error);
-            navigate("/");
-            return;
-        }
-
-        // @ts-ignore
-        return res as unknown as ExcalidrawElement[];
-    };
-
     // update isFirstRun on slug change
     useEffect(() => {
         firstRun.current = true;
     }, [slug]);
 
     const firstRun = useRef(true);
-
-    // // fetch drawing on load
-    useEffect(() => {
-        if (!slug || !excalidrawApi) return;
-        const getDrawing = async () => {
-            const drawingElements = await fetchDrawing(slug);
-
-            if (!drawingElements) return;
-
-            const allButDeletedElements = removeDeletedElements(drawingElements);
-            setElements(structuredClone(allButDeletedElements));
-            excalidrawApi.updateScene({
-                elements: allButDeletedElements,
-            });
-            excalidrawApi.scrollToContent();
-        };
-
-        getDrawing();
-    }, [slug, excalidrawApi]);
 
     const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
         const allButDeletedNewElements = removeDeletedElements(e);
@@ -167,7 +130,6 @@ export const useDrawing = ({
 
     return {
         saveDrawing,
-        fetchDrawing,
         debouncedSaveDrawing,
         isSavingDrawing,
         isSavingDrawingRef,

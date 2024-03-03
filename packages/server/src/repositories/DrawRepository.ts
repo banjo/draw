@@ -1,7 +1,7 @@
 import { isDefined, Maybe, Result } from "@banjoanton/utils";
 import { Prisma, prisma } from "db";
 import { createLogger } from "utils";
-import { ExcalidrawElement } from "../model/element";
+import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
 import { UserRepository } from "./UserRepository";
 
 const logger = createLogger("DrawRepository");
@@ -45,7 +45,7 @@ const getDrawingBySlug = async (slug: string) => {
 
 const saveDrawing = async (
     slug: string,
-    elements: ExcalidrawElement[],
+    elements: ExcalidrawSimpleElement[],
     order: string[],
     userId?: string
     // eslint-disable-next-line max-params
@@ -61,7 +61,7 @@ const saveDrawing = async (
             const deleteAll = await prisma.drawingElement.deleteMany({
                 where: {
                     elementId: {
-                        in: elements.map(element => element.id),
+                        in: elements.map(element => element.id.toString()),
                     },
                 },
             });
@@ -76,7 +76,7 @@ const saveDrawing = async (
             const update = await prisma.drawingElement.createMany({
                 data: toUpdate.map(element => ({
                     data: element as Prisma.InputJsonValue,
-                    elementId: element.id,
+                    elementId: element.id.toString(),
                     version: element.version,
                     drawingId: drawingExists.id,
                 })),
@@ -129,11 +129,11 @@ const saveDrawing = async (
                 elements: {
                     connectOrCreate: elements.map(element => ({
                         where: {
-                            elementId: element.id,
+                            elementId: element.id.toString(),
                         },
                         create: {
                             data: element as Prisma.InputJsonValue,
-                            elementId: element.id,
+                            elementId: element.id.toString(),
                             version: element.version,
                         },
                     })),

@@ -1,8 +1,11 @@
 import { useAuth } from "@/contexts/auth-context";
+import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
+import { removeDeletedElements } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
-import { Maybe, isDefined, noop, uuid } from "@banjoanton/utils";
+import { Maybe, isDefined, isEqual, noop, uuid } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
 import {
+    AppState,
     Collaborator,
     CollaboratorPointer,
     ExcalidrawImperativeAPI,
@@ -15,6 +18,9 @@ import generateName from "sillyname";
 type In = {
     slug?: string;
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
+    setElements: (elements: ExcalidrawElements) => void;
+    debouncedSetElements: (elements: ExcalidrawElements) => void;
+    elements: ExcalidrawElements;
 };
 
 type PointerUpdateData = {
@@ -34,15 +40,33 @@ const ID_KEY = "banjo-collab-id";
 
 const collaborators = new Map<string, Collaborator>();
 
-export const useCollaboration = ({ slug, excalidrawApi }: In) => {
+export const useCollaboration = ({
+    slug,
+    excalidrawApi,
+    // setElements,
+    elements, // debouncedSetElements,
+}: In) => {
     const { user } = useAuth();
-    const utils = trpc.useContext();
-
     const [localId] = useLocalStorage(ID_KEY, uuid());
     const displayName = useMemo(() => user?.displayName ?? generateName(), [user]);
     const avatarUrl = useMemo(() => user?.photoURL ?? randomAvatar(localId), [user]);
 
-    trpc.collaboration.onChange.useSubscription(
+    trpc.collaboration.onBoardChange.useSubscription(
+        { slug: slug ?? "", id: localId },
+        {
+            enabled: isDefined(slug),
+            onData: update => {
+                if (!slug || !excalidrawApi) return;
+
+                console.log({ update });
+            },
+            onError: error => {
+                console.error({ error });
+            },
+        }
+    );
+
+    trpc.collaboration.onCollaboratorChange.useSubscription(
         { slug: slug ?? "", id: localId },
         {
             enabled: isDefined(slug),
@@ -90,6 +114,7 @@ export const useCollaboration = ({ slug, excalidrawApi }: In) => {
         }
     );
 
+    const updateBoard = trpc.collaboration.updateBoard.useMutation();
     const updateCollaborator = trpc.collaboration.updateCollaborator.useMutation();
     const [isCollaborating, setIsCollaborating] = useState(false);
 
@@ -110,15 +135,57 @@ export const useCollaboration = ({ slug, excalidrawApi }: In) => {
         setMousePosition(pointer);
     };
 
+    const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
+        const allButDeletedNewElements = removeDeletedElements(e);
+        const allButDeletedOldElements = removeDeletedElements(elements);
+
+        if (isEqual(allButDeletedNewElements, allButDeletedOldElements)) {
+            return;
+        }
+
+        const updatedElements = allButDeletedNewElements.filter(newElement => {
+            const oldElement = allButDeletedOldElements.find(el => el.id === newElement.id);
+            if (!oldElement) return true;
+            if (oldElement.version < newElement.version) return true;
+            return false;
+        });
+
+        const elementsToDelete = allButDeletedOldElements
+            .filter(oldElement => {
+                const newElement = allButDeletedNewElements.find(el => el.id === oldElement.id);
+                if (!newElement) return true;
+                return false;
+            })
+            .map(element => ({ ...element, isDeleted: true }));
+
+        const allElements = structuredClone(allButDeletedNewElements);
+        // debouncedSetElements(allElements);
+
+        if (!slug) return;
+
+        const currentOrder = allElements.map(e => e.id);
+        const elementsToSave = [...updatedElements, ...elementsToDelete];
+
+        updateBoard.mutate({
+            slug,
+            board: {
+                excalidrawElements: elementsToSave,
+                order: currentOrder,
+            },
+        });
+    };
+
     useEffect(() => {
         if (!slug) return;
         updateCollaborator.mutate({
-            avatarUrl,
-            id: localId,
-            name: displayName,
+            collaborator: {
+                avatarUrl,
+                id: localId,
+                name: displayName,
+                x: debouncedMousePosition.x,
+                y: debouncedMousePosition.y,
+            },
             slug,
-            x: debouncedMousePosition.x,
-            y: debouncedMousePosition.y,
         });
     }, [debouncedMousePosition]);
 
@@ -126,5 +193,6 @@ export const useCollaboration = ({ slug, excalidrawApi }: In) => {
         isCollaborating,
         onPointerUpdate,
         renderCollabButton,
+        onDrawingChange,
     };
 };

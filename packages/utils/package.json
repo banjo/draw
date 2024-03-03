@@ -8,7 +8,8 @@
     "devDependencies": {
         "@banjoanton/utils": "^0.1.77",
         "@types/node": "^20.6.2",
-        "tsconfig": "workspace:*"
+        "tsconfig": "workspace:*",
+        "db": "workspace:*"
     },
     "dependencies": {
         "@axiomhq/pino": "^0.1.3",

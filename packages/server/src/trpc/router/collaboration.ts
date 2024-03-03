@@ -1,92 +1,51 @@
+import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
-import EventEmitter from "node:events";
-import { createLogger } from "utils";
+import {
+    Board,
+    BoardUpdateResponse,
+    Collaborator,
+    CollaboratorSchema,
+    createLogger,
+    DeltaBoardUpdateSchema,
+    Slug,
+} from "utils";
 import { z } from "zod";
+import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
+import { DrawingEmitter } from "../../model/drawing-emitter";
+import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 const logger = createLogger("CollaborationRouter");
 
-type Collaborator = {
-    x: number;
-    y: number;
-    name: string;
-    avatarUrl: string;
-    id: string;
-    latestPointerUpdate: number;
-};
-
-type Slug = string;
-
-class Collaborators extends EventEmitter {
-    private map: Map<Slug, Collaborator[]>;
-
-    constructor() {
-        super();
-        this.map = new Map();
-    }
-
-    update(slug: Slug, collaborator: Collaborator) {
-        const collaborators = this.map.get(slug) ?? [];
-        const index = collaborators.findIndex(c => c.id === collaborator.id);
-        if (index === -1) {
-            collaborators.push(collaborator);
-        } else {
-            collaborators[index] = collaborator;
-        }
-        this.map.set(slug, collaborators);
-        this.emit("update", slug, collaborator);
-    }
-
-    remove(slug: Slug, id: string) {
-        const collaborators = this.map.get(slug) ?? [];
-        const index = collaborators.findIndex(c => c.id === id);
-        if (index !== -1) {
-            collaborators.splice(index, 1);
-            this.map.set(slug, collaborators);
-            this.emit("remove", slug, id);
-        }
-
-        if (collaborators.length === 0) {
-            this.map.delete(slug);
-        }
-    }
-
-    get(slug: Slug): Collaborator[] | undefined {
-        return this.map.get(slug);
-    }
-}
-
-const collaborators = new Collaborators();
+const collaboratorsEmitter = new CollaboratorsEmitter();
+const drawingEmitter = new DrawingEmitter();
 
 export const collaborationRouter = createTRPCRouter({
     updateCollaborator: publicProcedure
         .input(
             z.object({
-                x: z.number(),
-                y: z.number(),
-                name: z.string(),
-                avatarUrl: z.string(),
+                collaborator: CollaboratorSchema,
                 slug: z.string(),
-                id: z.string(),
             })
         )
         .mutation(async ({ input }) => {
-            const { x, y, name, avatarUrl, slug, id } = input;
-            logger.trace(`Updating collaborator ${name} to ${slug}`);
-
-            const entity: Collaborator = {
-                x,
-                y,
-                name,
-                avatarUrl,
-                id,
-                latestPointerUpdate: Date.now(),
-            };
-            collaborators.update(slug, entity);
-
-            return entity;
+            const { collaborator, slug } = input;
+            logger.trace(`Updating collaborator ${collaborator.name} to ${slug}`);
+            collaboratorsEmitter.update(slug, collaborator);
         }),
-    onChange: publicProcedure
+    updateBoard: publicProcedure
+        .input(
+            z.object({
+                board: DeltaBoardUpdateSchema,
+                slug: z.string(),
+            })
+        )
+        .mutation(async ({ input }) => {
+            const { board, slug } = input;
+            logger.trace(`Updating board to ${slug}`);
+            await drawingEmitter.update(slug, board);
+        }),
+    onCollaboratorChange: publicProcedure
         .input(z.object({ slug: z.string(), id: z.string() }))
         .subscription(({ input }) => {
             const { slug: selectedSlug, id } = input;
@@ -94,14 +53,14 @@ export const collaborationRouter = createTRPCRouter({
                 const onUpdate = (slug: Slug) => {
                     if (slug !== selectedSlug) return;
 
-                    const all = collaborators.get(slug) ?? [];
+                    const all = collaboratorsEmitter.get(slug) ?? [];
                     emit.next(all);
                 };
 
                 const onLeave = (slug: Slug, id: string) => {
                     if (slug !== selectedSlug) return;
 
-                    const all = collaborators.get(slug) ?? [];
+                    const all = collaboratorsEmitter.get(slug) ?? [];
                     const index = all.findIndex(c => c.id === id);
                     if (index !== -1) {
                         all.splice(index, 1);
@@ -109,13 +68,50 @@ export const collaborationRouter = createTRPCRouter({
                     }
                 };
 
-                collaborators.on("update", onUpdate);
-                collaborators.on("remove", onUpdate);
+                collaboratorsEmitter.on("update", onUpdate);
+                collaboratorsEmitter.on("remove", onUpdate);
 
                 return () => {
                     onLeave(selectedSlug, id);
-                    collaborators.off("update", onUpdate);
-                    collaborators.off("remove", onUpdate);
+                    collaboratorsEmitter.off("update", onUpdate);
+                    collaboratorsEmitter.off("remove", onUpdate);
+                };
+            });
+        }),
+    onBoardChange: publicProcedure
+        .input(z.object({ slug: z.string(), id: z.string() }))
+        .subscription(async ({ input }) => {
+            const { slug: selectedSlug } = input;
+
+            const elements = await DrawRepository.getDrawingBySlug(selectedSlug);
+
+            if (!elements.success) {
+                logger.error(`Failed to get drawing: ${selectedSlug}`);
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: elements.message });
+            }
+
+            const board = Board.fromDatabase(elements.data);
+
+            return observable<BoardUpdateResponse>(emit => {
+                const fullBoard = BoardUpdateResponse.from(board);
+                emit.next(fullBoard);
+
+                const onUpdate = (slug: Slug) => {
+                    if (slug !== selectedSlug) return;
+
+                    const state = drawingEmitter.get(slug);
+                    if (!state) {
+                        logger.error(`Failed to get drawing: ${slug}`);
+                        return;
+                    }
+                    const delta = BoardUpdateResponse.from(state);
+                    emit.next(delta);
+                };
+
+                drawingEmitter.on("update", onUpdate);
+
+                return () => {
+                    drawingEmitter.off("update", onUpdate);
                 };
             });
         }),

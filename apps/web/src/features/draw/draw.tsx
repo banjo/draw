@@ -19,12 +19,16 @@ export const Draw = ({ slug }: DrawProps) => {
     const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawImperativeAPI>>(undefined);
 
     const { onLibraryChange, library } = useLibrary();
-    const { onPointerUpdate, renderCollabButton, isCollaborating } = useCollaboration({
-        slug,
-        excalidrawApi,
-    });
+    const { onPointerUpdate, renderCollabButton, isCollaborating, onDrawingChange } =
+        useCollaboration({
+            slug,
+            excalidrawApi,
+            elements,
+            setElements,
+            debouncedSetElements,
+        });
 
-    const { saveDrawing, onDrawingChange } = useDrawing({
+    const { saveDrawing } = useDrawing({
         excalidrawApi,
         slug,
         setElements,
