@@ -34,7 +34,11 @@ export class DrawingEmitter extends EventEmitter {
             };
         }
 
-        const updatedBoard = DeltaUpdateUtil.applyToBoard(deltaUpdate, board, false);
+        const updatedBoard = DeltaUpdateUtil.applyToBoard({
+            board,
+            deltaUpdate,
+            isOnClient: false,
+        });
         this.map.set(slug, updatedBoard);
         this.emit("update", slug, deltaUpdate);
     }

@@ -74,7 +74,11 @@ export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }:
                 const simpleElements = ExcalidrawSimpleElement.fromMany(elements);
                 const currentBoard = Board.from({ elements: simpleElements });
 
-                const updatedBoard = DeltaUpdateUtil.applyToBoard(update.delta, currentBoard, true);
+                const updatedBoard = DeltaUpdateUtil.applyToBoard({
+                    deltaUpdate: update.delta,
+                    board: currentBoard,
+                    isOnClient: true,
+                });
                 const updatedElements = ExcalidrawSimpleElement.toExcalidrawElements(
                     updatedBoard.elements
                 );

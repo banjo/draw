@@ -3,7 +3,13 @@ import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
 import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
 
-const applyToBoard = (deltaUpdate: BoardDeltaUpdate, board: Board, isOnClient: boolean): Board => {
+type ApplyToBoardProps = {
+    deltaUpdate: BoardDeltaUpdate;
+    board: Board;
+    isOnClient: boolean;
+};
+
+const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Board => {
     const elements = deltaUpdate.excalidrawElements;
 
     const [deleted, allUpdated] = partition(elements, e => e.isDeleted);
