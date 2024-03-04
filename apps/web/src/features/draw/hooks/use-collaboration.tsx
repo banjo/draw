@@ -24,6 +24,7 @@ export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }:
         localId,
     });
 
+    // TODO: show error and navigate to / if it does not work (turn off api and try to start)
     const { onDrawingChange } = useBoardCollaboration({
         elements,
         excalidrawApi,

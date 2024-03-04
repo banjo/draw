@@ -6,6 +6,7 @@ import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     Board,
     BoardDeltaUpdate,
@@ -29,6 +30,7 @@ export const useBoardCollaboration = ({
     elements,
     localId,
 }: In) => {
+    const navigate = useNavigate();
     trpc.collaboration.onBoardChange.useSubscription(
         { slug: slug ?? "", id: localId },
         {
@@ -65,7 +67,8 @@ export const useBoardCollaboration = ({
                 });
             },
             onError: error => {
-                console.error({ error });
+                console.error(error);
+                navigate("/");
             },
         }
     );
