@@ -15,7 +15,7 @@ type DrawProps = {
 };
 
 export const Draw = ({ slug }: DrawProps) => {
-    const { elements, setElements, debouncedSetElements } = useElementsState({ slug });
+    const { elements, setElements } = useElementsState({ slug });
     const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawImperativeAPI>>(undefined);
 
     const { onLibraryChange, library } = useLibrary();
@@ -25,15 +25,10 @@ export const Draw = ({ slug }: DrawProps) => {
             excalidrawApi,
             elements,
             setElements,
-            debouncedSetElements,
         });
 
     const { saveDrawing } = useDrawing({
-        excalidrawApi,
         slug,
-        setElements,
-        elements,
-        debouncedSetElements,
     });
 
     const { renderSidebar, renderSidebarButton, toggleSidebar } = useSidebar({

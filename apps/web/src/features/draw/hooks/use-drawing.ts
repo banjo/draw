@@ -1,20 +1,13 @@
 import { useAuth } from "@/contexts/auth-context";
 import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
-import { removeDeletedElements } from "@/features/draw/utils/element-utils";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { Maybe, debounce, isEqual, wrapAsync } from "@banjoanton/utils";
-import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { Maybe, debounce, wrapAsync } from "@banjoanton/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 type In = {
     slug: Maybe<string>;
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
-    setElements: (elements: ExcalidrawElements) => void;
-    debouncedSetElements: (elements: ExcalidrawElements) => void;
-    elements: ExcalidrawElements;
 };
 
 export type SaveDrawing = (
@@ -23,14 +16,7 @@ export type SaveDrawing = (
     createNewDrawing?: boolean
 ) => Promise<Maybe<string>>;
 
-export const useDrawing = ({
-    slug,
-    excalidrawApi,
-    setElements,
-    elements,
-    debouncedSetElements,
-}: In) => {
-    const navigate = useNavigate();
+export const useDrawing = ({ slug }: In) => {
     const { userId } = useAuth();
     const { handleError } = useError();
 
@@ -97,42 +83,10 @@ export const useDrawing = ({
 
     const firstRun = useRef(true);
 
-    const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
-        const allButDeletedNewElements = removeDeletedElements(e);
-        const allButDeletedOldElements = removeDeletedElements(elements);
-
-        if (isEqual(allButDeletedNewElements, allButDeletedOldElements)) {
-            return;
-        }
-
-        const updatedElements = allButDeletedNewElements.filter(newElement => {
-            const oldElement = allButDeletedOldElements.find(el => el.id === newElement.id);
-            if (!oldElement) return true;
-            if (oldElement.version < newElement.version) return true;
-            return false;
-        });
-
-        const elementsToDelete = allButDeletedOldElements
-            .filter(oldElement => {
-                const newElement = allButDeletedNewElements.find(el => el.id === oldElement.id);
-                if (!newElement) return true;
-                return false;
-            })
-            .map(element => ({ ...element, isDeleted: true }));
-
-        const allElements = structuredClone(allButDeletedNewElements);
-        const currentOrder = allElements.map(e => e.id);
-        const elementsToSave = [...updatedElements, ...elementsToDelete];
-
-        debouncedSetElements(allElements);
-        debouncedSaveDrawing(elementsToSave, currentOrder);
-    };
-
     return {
         saveDrawing,
         debouncedSaveDrawing,
         isSavingDrawing,
         isSavingDrawingRef,
-        onDrawingChange,
     };
 };

@@ -1,3 +1,4 @@
+import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { z } from "zod";
 
 export const ExcalidrawSimpleElementSchema = z
@@ -13,6 +14,17 @@ export type ExcalidrawSimpleElement = z.infer<typeof ExcalidrawSimpleElementSche
 const from = (object: unknown): ExcalidrawSimpleElement =>
     ExcalidrawSimpleElementSchema.parse(object);
 
+const fromMany = (objects: unknown[]): ExcalidrawSimpleElement[] => objects.map(from);
+
+const toExcalidrawElement = (element: ExcalidrawSimpleElement): ExcalidrawElement =>
+    element as ExcalidrawElement;
+
+const toExcalidrawElements = (elements: ExcalidrawSimpleElement[]): ExcalidrawElement[] =>
+    elements.map(toExcalidrawElement);
+
 export const ExcalidrawSimpleElement = {
     from,
+    fromMany,
+    toExcalidrawElement,
+    toExcalidrawElements,
 };

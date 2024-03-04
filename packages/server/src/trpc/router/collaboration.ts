@@ -1,18 +1,16 @@
-import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import {
-    Board,
+    BoardDeltaUpdate,
+    BoardDeltaUpdateSchema,
     BoardUpdateResponse,
     Collaborator,
     CollaboratorSchema,
     createLogger,
-    DeltaBoardUpdateSchema,
     Slug,
 } from "utils";
 import { z } from "zod";
 import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
 import { DrawingEmitter } from "../../model/drawing-emitter";
-import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 const logger = createLogger("CollaborationRouter");
@@ -36,14 +34,14 @@ export const collaborationRouter = createTRPCRouter({
     updateBoard: publicProcedure
         .input(
             z.object({
-                board: DeltaBoardUpdateSchema,
+                deltaBoardUpdate: BoardDeltaUpdateSchema,
                 slug: z.string(),
             })
         )
         .mutation(async ({ input }) => {
-            const { board, slug } = input;
+            const { deltaBoardUpdate, slug } = input;
             logger.trace(`Updating board to ${slug}`);
-            await drawingEmitter.update(slug, board);
+            await drawingEmitter.update(slug, deltaBoardUpdate);
         }),
     onCollaboratorChange: publicProcedure
         .input(z.object({ slug: z.string(), id: z.string() }))
@@ -83,28 +81,15 @@ export const collaborationRouter = createTRPCRouter({
         .subscription(async ({ input }) => {
             const { slug: selectedSlug } = input;
 
-            const elements = await DrawRepository.getDrawingBySlug(selectedSlug);
-
-            if (!elements.success) {
-                logger.error(`Failed to get drawing: ${selectedSlug}`);
-                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: elements.message });
-            }
-
-            const board = Board.fromDatabase(elements.data);
+            const board = await drawingEmitter.get(selectedSlug);
 
             return observable<BoardUpdateResponse>(emit => {
                 const fullBoard = BoardUpdateResponse.from(board);
                 emit.next(fullBoard);
 
-                const onUpdate = (slug: Slug) => {
+                const onUpdate = (slug: Slug, deltaUpdate: BoardDeltaUpdate) => {
                     if (slug !== selectedSlug) return;
-
-                    const state = drawingEmitter.get(slug);
-                    if (!state) {
-                        logger.error(`Failed to get drawing: ${slug}`);
-                        return;
-                    }
-                    const delta = BoardUpdateResponse.from(state);
+                    const delta = BoardUpdateResponse.from(deltaUpdate);
                     emit.next(delta);
                 };
 

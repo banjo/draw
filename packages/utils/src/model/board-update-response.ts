@@ -1,5 +1,5 @@
 import { Board } from "./board";
-import { DeltaBoardUpdate } from "./delta-board-update";
+import { BoardDeltaUpdate } from "./board-delta-update";
 
 export type BoardUpdateResponse =
     | {
@@ -8,10 +8,10 @@ export type BoardUpdateResponse =
       }
     | {
           type: "delta";
-          delta: DeltaBoardUpdate;
+          delta: BoardDeltaUpdate;
       };
 
-const from = (data: Board | DeltaBoardUpdate): BoardUpdateResponse => {
+const from = (data: Board | BoardDeltaUpdate): BoardUpdateResponse => {
     if ("elements" in data) {
         return {
             type: "full",
@@ -28,7 +28,7 @@ const from = (data: Board | DeltaBoardUpdate): BoardUpdateResponse => {
 const isFullBoard = (data: BoardUpdateResponse): data is { type: "full"; board: Board } =>
     data.type === "full";
 
-const isDelta = (data: BoardUpdateResponse): data is { type: "delta"; delta: DeltaBoardUpdate } =>
+const isDelta = (data: BoardUpdateResponse): data is { type: "delta"; delta: BoardDeltaUpdate } =>
     data.type === "delta";
 
 export const BoardUpdateResponse = {

@@ -9,7 +9,7 @@ type In = {
 
 const localStorageKey = `drawing-base`;
 
-export type ExcalidrawElements = readonly ExcalidrawElement[];
+export type ExcalidrawElements = ExcalidrawElement[];
 
 export const useElementsState = ({ slug }: In) => {
     const [localStorageElements, setLocalStorageElements] = useLocalStorage<ExcalidrawElements>(
@@ -25,7 +25,7 @@ export const useElementsState = ({ slug }: In) => {
 
     const debouncedSetElements: (updatedElements: ExcalidrawElements) => void = useMemo(() => {
         return debounce((updatedElements: ExcalidrawElements) => {
-            setElements([...updatedElements]);
+            setElements(updatedElements);
         }, 300);
     }, []);
 

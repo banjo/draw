@@ -4,6 +4,7 @@ import { removeDeletedElements } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined, isEqual, noop, uuid } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
+import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import {
     AppState,
     Collaborator,
@@ -14,12 +15,12 @@ import {
 import { useDebounce, useLocalStorage } from "@uidotdev/usehooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import generateName from "sillyname";
+import { Board, BoardUpdateResponse, DeltaUpdateUtil, ExcalidrawSimpleElement } from "utils";
 
 type In = {
     slug?: string;
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
     setElements: (elements: ExcalidrawElements) => void;
-    debouncedSetElements: (elements: ExcalidrawElements) => void;
     elements: ExcalidrawElements;
 };
 
@@ -40,12 +41,7 @@ const ID_KEY = "banjo-collab-id";
 
 const collaborators = new Map<string, Collaborator>();
 
-export const useCollaboration = ({
-    slug,
-    excalidrawApi,
-    // setElements,
-    elements, // debouncedSetElements,
-}: In) => {
+export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }: In) => {
     const { user } = useAuth();
     const [localId] = useLocalStorage(ID_KEY, uuid());
     const displayName = useMemo(() => user?.displayName ?? generateName(), [user]);
@@ -58,7 +54,29 @@ export const useCollaboration = ({
             onData: update => {
                 if (!slug || !excalidrawApi) return;
 
-                console.log({ update });
+                if (BoardUpdateResponse.isFullBoard(update)) {
+                    excalidrawApi.updateScene({
+                        elements: ExcalidrawSimpleElement.toExcalidrawElements(
+                            update.board.elements
+                        ),
+                    });
+                    return;
+                }
+
+                if (update.delta.senderId === localId) return;
+
+                const simpleElements = ExcalidrawSimpleElement.fromMany(elements);
+                const currentBoard = Board.from({ elements: simpleElements });
+
+                const updatedBoard = DeltaUpdateUtil.applyToBoard(update.delta, currentBoard);
+                const updatedElements = ExcalidrawSimpleElement.toExcalidrawElements(
+                    updatedBoard.elements
+                );
+
+                setElements(updatedElements);
+                excalidrawApi.updateScene({
+                    elements: updatedElements,
+                });
             },
             onError: error => {
                 console.error({ error });
@@ -135,7 +153,7 @@ export const useCollaboration = ({
         setMousePosition(pointer);
     };
 
-    const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
+    const onDrawingChange = async (e: readonly ExcalidrawElement[], state: AppState) => {
         const allButDeletedNewElements = removeDeletedElements(e);
         const allButDeletedOldElements = removeDeletedElements(elements);
 
@@ -159,24 +177,29 @@ export const useCollaboration = ({
             .map(element => ({ ...element, isDeleted: true }));
 
         const allElements = structuredClone(allButDeletedNewElements);
-        // debouncedSetElements(allElements);
+        setElements(allElements);
 
         if (!slug) return;
+
+        // TODO: do not send an update one the first render, when it has fetched the board and applies it to the scene
 
         const currentOrder = allElements.map(e => e.id);
         const elementsToSave = [...updatedElements, ...elementsToDelete];
 
+        console.log(elementsToSave[0]?.version);
+
         updateBoard.mutate({
             slug,
-            board: {
+            deltaBoardUpdate: {
                 excalidrawElements: elementsToSave,
                 order: currentOrder,
+                senderId: localId,
             },
         });
     };
 
     useEffect(() => {
-        if (!slug) return;
+        if (!slug || !isCollaborating) return;
         updateCollaborator.mutate({
             collaborator: {
                 avatarUrl,
@@ -187,7 +210,7 @@ export const useCollaboration = ({
             },
             slug,
         });
-    }, [debouncedMousePosition]);
+    }, [debouncedMousePosition, slug]);
 
     return {
         isCollaborating,

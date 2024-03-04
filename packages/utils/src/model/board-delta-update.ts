@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { ExcalidrawSimpleElementSchema } from "./excalidraw-simple-element";
 
-export const DeltaBoardUpdateSchema = z.object({
+export const BoardDeltaUpdateSchema = z.object({
     excalidrawElements: ExcalidrawSimpleElementSchema.array(),
     order: z.string().array(),
+    senderId: z.string().uuid(),
 });
 
-export type DeltaBoardUpdate = z.infer<typeof DeltaBoardUpdateSchema>;
+export type BoardDeltaUpdate = z.infer<typeof BoardDeltaUpdateSchema>;

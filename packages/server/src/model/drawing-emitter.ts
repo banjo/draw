@@ -1,6 +1,7 @@
-import { isDefined, partition } from "@banjoanton/utils";
+import { Maybe } from "@banjoanton/utils";
+import { TRPCError } from "@trpc/server";
 import EventEmitter from "node:events";
-import { Board, DeltaBoardUpdate, Slug, createLogger } from "utils";
+import { Board, BoardDeltaUpdate, createLogger, DeltaUpdateUtil, Slug } from "utils";
 import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../repositories/DrawRepository";
 
@@ -14,7 +15,7 @@ export class DrawingEmitter extends EventEmitter {
         this.map = new Map();
     }
 
-    async update(slug: Slug, deltaUpdate: DeltaBoardUpdate) {
+    async update(slug: Slug, deltaUpdate: BoardDeltaUpdate) {
         let board = this.map.get(slug);
 
         if (!board) {
@@ -27,42 +28,33 @@ export class DrawingEmitter extends EventEmitter {
             }
 
             board = {
-                elements: drawingResult.data.map(ExcalidrawSimpleElement.from),
+                elements: drawingResult.data.map(databaseElement =>
+                    ExcalidrawSimpleElement.from(databaseElement.data)
+                ),
             };
         }
 
-        const elements = deltaUpdate.excalidrawElements;
-
-        const [deleted, updated] = partition(elements, e => e.isDeleted);
-        const toDelete = new Set(deleted.map(e => e.id));
-        const toUpdate = new Set(updated.map(e => e.id));
-
-        const updatedBoardElements = board.elements
-            .map(e => {
-                if (toDelete.has(e.id)) {
-                    return undefined;
-                }
-
-                if (toUpdate.has(e.id)) {
-                    const updatedExcalidrawElement: ExcalidrawSimpleElement =
-                        updated.find(u => u.id === e.id) ?? e;
-
-                    return updatedExcalidrawElement;
-                }
-
-                return e;
-            })
-            .filter(isDefined);
-
-        this.map.set(slug, { elements: updatedBoardElements });
-
-        // TODO: return the updated elements to client and do calculations on the client as well
+        const updatedBoard = DeltaUpdateUtil.applyToBoard(deltaUpdate, board);
+        this.map.set(slug, updatedBoard);
         this.emit("update", slug, deltaUpdate);
     }
 
     // TODO: save to db occasionally
 
-    get(slug: Slug): Board | undefined {
-        return this.map.get(slug);
+    async get(slug: Slug): Promise<Maybe<Board>> {
+        const board = this.map.get(slug);
+        if (board) return board;
+
+        const elements = await DrawRepository.getDrawingBySlug(slug);
+
+        if (!elements.success) {
+            logger.error(`Failed to get drawing: ${slug}`);
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: elements.message,
+            });
+        }
+
+        return Board.fromDatabase(elements.data);
     }
 }

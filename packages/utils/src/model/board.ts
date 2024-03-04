@@ -9,6 +9,9 @@ const fromDatabase = (elements: DrawingElement[]): Board => ({
     elements: elements.map(e => ExcalidrawSimpleElementSchema.parse(e.data)),
 });
 
+const from = (board: Board): Board => board;
+
 export const Board = {
     fromDatabase,
+    from,
 };
