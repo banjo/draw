@@ -13,14 +13,9 @@ const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Bo
     const elements = deltaUpdate.excalidrawElements;
 
     const [deleted, allUpdated] = partition(elements, e => e.isDeleted);
-    const [updated, added] = partition(allUpdated, e => e.version > 1);
+    const [updated, added] = partition(allUpdated, e => board.elements.some(b => b.id === e.id));
     const toDelete = new Set(deleted.map(e => e.id));
     const toUpdate = new Set(updated.map(e => e.id));
-
-    // TODO: check version and only update if version is higher (does this logic work?)
-
-    // TODO: might be necessary to do another implementation on client.
-    // The truth is on server so always overwrite on client.
 
     const updatedBoardElements = board.elements
         .map(e => {
@@ -50,14 +45,14 @@ const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Bo
 
     const ordered = deltaUpdate.order
         .map(id => {
-            const updatedElement = updatedBoardElements.find(e => e.id === id);
-            if (updatedElement) {
-                return updatedElement;
-            }
-
             const addedElement = added.find(e => e.id === id);
             if (addedElement) {
                 return addedElement;
+            }
+
+            const updatedElement = updatedBoardElements.find(e => e.id === id);
+            if (updatedElement) {
+                return updatedElement;
             }
 
             return undefined;
