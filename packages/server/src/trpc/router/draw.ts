@@ -34,7 +34,7 @@ export const drawRouter = createTRPCRouter({
             const { slug, elements, order, userId } = input;
             logger.trace(`Saving drawing: ${slug}`);
 
-            const drawingResult = await DrawRepository.saveDrawing(slug, elements, order, userId);
+            const drawingResult = await DrawRepository.saveDrawingFromDeltaUpdate(slug, elements, order, userId);
 
             if (!drawingResult.success) {
                 logger.error(`Failed to save drawing: ${slug}`);

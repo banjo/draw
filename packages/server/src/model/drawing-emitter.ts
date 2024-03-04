@@ -1,3 +1,4 @@
+import { toMilliseconds } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import EventEmitter from "node:events";
 import { Board, BoardDeltaUpdate, createLogger, DeltaUpdateUtil, Slug } from "utils";
@@ -5,17 +6,38 @@ import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-sim
 import { DrawRepository } from "../repositories/DrawRepository";
 
 const logger = createLogger("DrawingEmitter");
+const SAVE_INTERVAL = toMilliseconds({ minutes: 1 });
 
 export class DrawingEmitter extends EventEmitter {
-    private map: Map<Slug, Board>;
+    private boardsMap: Map<Slug, Board>;
+    private saveIntervalMap: Map<Slug, NodeJS.Timeout>;
 
     constructor() {
         super();
-        this.map = new Map();
+        this.boardsMap = new Map();
+        this.saveIntervalMap = new Map();
+    }
+
+    // Wait 30 seconds before clearing the board from memory
+    complete(slug: Slug) {
+        setTimeout(
+            async () => {
+                const board = this.boardsMap.get(slug);
+
+                if (board) {
+                    await DrawRepository.saveDrawingFromBoard(slug, board);
+                }
+
+                clearInterval(this.saveIntervalMap.get(slug));
+                this.saveIntervalMap.delete(slug);
+                this.boardsMap.delete(slug);
+            },
+            toMilliseconds({ seconds: 30 })
+        );
     }
 
     async update(slug: Slug, deltaUpdate: BoardDeltaUpdate) {
-        let board = this.map.get(slug);
+        let board = this.boardsMap.get(slug);
 
         if (!board) {
             logger.info(`Drawing not found in memory: ${slug}`);
@@ -38,14 +60,12 @@ export class DrawingEmitter extends EventEmitter {
             deltaUpdate,
             isOnClient: false,
         });
-        this.map.set(slug, updatedBoard);
+        this.boardsMap.set(slug, updatedBoard);
         this.emit("update", slug, deltaUpdate);
     }
 
-    // TODO: save to db occasionally
-
     async get(slug: Slug): Promise<Board> {
-        const board = this.map.get(slug);
+        const board = this.boardsMap.get(slug);
         if (board) return board;
 
         const elements = await DrawRepository.getDrawingBySlug(slug);
@@ -57,7 +77,28 @@ export class DrawingEmitter extends EventEmitter {
                 message: elements.message,
             });
         }
+        const updatedBoard = Board.fromDatabase(elements.data);
 
-        return Board.fromDatabase(elements.data);
+        // clear previous interval and board from memory
+        this.saveIntervalMap.delete(slug);
+        this.boardsMap.delete(slug);
+
+        this.boardsMap.set(slug, updatedBoard);
+        this.saveIntervalMap.set(
+            slug,
+            setInterval(async () => {
+                const latestBoard = this.boardsMap.get(slug);
+
+                if (!latestBoard) {
+                    logger.trace(`Board not found for board: ${slug}, clearing interval`);
+                    clearInterval(this.saveIntervalMap.get(slug));
+                    return;
+                }
+
+                await DrawRepository.saveDrawingFromBoard(slug, latestBoard);
+            }, SAVE_INTERVAL)
+        );
+
+        return updatedBoard;
     }
 }

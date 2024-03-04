@@ -1,6 +1,6 @@
 import { isDefined, Maybe, Result } from "@banjoanton/utils";
 import { Prisma, prisma } from "db";
-import { createLogger } from "utils";
+import { Board, createLogger } from "utils";
 import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
 import { UserRepository } from "./UserRepository";
 
@@ -43,7 +43,70 @@ const getDrawingBySlug = async (slug: string) => {
     }
 };
 
-const saveDrawing = async (
+// TODO: implement a better way to save the drawing
+const saveDrawingFromBoard = async (slug: string, board: Board) => {
+    try {
+        const drawing = await prisma.drawing.findUnique({
+            where: {
+                slug,
+            },
+        });
+
+        if (drawing) {
+            const deleteAll = await prisma.drawingElement.deleteMany({
+                where: {
+                    drawingId: drawing.id,
+                },
+            });
+
+            if (!deleteAll) {
+                logger.error(`Error deleting drawing elements: ${slug}`);
+                return Result.error("Error deleting drawing elements", "InternalError");
+            }
+
+            const createNewDrawing = await prisma.drawingElement.createMany({
+                data: board.elements.map(element => ({
+                    data: element as Prisma.InputJsonValue,
+                    elementId: element.id.toString(),
+                    version: element.version,
+                    drawingId: drawing.id,
+                })),
+            });
+
+            if (!createNewDrawing) {
+                logger.error(`Error saving drawing elements: ${slug}`);
+                return Result.error("Error saving drawing elements", "InternalError");
+            }
+
+            return Result.ok(drawing.id);
+        }
+
+        const createNewDrawing = await prisma.drawing.create({
+            data: {
+                slug,
+                elements: {
+                    create: board.elements.map(element => ({
+                        data: element as Prisma.InputJsonValue,
+                        elementId: element.id.toString(),
+                        version: element.version,
+                    })),
+                },
+            },
+        });
+
+        if (!createNewDrawing) {
+            logger.error(`Error saving drawing: ${slug}`);
+            return Result.error("Error saving drawing", "InternalError");
+        }
+
+        return Result.ok(createNewDrawing.id);
+    } catch (error) {
+        logger.error(`Error saving drawing: ${slug} - ${error}`);
+        return Result.error("Error saving drawing", "InternalError");
+    }
+};
+
+const saveDrawingFromDeltaUpdate = async (
     slug: string,
     elements: ExcalidrawSimpleElement[],
     order: string[],
@@ -358,7 +421,8 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
 
 export const DrawRepository = {
     getDrawingBySlug,
-    saveDrawing,
+    saveDrawingFromDeltaUpdate,
+    saveDrawingFromBoard,
     saveImages,
     getImages,
     saveToCollection,

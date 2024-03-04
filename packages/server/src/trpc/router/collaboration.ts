@@ -93,9 +93,19 @@ export const collaborationRouter = createTRPCRouter({
                     emit.next(delta);
                 };
 
-                drawingEmitter.on("update", onUpdate);
+                const onLeave = (slug: Slug) => {
+                    if (slug !== selectedSlug) return;
 
-                return () => {
+                    const activeCollaborators = collaboratorsEmitter.activeCollaborators(slug);
+
+                    if (activeCollaborators === 0) {
+                        drawingEmitter.complete(slug);
+                    }
+                };
+
+                drawingEmitter.on("update", onUpdate);
+                return async () => {
+                    onLeave(selectedSlug);
                     drawingEmitter.off("update", onUpdate);
                 };
             });
