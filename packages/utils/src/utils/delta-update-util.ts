@@ -3,7 +3,7 @@ import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
 import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
 
-const applyToBoard = (deltaUpdate: BoardDeltaUpdate, board: Board): Board => {
+const applyToBoard = (deltaUpdate: BoardDeltaUpdate, board: Board, isOnClient: boolean): Board => {
     const elements = deltaUpdate.excalidrawElements;
 
     const [deleted, allUpdated] = partition(elements, e => e.isDeleted);
@@ -25,6 +25,11 @@ const applyToBoard = (deltaUpdate: BoardDeltaUpdate, board: Board): Board => {
             if (toUpdate.has(e.id)) {
                 const updatedExcalidrawElement: ExcalidrawSimpleElement =
                     updated.find(u => u.id === e.id) ?? e;
+
+                // always overwrite on client
+                if (isOnClient) {
+                    return updatedExcalidrawElement;
+                }
 
                 if (updatedExcalidrawElement.version > e.version) {
                     return updatedExcalidrawElement;

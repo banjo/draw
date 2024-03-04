@@ -15,7 +15,13 @@ import {
 import { useDebounce, useLocalStorage } from "@uidotdev/usehooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import generateName from "sillyname";
-import { Board, BoardUpdateResponse, DeltaUpdateUtil, ExcalidrawSimpleElement } from "utils";
+import {
+    Board,
+    BoardDeltaUpdate,
+    BoardUpdateResponse,
+    DeltaUpdateUtil,
+    ExcalidrawSimpleElement,
+} from "utils";
 
 type In = {
     slug?: string;
@@ -68,12 +74,12 @@ export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }:
                 const simpleElements = ExcalidrawSimpleElement.fromMany(elements);
                 const currentBoard = Board.from({ elements: simpleElements });
 
-                const updatedBoard = DeltaUpdateUtil.applyToBoard(update.delta, currentBoard);
+                const updatedBoard = DeltaUpdateUtil.applyToBoard(update.delta, currentBoard, true);
                 const updatedElements = ExcalidrawSimpleElement.toExcalidrawElements(
                     updatedBoard.elements
                 );
 
-                setElements(updatedElements);
+                setElements(structuredClone(updatedElements));
                 excalidrawApi.updateScene({
                     elements: updatedElements,
                 });
@@ -148,6 +154,11 @@ export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }:
     const [mousePosition, setMousePosition] = useState(DEFAULT_MOUSE_POSITION);
     const debouncedMousePosition = useDebounce(mousePosition, 5);
 
+    const [deltaUpdate, setDeltaUpdate] = useState<BoardDeltaUpdate>(() =>
+        BoardDeltaUpdate.empty()
+    );
+    const debouncedDeltaUpdate = useDebounce(deltaUpdate, 3);
+
     const onPointerUpdate = ({ pointer }: PointerUpdateData) => {
         if (!slug) return;
         setMousePosition(pointer);
@@ -186,16 +197,13 @@ export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }:
         const currentOrder = allElements.map(e => e.id);
         const elementsToSave = [...updatedElements, ...elementsToDelete];
 
-        console.log(elementsToSave[0]?.version);
-
-        updateBoard.mutate({
-            slug,
-            deltaBoardUpdate: {
-                excalidrawElements: elementsToSave,
-                order: currentOrder,
-                senderId: localId,
-            },
+        const deltaBoardUpdate = BoardDeltaUpdate.from({
+            excalidrawElements: elementsToSave,
+            order: currentOrder,
+            senderId: localId,
         });
+
+        setDeltaUpdate(deltaBoardUpdate);
     };
 
     useEffect(() => {
@@ -211,6 +219,13 @@ export const useCollaboration = ({ slug, excalidrawApi, setElements, elements }:
             slug,
         });
     }, [debouncedMousePosition, slug]);
+
+    useEffect(() => {
+        if (!slug) return;
+        if (isEqual(debouncedDeltaUpdate, BoardDeltaUpdate.empty())) return;
+
+        updateBoard.mutate({ deltaBoardUpdate: debouncedDeltaUpdate, slug });
+    }, [debouncedDeltaUpdate, slug]);
 
     return {
         isCollaborating,

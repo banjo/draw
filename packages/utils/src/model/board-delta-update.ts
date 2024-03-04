@@ -8,3 +8,16 @@ export const BoardDeltaUpdateSchema = z.object({
 });
 
 export type BoardDeltaUpdate = z.infer<typeof BoardDeltaUpdateSchema>;
+
+const empty = (): BoardDeltaUpdate => ({
+    excalidrawElements: [],
+    order: [],
+    senderId: "",
+});
+
+const from = (boardDeltaUpdate: BoardDeltaUpdate): BoardDeltaUpdate => boardDeltaUpdate;
+
+export const BoardDeltaUpdate = {
+    empty,
+    from,
+}
