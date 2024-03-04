@@ -43,6 +43,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
         {
             enabled: isDefined(slug),
             onData: externalCollaborators => {
+                console.log("got update", { externalCollaborators });
                 if (!slug || !excalidrawApi) return;
 
                 if (externalCollaborators.length <= 1 && !isCollaborating) {
@@ -98,7 +99,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
     };
 
     useEffect(() => {
-        if (!slug || !isCollaborating) return;
+        if (!slug) return;
         updateCollaborator.mutate({
             collaborator: {
                 avatarUrl,
