@@ -36,6 +36,8 @@ export const Draw = ({ slug }: DrawProps) => {
         slug,
     });
     const { renderMenu } = useMenu({ slug, excalidrawApi, saveDrawing, toggleSidebar });
+
+    // TODO: change images to be collaborative as well
     useImages({ elements, excalidrawApi });
 
     return (

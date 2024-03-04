@@ -14,7 +14,8 @@ export type ExcalidrawSimpleElement = z.infer<typeof ExcalidrawSimpleElementSche
 const from = (object: unknown): ExcalidrawSimpleElement =>
     ExcalidrawSimpleElementSchema.parse(object);
 
-const fromMany = (objects: unknown[]): ExcalidrawSimpleElement[] => objects.map(from);
+const fromMany = (objects: unknown[] | readonly unknown[]): ExcalidrawSimpleElement[] =>
+    objects.map(from);
 
 const toExcalidrawElement = (element: ExcalidrawSimpleElement): ExcalidrawElement =>
     element as ExcalidrawElement;

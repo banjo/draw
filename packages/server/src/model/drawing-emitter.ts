@@ -1,4 +1,3 @@
-import { Maybe } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import EventEmitter from "node:events";
 import { Board, BoardDeltaUpdate, createLogger, DeltaUpdateUtil, Slug } from "utils";
@@ -45,7 +44,7 @@ export class DrawingEmitter extends EventEmitter {
 
     // TODO: save to db occasionally
 
-    async get(slug: Slug): Promise<Maybe<Board>> {
+    async get(slug: Slug): Promise<Board> {
         const board = this.map.get(slug);
         if (board) return board;
 

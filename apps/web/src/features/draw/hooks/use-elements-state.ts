@@ -9,7 +9,7 @@ type In = {
 
 const localStorageKey = `drawing-base`;
 
-export type ExcalidrawElements = ExcalidrawElement[];
+export type ExcalidrawElements = ExcalidrawElement[] | readonly ExcalidrawElement[];
 
 export const useElementsState = ({ slug }: In) => {
     const [localStorageElements, setLocalStorageElements] = useLocalStorage<ExcalidrawElements>(
