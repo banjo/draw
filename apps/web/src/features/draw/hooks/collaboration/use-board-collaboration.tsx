@@ -1,11 +1,11 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
+import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-mutation";
 import { ElementUtil } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined, isEqual } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useDebounce } from "@uidotdev/usehooks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Board,
@@ -33,6 +33,10 @@ export const useBoardCollaboration = ({
     localId,
 }: In) => {
     const navigate = useNavigate();
+
+    const { mutateDeltaUpdateInstantly, mutateDeltaUpdateWithDebounce } = useDeltaMutation({
+        slug,
+    });
 
     // remember previous elements with lock to be able to send to server when it changes
     const [previousElementsWithLockIds, setPreviousElementsWithLockId] = useState<string[]>([]);
@@ -82,31 +86,6 @@ export const useBoardCollaboration = ({
             },
         }
     );
-
-    const [deltaUpdate, setDeltaUpdate] = useState<BoardDeltaUpdate>(() =>
-        BoardDeltaUpdate.empty()
-    );
-    const debouncedDeltaUpdate = useDebounce(deltaUpdate, DEBOUNCE_TIME);
-
-    const updateBoardMutation = trpc.collaboration.updateBoard.useMutation();
-
-    const mutateDeltaUpdate = async (update: BoardDeltaUpdate, instant: boolean) => {
-        if (!slug) return;
-
-        if (!instant) {
-            setDeltaUpdate(update);
-            return;
-        }
-        updateBoardMutation.mutate({ deltaBoardUpdate: update, slug });
-    };
-
-    useEffect(() => {
-        if (!slug) return;
-        if (isEqual(debouncedDeltaUpdate, BoardDeltaUpdate.empty())) return;
-
-        // Update without debounce as it is already debounced
-        mutateDeltaUpdate(debouncedDeltaUpdate, false);
-    }, [debouncedDeltaUpdate, slug]);
 
     const onDrawingChange = async (e: readonly ExcalidrawElement[], state: AppState) => {
         const allButDeletedNewElements = ElementUtil.removeDeletedElements(e);
@@ -166,8 +145,11 @@ export const useBoardCollaboration = ({
 
         setPreviousElementsWithLockId(activeElementsWithLock);
 
-        const instantUpdate = lockStateHasChanged;
-        mutateDeltaUpdate(deltaBoardUpdate, instantUpdate);
+        if (lockStateHasChanged) {
+            mutateDeltaUpdateInstantly(deltaBoardUpdate);
+        } else {
+            mutateDeltaUpdateWithDebounce(deltaBoardUpdate);
+        }
     };
 
     return {
