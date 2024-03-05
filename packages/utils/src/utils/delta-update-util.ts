@@ -17,6 +17,7 @@ const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Bo
     const toDelete = new Set(deleted.map(e => e.id));
     const toUpdate = new Set(updated.map(e => e.id));
 
+    // TODO: this is a bit inefficient, we could just loop through the updated elements and update the board
     const updatedBoardElements = board.elements
         .map(e => {
             if (toDelete.has(e.id)) {
