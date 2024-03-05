@@ -17,6 +17,7 @@ const DEFAULT_OPTIONS = {
 const causeLog: Record<Cause, Maybe<string>> = {
     EXPIRED_TOKEN: undefined,
     NOT_OWNER: "You are not the owner of this drawing",
+    DRAWING_NOT_FOUND: "Drawing not found",
 };
 
 export const useError = () => {
@@ -36,12 +37,30 @@ export const useError = () => {
                 internalToast.error(message);
                 return;
             }
+
+            if (errorMessage && toast) {
+                internalToast.error(errorMessage);
+                return;
+            }
+
+            if (toast) {
+                toastError(error.message);
+            }
+            return;
         }
 
         if (errorMessage && toast) {
             internalToast.error(errorMessage);
-        } else if (toast) {
-            toastError(error);
+        }
+
+        if (toast) {
+            if (error instanceof Error) {
+                internalToast.error(error.message);
+            } else if (typeof error === "string") {
+                internalToast.error(error);
+            } else {
+                internalToast.error("An error occurred");
+            }
         }
     };
 

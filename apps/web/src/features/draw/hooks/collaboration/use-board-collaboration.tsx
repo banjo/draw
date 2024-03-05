@@ -1,6 +1,7 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-mutation";
 import { ElementUtil } from "@/features/draw/utils/element-utils";
+import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined, isEqual } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
@@ -23,8 +24,6 @@ type In = {
     localId: string;
 };
 
-const DEBOUNCE_TIME = 3;
-
 export const useBoardCollaboration = ({
     slug,
     excalidrawApi,
@@ -33,6 +32,8 @@ export const useBoardCollaboration = ({
     localId,
 }: In) => {
     const navigate = useNavigate();
+
+    const { handleError } = useError();
 
     const { mutateDeltaUpdateInstantly, mutateDeltaUpdateWithDebounce } = useDeltaMutation({
         slug,
@@ -81,7 +82,7 @@ export const useBoardCollaboration = ({
                 });
             },
             onError: error => {
-                console.error(error);
+                handleError(error, { toast: true });
                 navigate("/");
             },
         }

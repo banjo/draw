@@ -1,7 +1,7 @@
 import { toMilliseconds } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import EventEmitter from "node:events";
-import { Board, BoardDeltaUpdate, createLogger, DeltaUpdateUtil, Slug } from "utils";
+import { Board, BoardDeltaUpdate, Cause, createLogger, DeltaUpdateUtil, Slug } from "utils";
 import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../repositories/DrawRepository";
 
@@ -73,8 +73,9 @@ export class DrawingEmitter extends EventEmitter {
         if (!elements.success) {
             logger.error(`Failed to get drawing: ${slug}`);
             throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
+                code: "NOT_FOUND",
                 message: elements.message,
+                cause: Cause.DRAWING_NOT_FOUND,
             });
         }
         const updatedBoard = Board.fromDatabase(elements.data);
