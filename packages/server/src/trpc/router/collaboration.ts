@@ -79,7 +79,7 @@ export const collaborationRouter = createTRPCRouter({
     onBoardChange: publicProcedure
         .input(z.object({ slug: z.string(), id: z.string() }))
         .subscription(async ({ input }) => {
-            const { slug: selectedSlug } = input;
+            const { slug: selectedSlug, id } = input;
 
             const board = await drawingEmitter.get(selectedSlug);
 
@@ -93,8 +93,10 @@ export const collaborationRouter = createTRPCRouter({
                     emit.next(delta);
                 };
 
-                const onLeave = (slug: Slug) => {
+                const onLeave = (slug: Slug, senderId: string) => {
                     if (slug !== selectedSlug) return;
+
+                    drawingEmitter.clearActiveElements(slug, senderId);
 
                     const activeCollaborators = collaboratorsEmitter.activeCollaborators(slug);
 
@@ -105,7 +107,7 @@ export const collaborationRouter = createTRPCRouter({
 
                 drawingEmitter.on("update", onUpdate);
                 return async () => {
-                    onLeave(selectedSlug);
+                    onLeave(selectedSlug, id);
                     drawingEmitter.off("update", onUpdate);
                 };
             });

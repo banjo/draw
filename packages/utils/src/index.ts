@@ -7,3 +7,4 @@ export * from "./model/collaborator";
 export * from "./model/excalidraw-simple-element";
 export * from "./model/slug";
 export * from "./utils/delta-update-util";
+export * from "./utils/locked-elements-util";

@@ -1,21 +1,58 @@
 import { toMilliseconds } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import EventEmitter from "node:events";
-import { Board, BoardDeltaUpdate, Cause, createLogger, DeltaUpdateUtil, Slug } from "utils";
+import {
+    Board,
+    BoardDeltaUpdate,
+    Cause,
+    createLogger,
+    DeltaUpdateUtil,
+    LockedElementUtil,
+    Slug,
+} from "utils";
 import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../repositories/DrawRepository";
 
 const logger = createLogger("DrawingEmitter");
 const SAVE_INTERVAL = toMilliseconds({ minutes: 1 });
 
+type UserId = string;
+type ElementId = string;
+
 export class DrawingEmitter extends EventEmitter {
     private boardsMap: Map<Slug, Board>;
     private saveIntervalMap: Map<Slug, NodeJS.Timeout>;
+    private lockedElementsMap: Map<UserId, ElementId[]>;
 
     constructor() {
         super();
         this.boardsMap = new Map();
         this.saveIntervalMap = new Map();
+        this.lockedElementsMap = new Map();
+    }
+
+    clearActiveElements(slug: Slug, userId: UserId) {
+        const lockedElements = this.lockedElementsMap.get(userId);
+        if (!lockedElements) return;
+
+        const board = this.boardsMap.get(slug);
+        if (!board) return;
+
+        const { updatedBoard, updatedElements } = LockedElementUtil.restoreBoardLockedElements(
+            board,
+            lockedElements
+        );
+
+        this.boardsMap.set(slug, updatedBoard);
+        this.lockedElementsMap.delete(userId);
+
+        const order = updatedBoard.elements.map(element => element.id.toString());
+        const deltaUpdate = BoardDeltaUpdate.from({
+            excalidrawElements: updatedElements,
+            order,
+            senderId: userId,
+        });
+        this.emit("update", slug, deltaUpdate);
     }
 
     // Wait 30 seconds before clearing the board from memory
@@ -54,6 +91,13 @@ export class DrawingEmitter extends EventEmitter {
                 ),
             };
         }
+
+        const previousLockedElements = this.lockedElementsMap.get(deltaUpdate.senderId) ?? [];
+        const updatedLockedElements = LockedElementUtil.applyDeltaUpdate(
+            previousLockedElements,
+            deltaUpdate
+        );
+        this.lockedElementsMap.set(deltaUpdate.senderId, updatedLockedElements);
 
         const updatedBoard = DeltaUpdateUtil.applyToBoard({
             board,
