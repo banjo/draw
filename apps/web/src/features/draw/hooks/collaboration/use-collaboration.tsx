@@ -1,6 +1,6 @@
-import { useBoardCollaboration } from "@/features/draw/hooks/use-board-collaboration";
-import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
-import { usePointerCollaboration } from "@/features/draw/hooks/use-pointer-collaboration";
+import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
+import { useBoardCollaboration } from "@/features/draw/hooks/collaboration/use-board-collaboration";
+import { usePointerCollaboration } from "@/features/draw/hooks/collaboration/use-pointer-collaboration";
 import { Maybe, noop, uuid } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";

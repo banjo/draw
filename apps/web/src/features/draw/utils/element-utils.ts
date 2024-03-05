@@ -1,4 +1,4 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
+import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { isDefined } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 

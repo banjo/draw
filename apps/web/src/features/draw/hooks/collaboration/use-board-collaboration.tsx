@@ -1,4 +1,4 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/use-elements-state";
+import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ElementUtil } from "@/features/draw/utils/element-utils";
 import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined, isEqual } from "@banjoanton/utils";

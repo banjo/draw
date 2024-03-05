@@ -1,10 +1,10 @@
-import { useCollaboration } from "@/features/draw/hooks/use-collaboration";
-import { useDrawing } from "@/features/draw/hooks/use-drawing";
-import { useElementsState } from "@/features/draw/hooks/use-elements-state";
-import { useImages } from "@/features/draw/hooks/use-images";
-import { useLibrary } from "@/features/draw/hooks/use-library";
-import { useMenu } from "@/features/draw/hooks/use-menu";
-import { useSidebar } from "@/features/draw/hooks/use-sidebar";
+import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
+import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
+import { useImages } from "@/features/draw/hooks/base/use-images";
+import { useLibrary } from "@/features/draw/hooks/base/use-library";
+import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
+import { useMenu } from "@/features/draw/hooks/ui/use-menu";
+import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";

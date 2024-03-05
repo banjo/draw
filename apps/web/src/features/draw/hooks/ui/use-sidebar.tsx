@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
 import { DrawingCard } from "@/features/draw/components/drawing-card";
-import { useIsScrollable } from "@/features/draw/hooks/use-is-scrollable";
+import { useIsScrollable } from "@/features/draw/hooks/utils/use-is-scrollable";
 import { trpc } from "@/lib/trpc";
 import { Maybe } from "@banjoanton/utils";
 import { Sidebar } from "@excalidraw/excalidraw";
