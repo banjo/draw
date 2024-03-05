@@ -43,7 +43,7 @@ const getDrawingBySlug = async (slug: string) => {
     }
 };
 
-// TODO: implement a better way to save the drawing
+// TODO: implement a better way to save the drawing (does this even work?)
 const saveDrawingFromBoard = async (slug: string, board: Board) => {
     try {
         const drawing = await prisma.drawing.findUnique({

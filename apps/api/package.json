@@ -10,7 +10,7 @@
         "run-ws": "tsx src/ws-server.ts",
         "dev-ws": "tsx watch src/ws-server.ts",
         "run": "run-p run-http run-ws",
-        "dev": "run-p dev-http dev-ws",
+        "dev": "tsx watch src/dev-server.ts",
         "build": "tsup",
         "clean": "rimraf node_modules dist"
     },
