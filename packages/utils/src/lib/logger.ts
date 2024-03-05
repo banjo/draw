@@ -1,5 +1,6 @@
 import { isBrowser } from "@banjoanton/utils";
-import { TransportTargetOptions, pino } from "pino";
+import pino, { TransportTargetOptions } from "pino";
+// Pino import needs to be default to work in the browser
 
 let sharedTransport: any;
 

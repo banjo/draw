@@ -1,4 +1,5 @@
 import { isDefined, partition } from "@banjoanton/utils";
+import { createLogger } from "../lib/logger";
 import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
 import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
@@ -8,6 +9,8 @@ type ApplyToBoardProps = {
     board: Board;
     isOnClient: boolean;
 };
+
+const logger = createLogger("DeltaUpdateUtil");
 
 const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Board => {
     const elements = deltaUpdate.excalidrawElements;
@@ -56,6 +59,7 @@ const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Bo
                 return updatedElement;
             }
 
+            logger.trace(`Element with id ${id} not found in delta update`);
             return undefined;
         })
         .filter(isDefined);
