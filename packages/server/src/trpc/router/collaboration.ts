@@ -28,7 +28,7 @@ export const collaborationRouter = createTRPCRouter({
         )
         .mutation(async ({ input }) => {
             const { collaborator, slug } = input;
-            logger.trace(`Updating collaborator ${collaborator.name} to ${slug}`);
+            logger.silent(`Updating collaborator ${collaborator.name} to ${slug}`);
             collaboratorsEmitter.update(slug, collaborator);
         }),
     updateBoard: publicProcedure

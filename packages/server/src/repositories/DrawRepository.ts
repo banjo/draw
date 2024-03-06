@@ -52,6 +52,8 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
             },
         });
 
+        const order = board.elements.map(element => element.id.toString());
+
         if (drawing) {
             const deleteAll = await prisma.drawingElement.deleteMany({
                 where: {
@@ -64,7 +66,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
                 return Result.error("Error deleting drawing elements", "InternalError");
             }
 
-            const createNewDrawing = await prisma.drawingElement.createMany({
+            const createNewDrawingElements = await prisma.drawingElement.createMany({
                 data: board.elements.map(element => ({
                     data: element as Prisma.InputJsonValue,
                     elementId: element.id.toString(),
@@ -73,9 +75,23 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
                 })),
             });
 
-            if (!createNewDrawing) {
+            if (!createNewDrawingElements) {
                 logger.error(`Error saving drawing elements: ${slug}`);
                 return Result.error("Error saving drawing elements", "InternalError");
+            }
+
+            const orderUpdate = await prisma.drawing.update({
+                where: {
+                    id: drawing.id,
+                },
+                data: {
+                    order,
+                },
+            });
+
+            if (!orderUpdate) {
+                logger.error(`Error saving drawing order: ${slug}`);
+                return Result.error("Error saving drawing order", "InternalError");
             }
 
             return Result.ok(drawing.id);
@@ -91,6 +107,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
                         version: element.version,
                     })),
                 },
+                order,
             },
         });
 

@@ -57,17 +57,26 @@ export class DrawingEmitter extends EventEmitter {
 
     // Wait 30 seconds before clearing the board from memory
     complete(slug: Slug) {
+        logger.trace(`Completing drawing: ${slug}, will clear in 30 seconds`);
         setTimeout(
             async () => {
+                logger.trace(`Saving and clearing drawing: ${slug}`);
                 const board = this.boardsMap.get(slug);
 
                 if (board) {
-                    await DrawRepository.saveDrawingFromBoard(slug, board);
+                    const res = await DrawRepository.saveDrawingFromBoard(slug, board);
+
+                    if (!res.success) {
+                        logger.error(`Error saving drawing: ${slug}`);
+                    }
+                } else {
+                    logger.error(`Board not found for saving: ${slug}`);
                 }
 
                 clearInterval(this.saveIntervalMap.get(slug));
                 this.saveIntervalMap.delete(slug);
                 this.boardsMap.delete(slug);
+                logger.trace(`Drawing cleared from memory: ${slug}`);
             },
             toMilliseconds({ seconds: 30 })
         );
@@ -76,8 +85,10 @@ export class DrawingEmitter extends EventEmitter {
     async update(slug: Slug, deltaUpdate: BoardDeltaUpdate) {
         let board = this.boardsMap.get(slug);
 
-        if (!board) {
-            logger.info(`Drawing not found in memory: ${slug}`);
+        if (board) {
+            logger.trace(`Drawing found in memory: ${slug}`);
+        } else {
+            logger.trace(`Drawing not found in memory: ${slug}`);
             const drawingResult = await DrawRepository.getDrawingBySlug(slug);
 
             if (!drawingResult.success) {
@@ -90,6 +101,7 @@ export class DrawingEmitter extends EventEmitter {
                     ExcalidrawSimpleElement.from(databaseElement.data)
                 ),
             };
+            logger.trace(`Drawing fetched from database: ${slug}`);
         }
 
         const previousLockedElements = this.lockedElementsMap.get(deltaUpdate.senderId) ?? [];
@@ -106,11 +118,15 @@ export class DrawingEmitter extends EventEmitter {
         });
         this.boardsMap.set(slug, updatedBoard);
         this.emit("update", slug, deltaUpdate);
+        logger.trace(`Drawing updated: ${slug}`);
     }
 
     async get(slug: Slug): Promise<Board> {
         const board = this.boardsMap.get(slug);
-        if (board) return board;
+        if (board) {
+            logger.trace(`Drawing found in memory: ${slug}`);
+            return board;
+        }
 
         const elements = await DrawRepository.getDrawingBySlug(slug);
 
@@ -122,6 +138,8 @@ export class DrawingEmitter extends EventEmitter {
                 cause: Cause.DRAWING_NOT_FOUND,
             });
         }
+        console.log(elements.data);
+        logger.trace(`Drawing fetched from database: ${slug}`);
         const updatedBoard = Board.fromDatabase(elements.data);
 
         // clear previous interval and board from memory

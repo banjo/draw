@@ -40,7 +40,7 @@ export const createLogger = (name: string) => {
         });
     }
 
-    return pino({ name }, sharedTransport);
+    return pino({ name, level: "trace" }, sharedTransport);
 };
 
 export { type Logger } from "pino";
