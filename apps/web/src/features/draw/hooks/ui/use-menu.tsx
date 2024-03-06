@@ -126,7 +126,14 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
                     onSelect={copyToNewDrawing}
                     icon={<ResponsiveIcon Icon={CopyIcon} />}
                 >
-                    Copy drawing
+                    Create copy
+                </MainMenu.Item>
+
+                <MainMenu.Item
+                    onSelect={onShareDrawing}
+                    icon={<ResponsiveIcon Icon={Icons.link} />}
+                >
+                    Share drawing
                 </MainMenu.Item>
 
                 <MainMenu.Separator />
@@ -150,13 +157,6 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
                         <MainMenu.Separator />
                     </>
                 )}
-
-                <MainMenu.Item
-                    onSelect={onShareDrawing}
-                    icon={<ResponsiveIcon Icon={Icons.link} />}
-                >
-                    Share drawing
-                </MainMenu.Item>
 
                 <MainMenu.DefaultItems.SaveAsImage />
                 <MainMenu.DefaultItems.Export />
