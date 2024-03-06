@@ -12,6 +12,7 @@ import {
     BoardUpdateResponse,
     DeltaUpdateUtil,
     ExcalidrawSimpleElement,
+    LockedElementUtil,
 } from "common";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -93,7 +94,7 @@ export const useBoardCollaboration = ({
         const allButDeletedOldElements = ElementUtil.removeDeletedElements(elements);
         const elementsAreUpdated = !isEqual(allButDeletedNewElements, allButDeletedOldElements);
 
-        const activeElementsWithLock = ElementUtil.getActiveElementIds(state);
+        const activeElementsWithLock = LockedElementUtil.getLockedElementIds(state);
         const lockStateHasChanged = !isEqual(previousElementsWithLockIds, activeElementsWithLock);
 
         if (!elementsAreUpdated && !lockStateHasChanged) return;
