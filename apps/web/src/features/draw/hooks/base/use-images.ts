@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 type In = {
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
@@ -41,18 +41,22 @@ export const useImages = ({ excalidrawApi, elements }: In) => {
         excalidrawApi.addFiles(files);
     };
 
-    const isFirstRunRef = useRef(true);
-    // get images on load
+    // get images on load or when new images are added
     useEffect(() => {
-        if (!elements || !excalidrawApi || isFirstRunRef.current === false) return;
+        if (!elements || !excalidrawApi) return;
 
         const images = elements.filter(
             element => element.type === "image" && !element.isDeleted && element.fileId
         ) as ExcalidrawImageElement[];
         if (images.length === 0) return;
 
-        fetchImages(images.map(image => image.fileId!));
-        isFirstRunRef.current = false;
+        const currentImages = excalidrawApi.getFiles();
+        const alreadyFetchedImages = Object.values(currentImages).map(image => image.id);
+
+        const imagesToFetch = images.filter(image => !alreadyFetchedImages.includes(image.fileId!));
+        if (imagesToFetch.length === 0) return;
+
+        fetchImages(imagesToFetch.map(image => image.fileId!));
     }, [excalidrawApi, elements]);
 
     // save images on change
