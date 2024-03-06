@@ -123,6 +123,7 @@ export const useBoardCollaboration = ({
 
         const allElements = structuredClone(allButDeletedNewElements);
         setElements(allElements);
+        setPreviousElementsWithLockId(activeElementsWithLock);
 
         if (!slug) return;
 
@@ -144,8 +145,6 @@ export const useBoardCollaboration = ({
             order: currentOrder,
             senderId: localId,
         });
-
-        setPreviousElementsWithLockId(activeElementsWithLock);
 
         if (lockStateHasChanged) {
             mutateDeltaUpdateInstantly(deltaBoardUpdate);
