@@ -3,6 +3,7 @@ import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-
 import { ElementUtil } from "@/features/draw/utils/element-utils";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
+import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { Maybe, isDefined, isEqual } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
@@ -14,8 +15,8 @@ import {
     ExcalidrawSimpleElement,
     LockedElementUtil,
 } from "common";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type In = {
     slug?: string;
@@ -33,15 +34,28 @@ export const useBoardCollaboration = ({
     localId,
 }: In) => {
     const navigate = useNavigate();
-
     const { handleError } = useError();
-
     const { mutateDeltaUpdateInstantly, mutateDeltaUpdateWithDebounce } = useDeltaMutation({
         slug,
     });
+    const { pathname } = useLocation();
 
     // remember previous elements with lock to be able to send to server when it changes
     const [previousElementsWithLockIds, setPreviousElementsWithLockId] = useState<string[]>([]);
+    const { isLoading, setIsLoading } = useGlobalLoadingStore();
+
+    useEffect(() => {
+        // do not load drawing when navigating to local
+        if (pathname === "/") return;
+        setIsLoading(true, "Loading drawing...");
+    }, [slug]);
+
+    useEffect(() => {
+        if (!excalidrawApi) return;
+        setPreviousElementsWithLockId(
+            LockedElementUtil.getLockedElementIds(excalidrawApi.getAppState())
+        );
+    }, [slug, excalidrawApi]);
 
     trpc.collaboration.onBoardChange.useSubscription(
         { slug: slug ?? "", id: localId },
@@ -60,6 +74,7 @@ export const useBoardCollaboration = ({
                     });
 
                     setElements(structuredClone(elements));
+                    setIsLoading(false);
                     return;
                 }
 
@@ -99,6 +114,15 @@ export const useBoardCollaboration = ({
 
         if (!elementsAreUpdated && !lockStateHasChanged) return;
 
+        const allElements = structuredClone(allButDeletedNewElements);
+        setElements(allElements);
+        setPreviousElementsWithLockId(activeElementsWithLock);
+
+        // rest is only for collaboration
+        if (!slug) return;
+
+        if (isLoading) return;
+
         const affectedLockStateChangeElementIds = [
             ...previousElementsWithLockIds,
             ...activeElementsWithLock,
@@ -120,12 +144,6 @@ export const useBoardCollaboration = ({
                 return false;
             })
             .map(element => ({ ...element, isDeleted: true }));
-
-        const allElements = structuredClone(allButDeletedNewElements);
-        setElements(allElements);
-        setPreviousElementsWithLockId(activeElementsWithLock);
-
-        if (!slug) return;
 
         // TODO: do not send an update one the first render, when it has fetched the board and applies it to the scene
         const currentOrder = allElements.map(e => e.id);
