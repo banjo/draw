@@ -1,6 +1,6 @@
 import { closeWss, WS_PORT, wss } from "@app/lib/ws";
+import { createLogger } from "common";
 import "dotenv/config";
-import { createLogger } from "utils";
 
 const logger = createLogger("ws-server");
 

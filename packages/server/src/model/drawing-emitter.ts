@@ -1,6 +1,5 @@
 import { toMilliseconds } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import EventEmitter from "node:events";
 import {
     Board,
     BoardDeltaUpdate,
@@ -9,8 +8,9 @@ import {
     DeltaUpdateUtil,
     LockedElementUtil,
     Slug,
-} from "utils";
-import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
+} from "common";
+import EventEmitter from "node:events";
+import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../repositories/DrawRepository";
 
 const logger = createLogger("DrawingEmitter");

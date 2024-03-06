@@ -1,7 +1,7 @@
 import { isDefined, Maybe, Result } from "@banjoanton/utils";
+import { Board, createLogger } from "common";
 import { Prisma, prisma } from "db";
-import { Board, createLogger } from "utils";
-import { ExcalidrawSimpleElement } from "../../../utils/src/model/excalidraw-simple-element";
+import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
 import { UserRepository } from "./UserRepository";
 
 const logger = createLogger("DrawRepository");

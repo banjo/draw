@@ -1,8 +1,8 @@
 import { trpc } from "@/lib/trpc";
 import { Maybe, isEqual } from "@banjoanton/utils";
 import { useDebounce } from "@uidotdev/usehooks";
+import { BoardDeltaUpdate } from "common";
 import { useCallback, useEffect, useState } from "react";
-import { BoardDeltaUpdate } from "utils";
 
 type In = {
     slug: Maybe<string>;

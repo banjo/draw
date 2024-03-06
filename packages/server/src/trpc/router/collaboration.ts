@@ -7,7 +7,7 @@ import {
     CollaboratorSchema,
     createLogger,
     Slug,
-} from "utils";
+} from "common";
 import { z } from "zod";
 import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
 import { DrawingEmitter } from "../../model/drawing-emitter";

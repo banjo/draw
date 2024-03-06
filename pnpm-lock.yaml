@@ -102,6 +102,9 @@ importers:
       '@types/ws':
         specifier: ^8.5.10
         version: 8.5.10
+      common:
+        specifier: workspace:*
+        version: link:../../packages/common
       db:
         specifier: workspace:*
         version: link:../../packages/db
@@ -123,9 +126,6 @@ importers:
       tsx:
         specifier: ^3.12.10
         version: 3.12.10
-      utils:
-        specifier: workspace:*
-        version: link:../../packages/utils
       vitest:
         specifier: ^0.34.4
         version: 0.34.4
@@ -250,6 +250,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.15
         version: 10.4.15(postcss@8.4.29)
+      common:
+        specifier: workspace:*
+        version: link:../../packages/common
       db:
         specifier: workspace:*
         version: link:../../packages/db
@@ -283,15 +286,46 @@ importers:
       ui:
         specifier: workspace:*
         version: link:../../packages/ui
-      utils:
-        specifier: workspace:*
-        version: link:../../packages/utils
       vite:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.6.2)
       vite-tsconfig-paths:
         specifier: ^4.2.1
         version: 4.2.1(typescript@5.3.3)(vite@4.4.9)
+
+  packages/common:
+    dependencies:
+      '@axiomhq/pino':
+        specifier: ^0.1.3
+        version: 0.1.3
+      '@excalidraw/excalidraw':
+        specifier: ^0.17.3
+        version: 0.17.3(react-dom@18.2.0)(react@18.2.0)
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      pino:
+        specifier: ^8.15.1
+        version: 8.15.1
+      pino-pretty:
+        specifier: ^10.2.0
+        version: 10.2.0
+      tsconfig:
+        specifier: workspace:*
+        version: link:../tsconfig
+      zod:
+        specifier: ^3.22.2
+        version: 3.22.2
+    devDependencies:
+      '@banjoanton/utils':
+        specifier: ^0.1.77
+        version: 0.1.77
+      '@types/node':
+        specifier: ^20.6.2
+        version: 20.6.2
+      db:
+        specifier: workspace:*
+        version: link:../db
 
   packages/db:
     dependencies:
@@ -355,6 +389,9 @@ importers:
       '@types/node':
         specifier: ^20.6.2
         version: 20.6.2
+      common:
+        specifier: workspace:*
+        version: link:../common
       db:
         specifier: workspace:*
         version: link:../db
@@ -364,9 +401,6 @@ importers:
       tsconfig:
         specifier: workspace:*
         version: link:../tsconfig
-      utils:
-        specifier: workspace:*
-        version: link:../utils
 
   packages/tsconfig: {}
 
@@ -433,40 +467,6 @@ importers:
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
-
-  packages/utils:
-    dependencies:
-      '@axiomhq/pino':
-        specifier: ^0.1.3
-        version: 0.1.3
-      '@excalidraw/excalidraw':
-        specifier: ^0.17.3
-        version: 0.17.3(react-dom@18.2.0)(react@18.2.0)
-      dotenv:
-        specifier: ^16.3.1
-        version: 16.3.1
-      pino:
-        specifier: ^8.15.1
-        version: 8.15.1
-      pino-pretty:
-        specifier: ^10.2.0
-        version: 10.2.0
-      tsconfig:
-        specifier: workspace:*
-        version: link:../tsconfig
-      zod:
-        specifier: ^3.22.2
-        version: 3.22.2
-    devDependencies:
-      '@banjoanton/utils':
-        specifier: ^0.1.77
-        version: 0.1.77
-      '@types/node':
-        specifier: ^20.6.2
-        version: 20.6.2
-      db:
-        specifier: workspace:*
-        version: link:../db
 
 packages:
 
@@ -2598,7 +2598,7 @@ packages:
     resolution: {integrity: sha512-c0hrgAOVYr21EX8J0jBMXGLMgJqVf/v6yxi0dLaJboW9aQPh16Id+z6w2Tx1hm+piJOLv8xPfVKZCLfjPw/IMQ==}
     dependencies:
       '@types/jsonfile': 6.1.2
-      '@types/node': 18.17.17
+      '@types/node': 20.6.2
     dev: true
 
   /@types/glob@8.1.0:
@@ -2624,7 +2624,7 @@ packages:
   /@types/jsonfile@6.1.2:
     resolution: {integrity: sha512-8t92P+oeW4d/CRQfJaSqEwXujrhH4OEeHRjGU3v1Q8mUS8GPF3yiX26sw4svv6faL2HfBtGTe2xWIoVgN3dy9w==}
     dependencies:
-      '@types/node': 18.17.17
+      '@types/node': 20.6.2
     dev: true
 
   /@types/jsonwebtoken@9.0.3:
@@ -4759,6 +4759,7 @@ packages:
   /event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
+    requiresBuild: true
     dev: false
 
   /events@3.3.0:
@@ -6361,6 +6362,7 @@ packages:
   /minimatch@5.1.6:
     resolution: {integrity: sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==}
     engines: {node: '>=10'}
+    requiresBuild: true
     dependencies:
       brace-expansion: 2.0.1
     dev: false

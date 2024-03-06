@@ -1,5 +1,5 @@
+import { Collaborator, Slug } from "common";
 import EventEmitter from "node:events";
-import { Collaborator, Slug } from "utils";
 
 export class CollaboratorsEmitter extends EventEmitter {
     private collaboratorsMap: Map<Slug, Collaborator[]>;

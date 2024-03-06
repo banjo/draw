@@ -1,7 +1,7 @@
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import { createLogger } from "common";
 import "dotenv/config";
 import { appRouter, createTRPCContext } from "server";
-import { createLogger } from "utils";
 import { WebSocketServer } from "ws";
 
 const logger = createLogger("ws");

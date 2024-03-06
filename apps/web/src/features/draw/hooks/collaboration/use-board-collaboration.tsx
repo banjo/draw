@@ -6,15 +6,15 @@ import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined, isEqual } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
     Board,
     BoardDeltaUpdate,
     BoardUpdateResponse,
     DeltaUpdateUtil,
     ExcalidrawSimpleElement,
-} from "utils";
+} from "common";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type In = {
     slug?: string;

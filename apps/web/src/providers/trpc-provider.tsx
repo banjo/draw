@@ -4,9 +4,9 @@ import { getHttpUrl, getWsUrl } from "@/utils/runtime";
 import { Maybe } from "@banjoanton/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TRPCClientError, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
+import { Cause } from "common";
 import { FC, PropsWithChildren, useState } from "react";
 import superjson from "superjson";
-import { Cause } from "utils";
 
 const createTrpcClient = ({
     httpUrl,

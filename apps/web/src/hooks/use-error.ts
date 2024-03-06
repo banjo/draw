@@ -2,8 +2,8 @@ import { useAuth } from "@/contexts/auth-context";
 import { toastError } from "@/utils/error";
 import { Maybe, attempt, defaults } from "@banjoanton/utils";
 import { TRPCClientError } from "@trpc/client";
+import { Cause } from "common";
 import { toast as internalToast } from "react-hot-toast";
-import { Cause } from "utils";
 
 type HandleErrorOptionProps = {
     toast?: boolean;
