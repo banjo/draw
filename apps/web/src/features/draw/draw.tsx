@@ -1,5 +1,6 @@
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
+import { useHistory } from "@/features/draw/hooks/base/use-history";
 import { useImages } from "@/features/draw/hooks/base/use-images";
 import { useLibrary } from "@/features/draw/hooks/base/use-library";
 import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
@@ -37,8 +38,8 @@ export const Draw = ({ slug }: DrawProps) => {
     });
     const { renderMenu } = useMenu({ slug, excalidrawApi, saveDrawing, toggleSidebar });
 
-    // TODO: change images to be collaborative as well
     useImages({ elements, excalidrawApi });
+    useHistory({ slug, excalidrawApi });
 
     return (
         <div style={{ height: "100dvh" }}>

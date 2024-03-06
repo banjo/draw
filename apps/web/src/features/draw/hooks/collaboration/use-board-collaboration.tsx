@@ -14,7 +14,7 @@ import {
     ExcalidrawSimpleElement,
     LockedElementUtil,
 } from "common";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type In = {
@@ -39,11 +39,6 @@ export const useBoardCollaboration = ({
     const { mutateDeltaUpdateInstantly, mutateDeltaUpdateWithDebounce } = useDeltaMutation({
         slug,
     });
-
-    useEffect(() => {
-        if (!excalidrawApi) return;
-        excalidrawApi.history.clear();
-    }, [slug, excalidrawApi]);
 
     // remember previous elements with lock to be able to send to server when it changes
     const [previousElementsWithLockIds, setPreviousElementsWithLockId] = useState<string[]>([]);
