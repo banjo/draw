@@ -1,7 +1,7 @@
-import { closeWss, WS_PORT, wss } from "@app/ws";
+import { closeWss, WS_PORT, wss } from "@app/lib/ws";
 import "dotenv/config";
 import { createLogger } from "utils";
-import { app, PORT } from "./http";
+import { app, PORT } from "./lib/http";
 
 const logger = createLogger("dev-server");
 const isProd = process.env.NODE_ENV === "production";

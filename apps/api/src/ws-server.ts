@@ -1,4 +1,4 @@
-import { closeWss, WS_PORT, wss } from "@app/ws";
+import { closeWss, WS_PORT, wss } from "@app/lib/ws";
 import "dotenv/config";
 import { createLogger } from "utils";
 

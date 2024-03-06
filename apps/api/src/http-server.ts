@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { createLogger } from "utils";
-import { app, PORT } from "./http";
+import { app, PORT } from "./lib/http";
 
 const logger = createLogger("http-server");
 const isProd = process.env.NODE_ENV === "production";
