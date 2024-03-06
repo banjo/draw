@@ -1,12 +1,19 @@
 import { isBrowser } from "@banjoanton/utils";
 import pino, { TransportTargetOptions } from "pino";
-// Pino import needs to be default to work in the browser
+import { Env } from "../env";
+// * Pino import needs to be default to work in the browser
+// * This file cannot parse with Env.server() because this file is loaded before the .env file.
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let sharedTransport: any;
+
+export const LOG_LEVELS = ["trace", "debug", "info", "warn", "error", "fatal"] as const;
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
 export const createLogger = (name: string) => {
     if (isBrowser()) {
-        return pino({ name });
+        const clientVariables = Env.allClient();
+        return pino({ name, level: clientVariables.LOG_LEVEL || "info" });
     }
 
     const targets: TransportTargetOptions[] = [
@@ -42,7 +49,8 @@ export const createLogger = (name: string) => {
         });
     }
 
-    return pino({ name, level: "trace" }, sharedTransport);
+    const serverVariables = Env.allServer();
+    return pino({ name, level: serverVariables.LOG_LEVEL ?? "info" }, sharedTransport);
 };
 
 export { type Logger } from "pino";
