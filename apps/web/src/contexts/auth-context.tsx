@@ -1,5 +1,5 @@
 import { auth } from "@/lib/firebase";
-import { isDev } from "@/utils/runtime";
+import { isLocalDevelopment } from "@/utils/runtime";
 import { Maybe, raise } from "@banjoanton/utils";
 import { Env } from "common";
 import {
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     // Development mode without authentication
     useEffect(() => {
-        if (isDev()) {
+        if (isLocalDevelopment()) {
             const uid =
                 Env.client().VITE_DEVELOPMENT_UID ?? raise("VITE_DEVELOPMENT_UID not specified");
 
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     useEffect(() => {
-        if (isDev()) return;
+        if (isLocalDevelopment()) return;
 
         const unsubscribe = onAuthStateChanged(auth, async currentUser => {
             setUser(currentUser);
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, [refreshToken]);
 
     useEffect(() => {
-        if (isDev()) return;
+        if (isLocalDevelopment()) return;
 
         if (!user) {
             setToken(undefined);
