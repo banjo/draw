@@ -15,7 +15,8 @@ const allClient = () => {
     if (!isBrowser()) {
         throw new Error("Client env is only available in the browser");
     }
-    // @ts-expect-error - Vite injects the env
+
+    // @ts-ignore - Vite injects the env on client
     return import.meta.env as Record<string, string>;
 };
 
