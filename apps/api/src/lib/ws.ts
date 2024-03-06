@@ -1,11 +1,11 @@
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import { createLogger } from "common";
+import { createLogger, Env } from "common";
 import "dotenv/config";
 import { appRouter, createTRPCContext } from "server";
 import { WebSocketServer } from "ws";
 
 const logger = createLogger("ws");
-const WS_PORT = Number(process.env.WS_PORT) || 3004;
+const WS_PORT = Number(Env.server().WS_PORT) || 3004;
 
 const wss = new WebSocketServer({
     port: WS_PORT,
@@ -28,4 +28,4 @@ const closeWss = () => {
     logger.info("🛑 WebSocket Server closed");
 };
 
-export { WS_PORT, closeWss, handler, wss };
+export { closeWss, handler, WS_PORT, wss };

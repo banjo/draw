@@ -1,11 +1,7 @@
-import { raise } from "@banjoanton/utils";
+import { Env } from "common";
 
-export const isDev = () => import.meta.env.DEV && import.meta.env.VITE_LOCAL_DEVELOPMENT === "true";
+const env = Env.client();
 
-export const getHttpUrl = () => {
-    return import.meta.env.VITE_API_URL ?? raise("VITE_API_URL is not defined");
-};
-
-export const getWsUrl = () => {
-    return import.meta.env.VITE_WS_URL ?? raise("VITE_WS_URL is not defined");
-};
+export const isDev = () => env.DEV && env.VITE_LOCAL_DEVELOPMENT === "true";
+export const getHttpUrl = () => env.VITE_API_URL;
+export const getWsUrl = () => env.VITE_WS_URL;

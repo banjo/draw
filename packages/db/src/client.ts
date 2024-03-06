@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 declare global {
+    // eslint-disable-next-line no-var
     var prisma: PrismaClient | undefined;
 }
 
@@ -17,7 +18,7 @@ if (typeof window === "undefined") {
         prisma = global.prisma;
     }
 }
-//@ts-ignore
+// @ts-ignore
 export { prisma };
 
 export * from "@prisma/client";

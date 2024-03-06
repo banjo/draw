@@ -1,6 +1,7 @@
 import { auth } from "@/lib/firebase";
 import { isDev } from "@/utils/runtime";
 import { Maybe, raise } from "@banjoanton/utils";
+import { Env } from "common";
 import {
     GoogleAuthProvider,
     User,
@@ -101,7 +102,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     useEffect(() => {
         if (isDev()) {
             const uid =
-                import.meta.env.VITE_DEVELOPMENT_UID ?? raise("VITE_DEVELOPMENT_UID not specified");
+                Env.client().VITE_DEVELOPMENT_UID ?? raise("VITE_DEVELOPMENT_UID not specified");
 
             setUser({
                 uid,

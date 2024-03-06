@@ -1,11 +1,13 @@
-import { raise } from "@banjoanton/utils";
+import { Env } from "common";
 import { cert, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 
 import "dotenv/config";
 
+const env = Env.server();
+
 const serviceAccount = {
-    key: process.env.FIREBASE_ADMIN_KEY ?? raise("FIREBASE_ADMIN_KEY missing"),
+    key: env.FIREBASE_ADMIN_KEY,
 };
 
 const firebaseBuffer = Buffer.from(serviceAccount.key, "base64");

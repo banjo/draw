@@ -1,6 +1,6 @@
-import { raise } from "@banjoanton/utils";
+import { Env } from "common";
 
-export const isDev = () =>
-    process.env.NODE_ENV === "development" && process.env.LOCAL_DEVELOPMENT === "true";
+const env = Env.server();
 
-export const getClientUrl = () => process.env.CLIENT_URL ?? raise("CLIENT_URL is not defined");
+export const isDev = () => env.NODE_ENV === "development" && env.LOCAL_DEVELOPMENT === "true";
+export const getClientUrl = () => env.CLIENT_URL;

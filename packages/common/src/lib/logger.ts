@@ -20,9 +20,11 @@ export const createLogger = (name: string) => {
         },
     ];
 
-    // if (process.env.NODE_ENV === "production") {
-    //     const DATASET = process.env.AXIOM_DATASET ?? raise("AXIOM_DATASET is not set");
-    //     const AXIOM_TOKEN = process.env.AXIOM_TOKEN ?? raise("AXIOM_TOKEN is not set");
+    // const env = Env.server();
+
+    // if (env.NODE_ENV === "production") {
+    //     const DATASET = env.AXIOM_DATASET;
+    //     const AXIOM_TOKEN = env.AXIOM_TOKEN;
 
     //     targets.push({
     //         target: "@axiomhq/pino",

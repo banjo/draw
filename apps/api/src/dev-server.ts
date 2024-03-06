@@ -1,10 +1,10 @@
 import { closeWss, WS_PORT, wss } from "@app/lib/ws";
-import { createLogger } from "common";
+import { createLogger, Env } from "common";
 import "dotenv/config";
 import { app, PORT } from "./lib/http";
 
 const logger = createLogger("dev-server");
-const isProd = process.env.NODE_ENV === "production";
+const isProd = Env.server().NODE_ENV === "production";
 
 app.listen(PORT, () => {
     logger.info(`🚀 Server ready at port ${PORT} - Mode: ${isProd ? "production" : "development"}`);
