@@ -18,11 +18,14 @@ const SAVE_INTERVAL = toMilliseconds({ minutes: 1 });
 
 type UserId = string;
 type ElementId = string;
+type UserIdWithSlug = `${UserId}-${Slug}`;
+
+const createKey = (userId: UserId, slug: Slug): UserIdWithSlug => `${userId}-${slug}`;
 
 export class DrawingEmitter extends EventEmitter {
     private boardsMap: Map<Slug, Board>;
     private saveIntervalMap: Map<Slug, NodeJS.Timeout>;
-    private lockedElementsMap: Map<UserId, ElementId[]>;
+    private lockedElementsMap: Map<UserIdWithSlug, ElementId[]>;
 
     constructor() {
         super();
@@ -32,7 +35,8 @@ export class DrawingEmitter extends EventEmitter {
     }
 
     clearActiveElements(slug: Slug, userId: UserId) {
-        const lockedElements = this.lockedElementsMap.get(userId);
+        const key = createKey(userId, slug);
+        const lockedElements = this.lockedElementsMap.get(key);
         if (!lockedElements) return;
 
         const board = this.boardsMap.get(slug);
@@ -44,7 +48,7 @@ export class DrawingEmitter extends EventEmitter {
         );
 
         this.boardsMap.set(slug, updatedBoard);
-        this.lockedElementsMap.delete(userId);
+        this.lockedElementsMap.delete(key);
 
         const order = updatedBoard.elements.map(element => element.id.toString());
         const deltaUpdate = BoardDeltaUpdate.from({
@@ -104,12 +108,13 @@ export class DrawingEmitter extends EventEmitter {
             logger.trace(`Drawing fetched from database: ${slug}`);
         }
 
-        const previousLockedElements = this.lockedElementsMap.get(deltaUpdate.senderId) ?? [];
+        const lockedElementsKey = createKey(deltaUpdate.senderId, slug);
+        const previousLockedElements = this.lockedElementsMap.get(lockedElementsKey) ?? [];
         const updatedLockedElements = LockedElementUtil.applyDeltaUpdate(
             previousLockedElements,
             deltaUpdate
         );
-        this.lockedElementsMap.set(deltaUpdate.senderId, updatedLockedElements);
+        this.lockedElementsMap.set(lockedElementsKey, updatedLockedElements);
 
         const updatedBoard = DeltaUpdateUtil.applyToBoard({
             board,
@@ -138,7 +143,6 @@ export class DrawingEmitter extends EventEmitter {
                 cause: Cause.DRAWING_NOT_FOUND,
             });
         }
-        console.log(elements.data);
         logger.trace(`Drawing fetched from database: ${slug}`);
         const updatedBoard = Board.fromDatabase(elements.data);
 
