@@ -1,10 +1,10 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-mutation";
-import { ElementUtil } from "@/features/draw/utils/element-utils";
+import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
-import { Maybe, isDefined, isEqual } from "@banjoanton/utils";
+import { Maybe, isDefined } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import {
@@ -41,7 +41,7 @@ export const useBoardCollaboration = ({
     const { pathname } = useLocation();
 
     // remember previous elements with lock to be able to send to server when it changes
-    const [previousElementsWithLockIds, setPreviousElementsWithLockId] = useState<string[]>([]);
+    const [previousLockedElements, setPreviousLockedElements] = useState<string[]>([]);
     const { isLoading, setIsLoading } = useGlobalLoadingStore();
 
     useEffect(() => {
@@ -52,7 +52,7 @@ export const useBoardCollaboration = ({
 
     useEffect(() => {
         if (!excalidrawApi) return;
-        setPreviousElementsWithLockId(
+        setPreviousLockedElements(
             LockedElementUtil.getLockedElementIds(excalidrawApi.getAppState())
         );
     }, [slug, excalidrawApi]);
@@ -105,61 +105,39 @@ export const useBoardCollaboration = ({
     );
 
     const onDrawingChange = async (e: readonly ExcalidrawElement[], state: AppState) => {
-        const allButDeletedNewElements = ElementUtil.removeDeletedElements(e);
-        const allButDeletedOldElements = ElementUtil.removeDeletedElements(elements);
-        const elementsAreUpdated = !isEqual(allButDeletedNewElements, allButDeletedOldElements);
+        const changes = DrawingUtil.getChanges({
+            newElements: e,
+            oldElements: elements,
+            newState: state,
+            previousLockedElements: previousLockedElements,
+        });
 
-        const activeElementsWithLock = LockedElementUtil.getLockedElementIds(state);
-        const lockStateHasChanged = !isEqual(previousElementsWithLockIds, activeElementsWithLock);
+        const {
+            allNewElements,
+            allOldElements,
+            elementsUpdated,
+            lockStateHasChanged,
+            currentLockedElements,
+        } = changes;
 
-        if (!elementsAreUpdated && !lockStateHasChanged) return;
+        if (!elementsUpdated && !lockStateHasChanged) return;
 
-        const allElements = structuredClone(allButDeletedNewElements);
-        setElements(allElements);
-        setPreviousElementsWithLockId(activeElementsWithLock);
+        setElements(allNewElements);
+        setPreviousLockedElements(currentLockedElements);
 
         // rest is only for collaboration
         if (!slug) return;
-
         if (isLoading) return;
 
-        const affectedLockStateChangeElementIds = [
-            ...previousElementsWithLockIds,
-            ...activeElementsWithLock,
-        ];
-
-        // update elements if lock state changed or if the elements are updated
-        const updatedElements = allButDeletedNewElements.filter(newElement => {
-            if (affectedLockStateChangeElementIds.includes(newElement.id)) return true;
-            const oldElement = allButDeletedOldElements.find(el => el.id === newElement.id);
-            if (!oldElement) return true;
-            if (oldElement.version < newElement.version) return true;
-            return false;
-        });
-
-        const elementsToDelete = allButDeletedOldElements
-            .filter(oldElement => {
-                const newElement = allButDeletedNewElements.find(el => el.id === oldElement.id);
-                if (!newElement) return true;
-                return false;
-            })
-            .map(element => ({ ...element, isDeleted: true }));
-
-        // TODO: do not send an update one the first render, when it has fetched the board and applies it to the scene
-        const currentOrder = allElements.map(e => e.id);
-        const elementsToSave = [...updatedElements, ...elementsToDelete];
-
-        // lock active elements for other users, not for the local user
-        const elementsToSaveWithLocks = elementsToSave.map(element => {
-            if (activeElementsWithLock.includes(element.id)) {
-                return { ...element, locked: true };
-            } else {
-                return element;
-            }
+        const { currentOrder, elementsToSave } = DrawingUtil.prepareCollaborationChanges({
+            allNewElements,
+            allOldElements,
+            currentLockedElements,
+            previousLockedElements,
         });
 
         const deltaBoardUpdate = BoardDeltaUpdate.from({
-            excalidrawElements: elementsToSaveWithLocks,
+            excalidrawElements: elementsToSave,
             order: currentOrder,
             senderId: localId,
         });
