@@ -112,7 +112,7 @@ export const createTRPCContext = async ({
 const t = initTRPC.context<typeof createTRPCContext>().create({
     transformer: superjson,
     errorFormatter({ shape, error }) {
-        const cause = Cause.from(error);
+        const cause = Cause.fromServerError(error);
 
         return {
             ...shape,

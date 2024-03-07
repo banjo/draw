@@ -27,7 +27,7 @@ export const useError = () => {
         const { toast, errorMessage } = defaults(opts, DEFAULT_OPTIONS);
 
         if (error instanceof TRPCClientError) {
-            const cause = Cause.from(error);
+            const cause = Cause.fromClientError(error);
             if (cause === Cause.EXPIRED_TOKEN) {
                 await refreshToken();
             }

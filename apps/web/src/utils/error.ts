@@ -5,7 +5,6 @@ export const toastError = (error: unknown) => {
     const message = ["An error occurred: "];
 
     if (error instanceof TRPCClientError) {
-        console.log({ data: error });
         message.push(error.message);
     } else if (error instanceof Error) {
         message.push(error.message);
