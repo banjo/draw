@@ -110,7 +110,10 @@ export const drawRouter = createTRPCRouter({
 
             if (!collectionResult.success) {
                 logger.error(`Failed to delete drawing from collection: ${slug}`);
-                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: collectionResult.message,
+                });
             }
 
             return Result.okEmpty();

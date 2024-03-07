@@ -1,6 +1,6 @@
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { Maybe, attemptAsync, isUndefined, wrapAsync } from "@banjoanton/utils";
+import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { useRef } from "react";
 import toast from "react-hot-toast";
@@ -50,16 +50,16 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
 
         if (!window.confirm("Are you sure you want to delete this drawing?")) return;
 
-        const res = await attemptAsync(
+        const [_, error] = await wrapAsync(
             async () => await utils.client.draw.deleteFromCollection.mutate({ slug })
         );
 
-        if (isUndefined(res)) {
-            toast.error("Error deleting drawing");
+        if (error) {
+            handleError(error, { toast: true });
             return;
         }
-        utils.draw.getCollection.invalidate();
 
+        utils.draw.getCollection.invalidate();
         toast.success("Drawing deleted from collection");
     };
 
