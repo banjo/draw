@@ -65,7 +65,7 @@ export const useSidebar = ({ excalidrawApi, slug: currentSlug }: In) => {
                                 cardSlug={slug}
                                 currentSlug={currentSlug}
                                 isOwner={isOwner}
-                                name={name}
+                                initialName={name}
                                 key={slug}
                             />
                         ))}

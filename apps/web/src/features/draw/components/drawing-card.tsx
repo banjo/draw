@@ -11,22 +11,24 @@ import { ResponsiveIcon } from "../../../../../../packages/ui/src/components/sha
 type Props = {
     cardSlug: string;
     currentSlug: Maybe<string>;
-    name: string;
+    initialName: string;
     isOwner: boolean;
 };
 
 type EditableLabelRef = {
     startEditing: () => void;
     stopEditing: () => void;
+    setText: (text: string) => void;
 };
 
-export const DrawingCard = ({ cardSlug, currentSlug, name, isOwner }: Props) => {
+export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Props) => {
     const navigate = useNavigate();
     const utils = trpc.useContext();
     const { handleError } = useError();
 
     const editableLabelRef = useRef<EditableLabelRef>(null);
     const startEditing = () => editableLabelRef.current?.startEditing();
+    const setLabelText = (text: string) => editableLabelRef.current?.setText(text);
 
     const updateDrawingName = async (slug: string, name: string) => {
         const [_, error] = await wrapAsync(
@@ -35,10 +37,11 @@ export const DrawingCard = ({ cardSlug, currentSlug, name, isOwner }: Props) => 
 
         if (error) {
             await handleError(error, { toast: true });
+            setLabelText(initialName);
             return;
         }
-
         utils.draw.getCollection.invalidate();
+
         toast.success("Drawing name updated");
     };
 
@@ -55,8 +58,8 @@ export const DrawingCard = ({ cardSlug, currentSlug, name, isOwner }: Props) => 
             toast.error("Error deleting drawing");
             return;
         }
-
         utils.draw.getCollection.invalidate();
+
         toast.success("Drawing deleted from collection");
     };
 
@@ -69,7 +72,7 @@ export const DrawingCard = ({ cardSlug, currentSlug, name, isOwner }: Props) => 
             onClick={() => navigate(`/draw/${cardSlug}`)}
         >
             <EditableLabel
-                initialText={name}
+                initialText={initialName}
                 ref={editableLabelRef}
                 onChange={newName => updateDrawingName(cardSlug, newName)}
             />

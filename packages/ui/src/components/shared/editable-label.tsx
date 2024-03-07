@@ -18,6 +18,9 @@ export const EditableLabel = forwardRef(({ initialText, onChange }: In, ref) => 
             setIsEditing(false);
             setText(initialText); // Reset the text when editing stops
         },
+        setText: (newText: string) => {
+            setText(newText);
+        },
     }));
 
     const handleDoubleClick = () => {
