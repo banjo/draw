@@ -4,14 +4,16 @@ type In = {
     initialText: string;
     onChange?: (text: string) => void;
     startRef?: React.MutableRefObject<() => void>;
+    allowEditing?: boolean;
 };
 
-export const EditableLabel = forwardRef(({ initialText, onChange }: In, ref) => {
+export const EditableLabel = forwardRef(({ initialText, onChange, allowEditing }: In, ref) => {
     const [isEditing, setIsEditing] = useState(false);
     const [text, setText] = useState(initialText);
 
     useImperativeHandle(ref, () => ({
         startEditing: () => {
+            if (!allowEditing) return;
             setIsEditing(true);
         },
         stopEditing: () => {
@@ -24,6 +26,7 @@ export const EditableLabel = forwardRef(({ initialText, onChange }: In, ref) => 
     }));
 
     const handleDoubleClick = () => {
+        if (!allowEditing) return;
         setIsEditing(true);
     };
 

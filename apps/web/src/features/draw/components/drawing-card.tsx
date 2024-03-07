@@ -75,6 +75,7 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
                 initialText={initialName}
                 ref={editableLabelRef}
                 onChange={newName => updateDrawingName(cardSlug, newName)}
+                allowEditing={isOwner}
             />
 
             <div className="ml-auto flex gap-2">
