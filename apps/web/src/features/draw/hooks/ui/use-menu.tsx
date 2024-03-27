@@ -6,7 +6,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { BrushIcon, CopyIcon, PlusIcon, SaveIcon } from "lucide-react";
+import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -94,6 +94,11 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
         }
     }, [excalidrawApi]);
 
+    const goToLocalDrawing = () => {
+        // TODO: improve this, some strange logic with using local storage elements
+        window.location.href = "/";
+    };
+
     const renderMenu = () => {
         return (
             <MainMenu>
@@ -114,6 +119,19 @@ export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In)
                 )}
 
                 <MainMenu.Separator />
+
+                {slug && (
+                    <>
+                        <MainMenu.Item
+                            onSelect={goToLocalDrawing}
+                            icon={<ResponsiveIcon Icon={FolderIcon} />}
+                        >
+                            Go to offline drawing
+                        </MainMenu.Item>
+
+                        <MainMenu.Separator />
+                    </>
+                )}
 
                 <MainMenu.Item
                     onSelect={createNewDrawing}

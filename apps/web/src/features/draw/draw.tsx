@@ -36,7 +36,12 @@ export const Draw = ({ slug }: DrawProps) => {
         excalidrawApi,
         slug,
     });
-    const { renderMenu } = useMenu({ slug, excalidrawApi, saveDrawing, toggleSidebar });
+    const { renderMenu } = useMenu({
+        slug,
+        excalidrawApi,
+        saveDrawing,
+        toggleSidebar,
+    });
 
     useImages({ elements, excalidrawApi });
     useHistory({ slug, excalidrawApi });
