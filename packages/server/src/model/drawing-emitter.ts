@@ -6,7 +6,7 @@ import {
     Cause,
     createLogger,
     DeltaUpdateUtil,
-    LockedElementUtil,
+    ElementStateUtil,
     Slug,
 } from "common";
 import EventEmitter from "node:events";
@@ -42,7 +42,7 @@ export class DrawingEmitter extends EventEmitter {
         const board = this.boardsMap.get(slug);
         if (!board) return;
 
-        const { updatedBoard, updatedElements } = LockedElementUtil.restoreBoardLockedElements(
+        const { updatedBoard, updatedElements } = ElementStateUtil.restoreBoardLockedElements(
             board,
             lockedElements
         );
@@ -110,7 +110,7 @@ export class DrawingEmitter extends EventEmitter {
 
         const lockedElementsKey = createKey(deltaUpdate.senderId, slug);
         const previousLockedElements = this.lockedElementsMap.get(lockedElementsKey) ?? [];
-        const updatedLockedElements = LockedElementUtil.applyDeltaUpdate(
+        const updatedLockedElements = ElementStateUtil.applyDeltaUpdate(
             previousLockedElements,
             deltaUpdate
         );

@@ -4,6 +4,8 @@ import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
 import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
 
+const getSelectedElementIds = (state: AppState) => Object.keys(state.selectedElementIds);
+
 const getLockedElementIds = (state: AppState) => {
     // include if you want to lock the selected elements
     // const selectedIds = Object.keys(state.selectedElementIds);
@@ -66,8 +68,9 @@ const restoreBoardLockedElements = (board: Board, lockedElements: string[]) => {
     return { updatedBoard, updatedElements: affectedUpdatedElements };
 };
 
-export const LockedElementUtil = {
+export const ElementStateUtil = {
     applyDeltaUpdate,
     restoreBoardLockedElements,
     getLockedElementIds,
+    getSelectedElementIds,
 };

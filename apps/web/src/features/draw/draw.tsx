@@ -6,10 +6,11 @@ import { useLibrary } from "@/features/draw/hooks/base/use-library";
 import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
 import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
+import { KeyboardUtil } from "@/features/draw/utils/keyboard-util";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useState } from "react";
+import { KeyboardEventHandler, useState } from "react";
 
 type DrawProps = {
     slug?: string;
@@ -46,14 +47,25 @@ export const Draw = ({ slug }: DrawProps) => {
     useImages({ elements, excalidrawApi });
     useHistory({ slug, excalidrawApi });
 
+    const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
+        if (!excalidrawApi) return;
+
+        if (event.metaKey && event.key === "Enter") {
+            // Copy selected elements
+            KeyboardUtil.handleMetaEnter(event, excalidrawApi);
+        }
+    };
+
     return (
-        <div style={{ height: "100dvh" }}>
+        <div style={{ height: "100dvh" }} onKeyDown={handleKeyDown}>
             <Excalidraw
                 excalidrawAPI={(api: ExcalidrawImperativeAPI) => setExcalidrawApi(api)}
                 onChange={onDrawingChange}
                 onLibraryChange={onLibraryChange}
                 isCollaborating={isCollaborating}
                 onPointerUpdate={onPointerUpdate}
+                handleKeyboardGlobally={true}
+                autoFocus={true}
                 initialData={{ elements, scrollToContent: true, libraryItems: library }}
                 UIOptions={{
                     dockedSidebarBreakpoint: 0,

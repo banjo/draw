@@ -12,8 +12,8 @@ import {
     BoardDeltaUpdate,
     BoardUpdateResponse,
     DeltaUpdateUtil,
+    ElementStateUtil,
     ExcalidrawSimpleElement,
-    LockedElementUtil,
 } from "common";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -53,7 +53,7 @@ export const useBoardCollaboration = ({
     useEffect(() => {
         if (!excalidrawApi) return;
         setPreviousLockedElements(
-            LockedElementUtil.getLockedElementIds(excalidrawApi.getAppState())
+            ElementStateUtil.getLockedElementIds(excalidrawApi.getAppState())
         );
     }, [slug, excalidrawApi]);
 

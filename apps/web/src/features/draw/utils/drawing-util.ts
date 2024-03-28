@@ -2,7 +2,7 @@ import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-stat
 import { ElementUtil } from "@/features/draw/utils/element-utils";
 import { isEqual } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
-import { LockedElementUtil } from "common";
+import { ElementStateUtil } from "common";
 
 type ApplyLocalDrawingChangesProps = {
     newElements: ExcalidrawElements;
@@ -32,7 +32,7 @@ const getChanges = ({
     const allOldElements = ElementUtil.removeDeletedElements(oldElements);
     const elementsUpdated = !isEqual(allNewElements, allOldElements);
 
-    const currentLockedElements = LockedElementUtil.getLockedElementIds(newState);
+    const currentLockedElements = ElementStateUtil.getLockedElementIds(newState);
     const lockStateHasChanged = !isEqual(previousLockedElements, currentLockedElements);
 
     return {
