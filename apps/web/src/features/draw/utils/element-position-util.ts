@@ -1,5 +1,6 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
+import { ElementBasicPosition, ElementMeasurement } from "@/features/draw/models/element";
 import { IPoint, Point } from "@/features/draw/models/point";
 import { ArrowKey } from "@/features/draw/utils/keyboard-util";
 import { Maybe } from "@banjoanton/utils";
@@ -127,20 +128,10 @@ const getArrowOptionsFromSourceElement = (direction: ArrowKey, element: Excalidr
     return arrowMap[direction](element);
 };
 
-export type ElementPositionOptions = {
-    startX: number;
-    startY: number;
-};
-
-export type ElementMeasurement = {
-    width: number;
-    height: number;
-};
-
 type AddedElementOptionsCallback = (
     arrowOptions: ArrowOptions,
     measurements: ElementMeasurement
-) => ElementPositionOptions;
+) => ElementBasicPosition;
 
 const addedElementOptionsMap: Record<ArrowKey, AddedElementOptionsCallback> = {
     ArrowRight: (arrow, element) => ({

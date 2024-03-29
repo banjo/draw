@@ -1,4 +1,5 @@
 import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
+import { ElementMeasurement } from "@/features/draw/models/element";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -66,10 +67,10 @@ const handleMetaArrow = (
         elementToConnect
     );
 
-    const measurements = {
+    const measurements = ElementMeasurement.from({
         height: Math.max(elementToConnect.height, ELEMENT_HEIGHT),
         width: Math.max(elementToConnect.width, ELEMENT_WIDTH),
-    };
+    });
 
     const { startX, startY } = ElementPositionUtil.getAddedElementOptions(
         direction,
