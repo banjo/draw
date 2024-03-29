@@ -1,9 +1,4 @@
-import {
-    ARROW_LENGTH,
-    ELEMENT_GAP,
-    ELEMENT_HEIGHT,
-    ELEMENT_WIDTH,
-} from "@/features/draw/models/constants";
+import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -66,19 +61,28 @@ const handleMetaArrow = (
         helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
     });
 
-    const arrowStartX = elementToConnect.x + elementToConnect.width;
-    const y = elementToConnect.y + elementToConnect.height / 2;
-    const arrowLength = ELEMENT_WIDTH;
+    const arrowOptions = ElementPositionUtil.getArrowOptionsFromSourceElement(
+        direction,
+        elementToConnect
+    );
 
-    const newElementHeight = Math.max(elementToConnect.height, ELEMENT_HEIGHT);
-    const newElementWidth = Math.max(elementToConnect.width, ELEMENT_WIDTH);
+    const measurements = {
+        height: Math.max(elementToConnect.height, ELEMENT_HEIGHT),
+        width: Math.max(elementToConnect.width, ELEMENT_WIDTH),
+    };
+
+    const { startX, startY } = ElementPositionUtil.getAddedElementOptions(
+        direction,
+        arrowOptions,
+        measurements
+    );
 
     const newElement = ElementCreationUtil.createRectangle(
         {
-            height: newElementHeight,
-            width: newElementWidth,
-            x: arrowStartX + ARROW_LENGTH + ELEMENT_GAP * 2,
-            y: y - newElementHeight / 2, // center
+            height: measurements.height,
+            width: measurements.width,
+            x: startX,
+            y: startY,
         },
         (draft, helpers) => {
             helpers.defaultSettings(draft);
@@ -88,15 +92,13 @@ const handleMetaArrow = (
 
     const arrow = ElementCreationUtil.createArrow(
         {
-            x: arrowStartX + ELEMENT_GAP,
-            y,
-            points: [
-                [0, 0],
-                [arrowLength, 0],
-            ],
+            x: arrowOptions.startX,
+            y: arrowOptions.startY,
+            points: [[0, 0], arrowOptions.relativeEndPoint],
+            startBindingId: elementToConnect.id,
+            endBindingId: newElement.id,
         },
-        (draft, helpers) => {
-            helpers.addBindings(draft, { startId: elementToConnect.id, endId: newElement.id });
+        draft => {
             draft.id = arrowId;
         }
     );

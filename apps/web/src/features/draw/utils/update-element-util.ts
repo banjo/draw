@@ -37,7 +37,7 @@ type BindingOptions = {
     endId?: string;
     gap?: number;
 };
-const addBindings = (element: Mutable<ExcalidrawLinearElement>, options?: BindingOptions) => {
+const addArrowBindings = (element: Mutable<ExcalidrawLinearElement>, options?: BindingOptions) => {
     const { gap, endId, startId } = defaults(options, { gap: ELEMENT_GAP });
     if (startId) {
         element.startBinding = {
@@ -59,7 +59,7 @@ const addBindings = (element: Mutable<ExcalidrawLinearElement>, options?: Bindin
 const helpers = {
     addBoundElements,
     defaultSettings,
-    addBindings,
+    addArrowBindings,
 };
 
 type UpdateHelpers = typeof helpers;

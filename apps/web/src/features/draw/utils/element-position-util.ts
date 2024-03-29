@@ -1,4 +1,6 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
+import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
+import { IPoint, Point } from "@/features/draw/models/point";
 import { ArrowKey } from "@/features/draw/utils/keyboard-util";
 import { Maybe } from "@banjoanton/utils";
 import { getCommonBounds } from "@excalidraw/excalidraw";
@@ -90,8 +92,87 @@ const getClosestElement = (direction: ArrowKey, selectedElements: ExcalidrawElem
     return selectedElements.find(element => element.id === elementToConnectPosition.id);
 };
 
+export type ArrowOptions = {
+    startX: number;
+    startY: number;
+    relativeEndPoint: IPoint;
+};
+
+type GetArrowOptionsCallback = (element: ExcalidrawElement) => ArrowOptions;
+
+const arrowMap: Record<ArrowKey, GetArrowOptionsCallback> = {
+    ArrowRight: element => ({
+        startX: element.x + element.width + ELEMENT_GAP,
+        startY: element.y + element.height / 2,
+        relativeEndPoint: Point.from({ x: ARROW_LENGTH, y: 0 }),
+    }),
+    ArrowLeft: element => ({
+        startX: element.x - ELEMENT_GAP,
+        startY: element.y + element.height / 2,
+        relativeEndPoint: Point.from({ x: -ARROW_LENGTH, y: 0 }),
+    }),
+    ArrowUp: element => ({
+        startX: element.x + element.width / 2,
+        startY: element.y - ELEMENT_GAP,
+        relativeEndPoint: Point.from({ x: 0, y: -ARROW_LENGTH }),
+    }),
+    ArrowDown: element => ({
+        startX: element.x + element.width / 2,
+        startY: element.y + element.height + ELEMENT_GAP,
+        relativeEndPoint: Point.from({ x: 0, y: ARROW_LENGTH }),
+    }),
+};
+
+const getArrowOptionsFromSourceElement = (direction: ArrowKey, element: ExcalidrawElement) => {
+    return arrowMap[direction](element);
+};
+
+export type ElementPositionOptions = {
+    startX: number;
+    startY: number;
+};
+
+export type ElementMeasurement = {
+    width: number;
+    height: number;
+};
+
+type AddedElementOptionsCallback = (
+    arrowOptions: ArrowOptions,
+    measurements: ElementMeasurement
+) => ElementPositionOptions;
+
+const addedElementOptionsMap: Record<ArrowKey, AddedElementOptionsCallback> = {
+    ArrowRight: (arrow, element) => ({
+        startX: arrow.startX + ARROW_LENGTH + ELEMENT_GAP,
+        startY: arrow.startY - element.height / 2,
+    }),
+    ArrowLeft: (arrow, element) => ({
+        startX: arrow.startX - ARROW_LENGTH - ELEMENT_GAP - element.width,
+        startY: arrow.startY - element.height / 2,
+    }),
+    ArrowUp: (arrow, element) => ({
+        startX: arrow.startX - element.width / 2,
+        startY: arrow.startY - ARROW_LENGTH - ELEMENT_GAP - element.height,
+    }),
+    ArrowDown: (arrow, element) => ({
+        startX: arrow.startX - element.width / 2,
+        startY: arrow.startY + ARROW_LENGTH + ELEMENT_GAP,
+    }),
+};
+
+const getAddedElementOptions = (
+    direction: ArrowKey,
+    arrowOptions: ArrowOptions,
+    elementPosition: ElementMeasurement
+) => {
+    return addedElementOptionsMap[direction](arrowOptions, elementPosition);
+};
+
 export const ElementPositionUtil = {
     getPositionFromElements,
     getPositionFromElement,
     getClosestElement,
+    getArrowOptionsFromSourceElement,
+    getAddedElementOptions,
 };

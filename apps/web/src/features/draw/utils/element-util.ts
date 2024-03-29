@@ -1,6 +1,6 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { produce, randomString } from "@banjoanton/utils";
+import { isDefined, produce, randomString } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 

@@ -2,11 +2,13 @@ import { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/types/data/tra
 
 import { convertToExcalidrawElements, isLinearElement } from "@excalidraw/excalidraw";
 
+import { IPoint } from "@/features/draw/models/point";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import {
     ExcalidrawElement,
     ExcalidrawLinearElement,
 } from "@excalidraw/excalidraw/types/element/types";
+import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton) =>
     convertToExcalidrawElements([skeleton])[0]!;
@@ -14,11 +16,12 @@ const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton) =>
 const createElementsFromSkeleton = (skeleton: ExcalidrawElementSkeleton[]) =>
     convertToExcalidrawElements(skeleton);
 
-type Point = [x: number, y: number];
 type ArrowBase = {
     x: number;
     y: number;
-    points: Point[];
+    points: Mutable<IPoint>[];
+    startBindingId?: string;
+    endBindingId?: string;
 };
 const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinearElement>) => {
     const arrow: ExcalidrawElementSkeleton = {
@@ -26,6 +29,12 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
         x: props.x,
         y: props.y,
         points: props.points,
+        start: props.startBindingId
+            ? {
+                  id: props.startBindingId,
+              }
+            : undefined,
+        end: props.endBindingId ? { id: props.endBindingId } : undefined,
     };
 
     const createdElement = createElementFromSkeleton(arrow);
