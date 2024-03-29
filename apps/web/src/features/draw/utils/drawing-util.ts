@@ -1,5 +1,5 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
-import { ElementUtil } from "@/features/draw/utils/element-utils";
+import { ElementUtil } from "@/features/draw/utils/element-util";
 import { isEqual } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ElementStateUtil } from "common";

@@ -61,6 +61,23 @@ const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppS
     return { updatedElements, updatedState, newGroupId };
 };
 
+const createNewElementSelection = (renderedElements: ExcalidrawElements, state: AppState) => {
+    const ids = renderedElements.map(element => element.id);
+
+    const updatedState = produce(state, draft => {
+        // @ts-ignore
+        draft.selectedElementIds = ids.reduce(
+            (acc, id) => {
+                acc[id] = true;
+                return acc;
+            },
+            {} as Record<string, boolean>
+        );
+    });
+
+    return { updatedState };
+};
+
 export const ElementUtil = {
     removeDeletedElements,
     resetElement,
@@ -68,4 +85,5 @@ export const ElementUtil = {
     createElementId,
     createNewElementGroup,
     updateElements,
+    createNewElementSelection,
 };
