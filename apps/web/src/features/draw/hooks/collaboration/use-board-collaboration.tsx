@@ -1,6 +1,7 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-mutation";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
+import { ElementUtil } from "@/features/draw/utils/element-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
@@ -12,7 +13,6 @@ import {
     BoardDeltaUpdate,
     BoardUpdateResponse,
     DeltaUpdateUtil,
-    ElementStateUtil,
     ExcalidrawSimpleElement,
 } from "common";
 import { useEffect, useState } from "react";
@@ -52,9 +52,7 @@ export const useBoardCollaboration = ({
 
     useEffect(() => {
         if (!excalidrawApi) return;
-        setPreviousLockedElements(
-            ElementStateUtil.getLockedElementIds(excalidrawApi.getAppState())
-        );
+        setPreviousLockedElements(ElementUtil.getLockedElementIds(excalidrawApi.getAppState()));
     }, [slug, excalidrawApi]);
 
     trpc.collaboration.onBoardChange.useSubscription(

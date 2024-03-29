@@ -1,22 +1,30 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
+import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { produce, randomString } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState } from "@excalidraw/excalidraw/types/types";
-import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+
+const getSelectedElementIds = (state: AppState) => Object.keys(state.selectedElementIds);
+
+const getSelectedElements = (state: AppState, elements: ExcalidrawElements) => {
+    const ids = getSelectedElementIds(state);
+    return elements.filter(element => ids.includes(element.id));
+};
+
+const getLockedElementIds = (state: AppState) => {
+    // include if you want to lock the selected elements
+    // const selectedIds = Object.keys(state.selectedElementIds);
+
+    const editingElementsId: string[] = state.editingElement
+        ? // @ts-expect-error - wrong with type, it contains a containerId in some cases
+          [state.editingElement.id, state.editingElement?.containerId].filter(isDefined)
+        : [];
+
+    return editingElementsId;
+};
 
 const removeDeletedElements = (elements: ExcalidrawElements) => {
     return elements.filter(element => !element.isDeleted);
-};
-
-const updateElements = (
-    elements: ExcalidrawElements,
-    callback: (element: Mutable<ExcalidrawElement>) => ExcalidrawElement
-) => {
-    return elements.map(element => {
-        return produce(element, draft => {
-            return callback(draft);
-        });
-    });
 };
 
 const idDictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
@@ -36,7 +44,7 @@ const resetElements = (elements: ExcalidrawElements) => elements.map(resetElemen
 const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppState) => {
     const newGroupId = createElementId();
 
-    const updatedElements = updateElements(renderedElements, draft => {
+    const updatedElements = UpdateElementUtil.updateElements(renderedElements, draft => {
         draft.groupIds = [newGroupId];
         return draft;
     });
@@ -84,6 +92,8 @@ export const ElementUtil = {
     resetElements,
     createElementId,
     createNewElementGroup,
-    updateElements,
     createNewElementSelection,
+    getSelectedElementIds,
+    getSelectedElements,
+    getLockedElementIds,
 };

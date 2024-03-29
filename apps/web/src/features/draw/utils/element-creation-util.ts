@@ -1,10 +1,11 @@
 import { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/types/data/transform";
 
-import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
+import { convertToExcalidrawElements, isLinearElement } from "@excalidraw/excalidraw";
 
+import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import {
-    ExcalidrawArrowElement,
-    ExcalidrawRectangleElement,
+    ExcalidrawElement,
+    ExcalidrawLinearElement,
 } from "@excalidraw/excalidraw/types/element/types";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton) =>
@@ -13,35 +14,55 @@ const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton) =>
 const createElementsFromSkeleton = (skeleton: ExcalidrawElementSkeleton[]) =>
     convertToExcalidrawElements(skeleton);
 
-const createArrow = (props: Partial<ExcalidrawArrowElement>) => {
+type Point = [x: number, y: number];
+type ArrowBase = {
+    x: number;
+    y: number;
+    points: Point[];
+};
+const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinearElement>) => {
     const arrow: ExcalidrawElementSkeleton = {
         type: "arrow",
-        x: props.x ?? 0,
-        y: props.y ?? 0,
-        startBinding: props.startBinding ?? null,
-        endBinding: props.endBinding ?? null,
-        points: props.points ?? [],
+        x: props.x,
+        y: props.y,
+        points: props.points,
     };
 
-    return createElementFromSkeleton(arrow);
+    const createdElement = createElementFromSkeleton(arrow);
+
+    if (!isLinearElement(createdElement)) {
+        throw new Error("Something wrong when creating arrow");
+    }
+
+    if (callback) {
+        UpdateElementUtil.updateElement(createdElement, callback);
+    }
+
+    return createdElement;
 };
 
-const createRectangle = (props: Partial<ExcalidrawRectangleElement>) => {
+type RectangleBase = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+const createRectangle = (props: RectangleBase, callback?: UpdateCallback<ExcalidrawElement>) => {
     const rectangle: ExcalidrawElementSkeleton = {
         type: "rectangle",
-        x: props.x ?? 0,
-        y: props.y ?? 0,
-        width: props.width ?? 100,
-        height: props.height ?? 100,
-        fillStyle: props.fillStyle ?? "hachure",
-        strokeWidth: props.strokeWidth ?? 1,
-        strokeStyle: props.strokeStyle ?? "solid",
-        roughness: props.roughness ?? 1,
-        opacity: props.opacity ?? 100,
-        angle: props.angle ?? 0,
+        x: props.x,
+        y: props.y,
+        width: props.width,
+        height: props.height,
     };
 
-    return createElementFromSkeleton(rectangle);
+    const createdElement = createElementFromSkeleton(rectangle);
+
+    if (callback) {
+        UpdateElementUtil.updateElement(createdElement, callback);
+    }
+
+    return createdElement;
 };
 
 export const ElementCreationUtil = {
