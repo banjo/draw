@@ -73,6 +73,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     const refreshToken = useCallback(async () => {
+        if (isLocalDevelopment()) return;
+
         if (!user) return;
 
         if (!initialLoadCompletedRef.current) {
