@@ -60,26 +60,37 @@ const handleMetaArrowDown = (
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
     if (selectedElements.length === 0) return;
 
-    const elementToConnect = ElementPositionUtil.getClosestElement(direction, selectedElements);
-    if (!elementToConnect) return;
+    const sourceElement = ElementPositionUtil.getClosestElement(direction, selectedElements);
+    if (!sourceElement) return;
 
     const arrowId = ElementUtil.createElementId();
 
-    UpdateElementUtil.mutateElement(elementToConnect, (draft, helpers) => {
+    const newSourcePosition = ElementPositionUtil.reverseStep(
+        direction,
+        {
+            x: sourceElement.x,
+            y: sourceElement.y,
+        },
+        1
+    );
+
+    UpdateElementUtil.mutateElement(sourceElement, (draft, helpers) => {
         helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
+        draft.x = newSourcePosition.x;
+        draft.y = newSourcePosition.y;
     });
 
     const arrowOptions = ElementPositionUtil.getArrowOptionsFromSourceElement(
         direction,
-        elementToConnect
+        sourceElement
     );
 
     const measurements = ElementMeasurement.from({
-        height: Math.max(elementToConnect.height, ELEMENT_HEIGHT),
-        width: Math.max(elementToConnect.width, ELEMENT_WIDTH),
+        height: Math.max(sourceElement.height, ELEMENT_HEIGHT),
+        width: Math.max(sourceElement.width, ELEMENT_WIDTH),
     });
 
-    const { startX, startY } = ElementPositionUtil.getAddedElementOptions(
+    const { x, y } = ElementPositionUtil.getAddedElementOptions(
         direction,
         arrowOptions,
         measurements
@@ -89,8 +100,8 @@ const handleMetaArrowDown = (
         {
             height: measurements.height,
             width: measurements.width,
-            x: startX,
-            y: startY,
+            x: x,
+            y: y,
         },
         (draft, helpers) => {
             helpers.defaultSettings(draft);
@@ -105,7 +116,7 @@ const handleMetaArrowDown = (
             x: arrowOptions.startX,
             y: arrowOptions.startY,
             points: [[0, 0], arrowOptions.relativeEndPoint],
-            startBindingId: elementToConnect.id,
+            startBindingId: sourceElement.id,
             endBindingId: newElement.id,
         },
         draft => {
@@ -122,7 +133,7 @@ const handleMetaArrowDown = (
     return {
         arrowId,
         elementId: newElement.id,
-        selectedId: elementToConnect.id,
+        selectedId: sourceElement.id,
     };
 };
 
@@ -160,6 +171,9 @@ const handleMetaArrowUp = (
 
     const { updatedState } = ElementUtil.createNewElementSelection([updatedNewElement], state);
     const allElements = ElementUtil.mergeElements(elements, [updatedArrow, updatedNewElement]);
+
+    // remove binding circles
+    updatedState.suggestedBindings = [];
 
     excalidrawApi.updateScene({
         commitToHistory: true,

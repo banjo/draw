@@ -135,20 +135,20 @@ type AddedElementOptionsCallback = (
 
 const addedElementOptionsMap: Record<ArrowKey, AddedElementOptionsCallback> = {
     ArrowRight: (arrow, element) => ({
-        startX: arrow.startX + ARROW_LENGTH + ELEMENT_GAP,
-        startY: arrow.startY - element.height / 2,
+        x: arrow.startX + ARROW_LENGTH + ELEMENT_GAP,
+        y: arrow.startY - element.height / 2,
     }),
     ArrowLeft: (arrow, element) => ({
-        startX: arrow.startX - ARROW_LENGTH - ELEMENT_GAP - element.width,
-        startY: arrow.startY - element.height / 2,
+        x: arrow.startX - ARROW_LENGTH - ELEMENT_GAP - element.width,
+        y: arrow.startY - element.height / 2,
     }),
     ArrowUp: (arrow, element) => ({
-        startX: arrow.startX - element.width / 2,
-        startY: arrow.startY - ARROW_LENGTH - ELEMENT_GAP - element.height,
+        x: arrow.startX - element.width / 2,
+        y: arrow.startY - ARROW_LENGTH - ELEMENT_GAP - element.height,
     }),
     ArrowDown: (arrow, element) => ({
-        startX: arrow.startX - element.width / 2,
-        startY: arrow.startY + ARROW_LENGTH + ELEMENT_GAP,
+        x: arrow.startX - element.width / 2,
+        y: arrow.startY + ARROW_LENGTH + ELEMENT_GAP,
     }),
 };
 
@@ -160,10 +160,26 @@ const getAddedElementOptions = (
     return addedElementOptionsMap[direction](arrowOptions, elementPosition);
 };
 
+type ReverseStepHandler = (position: ElementBasicPosition, step?: number) => ElementBasicPosition;
+type ReverseStepMap = Record<ArrowKey, ReverseStepHandler>;
+
+const DEFAULT_STEP = 1;
+const reverseStepMap: ReverseStepMap = {
+    ArrowRight: ({ x, y }, step = DEFAULT_STEP) => ({ x: x - step, y }),
+    ArrowLeft: ({ x, y }, step = DEFAULT_STEP) => ({ x: x + step, y }),
+    ArrowUp: ({ x, y }, step = DEFAULT_STEP) => ({ x, y: y + step }),
+    ArrowDown: ({ x, y }, step = DEFAULT_STEP) => ({ x, y: y - step }),
+};
+
+const reverseStep = (direction: ArrowKey, position: ElementBasicPosition, step?: number) => {
+    return reverseStepMap[direction](position, step);
+};
+
 export const ElementPositionUtil = {
     getPositionFromElements,
     getPositionFromElement,
     getClosestElement,
     getArrowOptionsFromSourceElement,
     getAddedElementOptions,
+    reverseStep,
 };

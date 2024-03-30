@@ -29,12 +29,6 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
         x: props.x,
         y: props.y,
         points: props.points,
-        start: props.startBindingId
-            ? {
-                  id: props.startBindingId,
-              }
-            : undefined,
-        end: props.endBindingId ? { id: props.endBindingId } : undefined,
     };
 
     const createdElement = createElementFromSkeleton(arrow);

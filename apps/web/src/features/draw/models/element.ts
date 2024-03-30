@@ -1,6 +1,6 @@
 export type ElementBasicPosition = {
-    startX: number;
-    startY: number;
+    x: number;
+    y: number;
 };
 
 export const ElementBasicPosition = {
