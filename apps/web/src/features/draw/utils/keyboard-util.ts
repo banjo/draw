@@ -4,7 +4,7 @@ import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { Maybe, clone } from "@banjoanton/utils";
+import { Maybe, clone, first } from "@banjoanton/utils";
 import { isLinearElement } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 
@@ -102,20 +102,21 @@ const handleMetaArrowDown = (
         measurements
     );
 
-    const newElement = ElementCreationUtil.createRectangle(
-        {
+    const newElement = ElementCreationUtil.createElement({
+        base: {
             height: measurements.height,
             width: measurements.width,
             x: x,
             y: y,
+            type: "rectangle",
         },
-        (draft, helpers) => {
+        callback: (draft, helpers) => {
             helpers.defaultSettings(draft);
             helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
             draft.opacity = 50;
             return draft;
-        }
-    );
+        },
+    });
 
     const arrow = ElementCreationUtil.createArrow(
         {
@@ -188,4 +189,30 @@ const handleMetaArrowUp = (
     });
 };
 
-export const KeyboardUtil = { handleMetaEnter, handleMetaArrowDown, handleMetaArrowUp };
+const handleTabSingleElement = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperativeAPI) => {
+    const state = excalidrawApi.getAppState();
+    const elements = excalidrawApi.getSceneElements();
+
+    const selected = ElementUtil.getSelectedElements(state, elements);
+    if (selected.length !== 1) return;
+    const element = first(selected);
+    if (!element) return;
+
+    const newElement = ElementCreationUtil.createElementFromElement({
+        type: "ellipse",
+        element,
+    });
+
+    const updatedElements = ElementUtil.removeElements(elements, [element.id]);
+    excalidrawApi.updateScene({
+        elements: [...updatedElements, newElement],
+        commitToHistory: true,
+    });
+};
+
+export const KeyboardUtil = {
+    handleMetaEnter,
+    handleMetaArrowDown,
+    handleMetaArrowUp,
+    handleTabSingleElement,
+};

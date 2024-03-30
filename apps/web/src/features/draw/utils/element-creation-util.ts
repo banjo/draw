@@ -44,22 +44,30 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
     return createdElement;
 };
 
-type RectangleBase = {
+type ElementType = "rectangle" | "ellipse" | "diamond";
+type ElementBase = {
     x: number;
     y: number;
     width: number;
     height: number;
+    type: ElementType;
 };
-const createRectangle = (props: RectangleBase, callback?: UpdateCallback<ExcalidrawElement>) => {
-    const rectangle: ExcalidrawElementSkeleton = {
-        type: "rectangle",
-        x: props.x,
-        y: props.y,
-        width: props.width,
-        height: props.height,
+type CreateElementProps = {
+    base: ElementBase;
+    props?: Partial<ExcalidrawElementSkeleton>;
+    callback?: UpdateCallback<ExcalidrawElement>;
+};
+const createElement = ({ base, props, callback }: CreateElementProps) => {
+    const element: ExcalidrawElementSkeleton = {
+        height: base.height,
+        width: base.width,
+        x: base.x,
+        y: base.y,
+        type: base.type as any, // just type mismatch
+        ...props,
     };
 
-    const createdElement = createElementFromSkeleton(rectangle);
+    const createdElement = createElementFromSkeleton(element);
 
     if (callback) {
         return UpdateElementUtil.updateElement(createdElement, callback);
@@ -68,9 +76,25 @@ const createRectangle = (props: RectangleBase, callback?: UpdateCallback<Excalid
     return createdElement;
 };
 
+type CreateElementFromElementProps = {
+    type: ElementType;
+    element: ExcalidrawElement;
+    newValues?: Partial<ExcalidrawElement>;
+};
+const createElementFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
+    const newElement = {
+        ...element,
+        ...newValues,
+        type,
+    };
+
+    return createElementFromSkeleton(newElement);
+};
+
 export const ElementCreationUtil = {
     createArrow,
-    createRectangle,
+    createElement,
     createElementFromSkeleton,
     createElementsFromSkeleton,
+    createElementFromElement,
 };

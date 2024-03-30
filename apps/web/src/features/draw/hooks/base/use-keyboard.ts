@@ -1,3 +1,4 @@
+import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ArrowKey, KeyboardUtil, MetaArrowResult } from "@/features/draw/utils/keyboard-util";
 import { Maybe } from "@banjoanton/utils";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
@@ -15,6 +16,14 @@ export const useKeyboard = ({ excalidrawApi }: In) => {
 
         console.log(excalidrawApi.getSceneElements());
         console.log(excalidrawApi.getAppState());
+
+        const state = excalidrawApi.getAppState();
+
+        // If one element selected, allow change element type
+        if (ElementUtil.getSelectedElementIds(state).length === 1 && event.key === "Tab") {
+            console.log("hello");
+            KeyboardUtil.handleTabSingleElement(event, excalidrawApi);
+        }
 
         if (event.metaKey && event.key === "Enter") {
             // Smart copy

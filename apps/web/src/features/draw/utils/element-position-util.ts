@@ -63,7 +63,7 @@ const closestElementMap: Record<
     (closest: ElementPosition, element: ElementPosition) => boolean
 > = {
     ArrowRight: (closest, element) => element.positions.endX > closest.positions.endX,
-    ArrowLeft: (closest, element) => element.positions.startX > closest.positions.startX,
+    ArrowLeft: (closest, element) => element.positions.startX < closest.positions.startX,
     ArrowDown: (closest, element) => element.positions.endY > closest.positions.endY,
     ArrowUp: (closest, element) => element.positions.startY > closest.positions.startY,
 };
