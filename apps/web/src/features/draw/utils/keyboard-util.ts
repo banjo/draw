@@ -65,19 +65,25 @@ const handleMetaArrowDown = (
 
     const arrowId = ElementUtil.createElementId();
 
-    const newSourcePosition = ElementPositionUtil.reverseStep(
-        direction,
-        {
-            x: sourceElement.x,
-            y: sourceElement.y,
-        },
-        1
-    );
+    // move selected elements to original position as arrow keys adjust
+    selectedElements.forEach(selected => {
+        const newSourcePosition = ElementPositionUtil.reverseStep(
+            direction,
+            {
+                x: selected.x,
+                y: selected.y,
+            },
+            1
+        );
+
+        UpdateElementUtil.mutateElement(selected, (draft, helpers) => {
+            draft.x = newSourcePosition.x;
+            draft.y = newSourcePosition.y;
+        });
+    });
 
     UpdateElementUtil.mutateElement(sourceElement, (draft, helpers) => {
         helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
-        draft.x = newSourcePosition.x;
-        draft.y = newSourcePosition.y;
     });
 
     const arrowOptions = ElementPositionUtil.getArrowOptionsFromSourceElement(
