@@ -23,8 +23,16 @@ const getLockedElementIds = (state: AppState) => {
     return editingElementsId;
 };
 
+const getElementsByIds = (elements: ExcalidrawElements, ids: string[]) => {
+    return ids.map(id => elements.find(element => element.id === id)).filter(isDefined);
+};
+
 const removeDeletedElements = (elements: ExcalidrawElements) => {
     return elements.filter(element => !element.isDeleted);
+};
+
+const removeElements = (elements: ExcalidrawElements, ids: string[]) => {
+    return elements.filter(element => !ids.includes(element.id));
 };
 
 const idDictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
@@ -44,12 +52,11 @@ const resetElements = (elements: ExcalidrawElements) => elements.map(resetElemen
 const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppState) => {
     const newGroupId = createElementId();
 
-    const updatedElements = UpdateElementUtil.updateElements(renderedElements, draft => {
+    UpdateElementUtil.mutateElements(renderedElements, draft => {
         draft.groupIds = [newGroupId];
-        return draft;
     });
 
-    const updatedElementsIds = updatedElements.map(element => element.id);
+    const updatedElementsIds = renderedElements.map(element => element.id);
 
     const updatedState = produce(state, draft => {
         // @ts-ignore
@@ -66,7 +73,7 @@ const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppS
         };
     });
 
-    return { updatedElements, updatedState, newGroupId };
+    return { updatedState, newGroupId };
 };
 
 const createNewElementSelection = (renderedElements: ExcalidrawElements, state: AppState) => {
@@ -86,6 +93,16 @@ const createNewElementSelection = (renderedElements: ExcalidrawElements, state: 
     return { updatedState };
 };
 
+/**
+ * Merge new elements into the existing elements, replacing the existing elements with the same id.
+ */
+const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElements) => {
+    return elements.map(element => {
+        const newElement = newElements.find(newElement => newElement.id === element.id);
+        return newElement || element;
+    });
+};
+
 export const ElementUtil = {
     removeDeletedElements,
     resetElement,
@@ -96,4 +113,7 @@ export const ElementUtil = {
     getSelectedElementIds,
     getSelectedElements,
     getLockedElementIds,
+    getElementsByIds,
+    mergeElements,
+    removeElements,
 };

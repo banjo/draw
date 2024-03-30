@@ -47,10 +47,10 @@ export const Draw = ({ slug }: DrawProps) => {
     useImages({ elements, excalidrawApi });
     useHistory({ slug, excalidrawApi });
 
-    const { handleKeyDown } = useKeyboard({ excalidrawApi });
+    const { handleKeyDown, handleKeyUp } = useKeyboard({ excalidrawApi });
 
     return (
-        <div style={{ height: "100dvh" }} onKeyDown={handleKeyDown}>
+        <div style={{ height: "100dvh" }} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
             <Excalidraw
                 excalidrawAPI={(api: ExcalidrawImperativeAPI) => setExcalidrawApi(api)}
                 onChange={onDrawingChange}

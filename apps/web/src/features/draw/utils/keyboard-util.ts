@@ -4,7 +4,8 @@ import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { clone } from "@banjoanton/utils";
+import { Maybe, clone } from "@banjoanton/utils";
+import { isLinearElement } from "@excalidraw/excalidraw";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
@@ -22,33 +23,39 @@ const handleMetaEnter = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperati
     });
 
     // TODO: maybe not element group by default? Or maybe do?
-    const { updatedElements, updatedState } = ElementUtil.createNewElementGroup(
-        copiedElements,
-        state
-    );
+    const { updatedState } = ElementUtil.createNewElementGroup(copiedElements, state);
 
-    const movedElements = UpdateElementUtil.updateElements(updatedElements, element => {
+    UpdateElementUtil.mutateElements(copiedElements, element => {
         element.x += 50;
         element.y += 50;
-        return element;
     });
 
     excalidrawApi.updateScene({
-        elements: [...elements, ...movedElements],
+        elements: [...elements, ...copiedElements],
         commitToHistory: true,
         appState: updatedState,
     });
 };
 
 export type ArrowKey = "ArrowRight" | "ArrowLeft" | "ArrowUp" | "ArrowDown";
+export type MetaArrowResult = { arrowId: string; elementId: string; selectedId: string };
 
-const handleMetaArrow = (
+const handleMetaArrowDown = (
     event: KeyboardEvent,
     direction: ArrowKey,
-    excalidrawApi: ExcalidrawImperativeAPI
-) => {
-    const elements = excalidrawApi.getSceneElements();
+    excalidrawApi: ExcalidrawImperativeAPI,
+    activeElements: Maybe<MetaArrowResult>
+): Maybe<MetaArrowResult> => {
+    const sceneElements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
+
+    let elements = sceneElements;
+    if (activeElements) {
+        elements = ElementUtil.removeElements(sceneElements, [
+            activeElements.arrowId,
+            activeElements.elementId,
+        ]);
+    }
 
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
     if (selectedElements.length === 0) return;
@@ -58,7 +65,7 @@ const handleMetaArrow = (
 
     const arrowId = ElementUtil.createElementId();
 
-    UpdateElementUtil.updateElement(elementToConnect, (draft, helpers) => {
+    UpdateElementUtil.mutateElement(elementToConnect, (draft, helpers) => {
         helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
     });
 
@@ -88,6 +95,8 @@ const handleMetaArrow = (
         (draft, helpers) => {
             helpers.defaultSettings(draft);
             helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
+            draft.opacity = 50;
+            return draft;
         }
     );
 
@@ -101,16 +110,62 @@ const handleMetaArrow = (
         },
         draft => {
             draft.id = arrowId;
+            draft.opacity = 50;
+            return draft;
         }
     );
 
-    const { updatedState } = ElementUtil.createNewElementSelection([newElement], state);
-
     excalidrawApi.updateScene({
         elements: [...elements, arrow, newElement],
+    });
+
+    return {
+        arrowId,
+        elementId: newElement.id,
+        selectedId: elementToConnect.id,
+    };
+};
+
+const handleMetaArrowUp = (
+    event: KeyboardEvent,
+    metaArrowResult: MetaArrowResult,
+    excalidrawApi: ExcalidrawImperativeAPI
+) => {
+    const elements = excalidrawApi.getSceneElements();
+    const state = excalidrawApi.getAppState();
+
+    const { arrowId, elementId, selectedId } = metaArrowResult;
+    const elementsToModify = ElementUtil.getElementsByIds(elements, [
+        arrowId,
+        elementId,
+        selectedId,
+    ]);
+
+    if (elementsToModify.length === 0) return;
+
+    const [arrow, newElement, selected] = elementsToModify;
+    if (!arrow || !newElement || !selected) return;
+    if (!isLinearElement(arrow)) return;
+
+    const updatedArrow = UpdateElementUtil.updateElement(arrow, (element, helpers) => {
+        helpers.addArrowBindings(element, { endId: newElement.id, startId: selected.id });
+        element.opacity = 100;
+        return element;
+    });
+
+    const updatedNewElement = UpdateElementUtil.updateElement(newElement, element => {
+        element.opacity = 100;
+        return element;
+    });
+
+    const { updatedState } = ElementUtil.createNewElementSelection([updatedNewElement], state);
+    const allElements = ElementUtil.mergeElements(elements, [updatedArrow, updatedNewElement]);
+
+    excalidrawApi.updateScene({
         commitToHistory: true,
         appState: updatedState,
+        elements: allElements,
     });
 };
 
-export const KeyboardUtil = { handleMetaEnter, handleMetaArrow };
+export const KeyboardUtil = { handleMetaEnter, handleMetaArrowDown, handleMetaArrowUp };

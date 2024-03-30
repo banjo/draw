@@ -44,7 +44,7 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
     }
 
     if (callback) {
-        UpdateElementUtil.updateElement(createdElement, callback);
+        return UpdateElementUtil.updateElement(createdElement, callback);
     }
 
     return createdElement;
@@ -68,7 +68,7 @@ const createRectangle = (props: RectangleBase, callback?: UpdateCallback<Excalid
     const createdElement = createElementFromSkeleton(rectangle);
 
     if (callback) {
-        UpdateElementUtil.updateElement(createdElement, callback);
+        return UpdateElementUtil.updateElement(createdElement, callback);
     }
 
     return createdElement;

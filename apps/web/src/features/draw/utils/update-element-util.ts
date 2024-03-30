@@ -1,4 +1,3 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ELEMENT_GAP } from "@/features/draw/models/constants";
 import { defaults, produce } from "@banjoanton/utils";
 import {
@@ -64,37 +63,58 @@ const helpers = {
 
 type UpdateHelpers = typeof helpers;
 
-type Options = {
-    mutate?: boolean;
-};
+export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => T;
 
-export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => T | void;
-
-const updateElement = <T extends ExcalidrawElement>(
-    element: T,
-    callback: UpdateCallback<T>,
-    options?: Options
-) => {
-    const { mutate } = defaults(options, { mutate: true });
-
-    if (mutate) {
-        return callback(element, helpers);
-    }
-
+/**
+ * Update an element with a callback, returning a new element with same ID.
+ * @param element - The element to update
+ * @param callback - The callback to update the element
+ */
+const updateElement = <T extends ExcalidrawElement>(element: T, callback: UpdateCallback<T>) => {
     return produce(element, draft => {
         return callback(draft, helpers);
     });
 };
 
-const updateElements = (
-    elements: ExcalidrawElements,
-    callback: (element: Mutable<ExcalidrawElement>) => ExcalidrawElement
+/**
+ * Update an array of elements with a callback, returning a new array new elements with same IDs.
+ * @param elements - The elements to update
+ * @param callback - The callback to update the elements
+ */
+const updateElements = <T extends ExcalidrawElement>(
+    elements: T[] | readonly T[],
+    callback: UpdateCallback<T>
 ) => {
     return elements.map(element => {
         return produce(element, draft => {
-            return callback(draft);
+            return callback(draft, helpers);
         });
     });
 };
 
-export const UpdateElementUtil = { updateElement, updateElements };
+export type MutateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => void;
+
+/**
+ * Mutate an element with a callback.
+ * @param element - The element to update
+ * @param callback - The callback to update the element
+ */
+const mutateElement = <T extends ExcalidrawElement>(element: T, callback: MutateCallback<T>) => {
+    callback(element, helpers);
+};
+
+/**
+ * Mutate an array of elements with a callback.
+ * @param elements - The elements to update
+ * @param callback - The callback to update the elements
+ */
+const mutateElements = <T extends ExcalidrawElement>(
+    elements: T[] | readonly T[],
+    callback: MutateCallback<T>
+) => {
+    elements.map(element => {
+        callback(element, helpers);
+    });
+};
+
+export const UpdateElementUtil = { updateElement, updateElements, mutateElements, mutateElement };
