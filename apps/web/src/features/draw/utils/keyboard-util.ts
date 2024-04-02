@@ -1,6 +1,7 @@
+import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
 import { ElementMeasurement } from "@/features/draw/models/element";
-import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
+import { ElementCreationUtil, ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
@@ -37,7 +38,6 @@ const handleMetaEnter = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperati
     });
 };
 
-export type ArrowKey = "ArrowRight" | "ArrowLeft" | "ArrowUp" | "ArrowDown";
 export type MetaArrowResult = { arrowId: string; elementId: string; selectedId: string };
 
 const handleMetaArrowDown = (
@@ -60,27 +60,15 @@ const handleMetaArrowDown = (
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
     if (selectedElements.length === 0) return;
 
+    // move selected elements to original position as arrow keys adjust
+    selectedElements.forEach(selected => {
+        UpdateElementUtil.mutateReverseStep(direction, selected);
+    });
+
     const sourceElement = ElementPositionUtil.getClosestElement(direction, selectedElements);
     if (!sourceElement) return;
 
     const arrowId = ElementUtil.createElementId();
-
-    // move selected elements to original position as arrow keys adjust
-    selectedElements.forEach(selected => {
-        const newSourcePosition = ElementPositionUtil.reverseStep(
-            direction,
-            {
-                x: selected.x,
-                y: selected.y,
-            },
-            1
-        );
-
-        UpdateElementUtil.mutateElement(selected, (draft, helpers) => {
-            draft.x = newSourcePosition.x;
-            draft.y = newSourcePosition.y;
-        });
-    });
 
     UpdateElementUtil.mutateElement(sourceElement, (draft, helpers) => {
         helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
@@ -189,7 +177,7 @@ const handleMetaArrowUp = (
     });
 };
 
-const handleTabSingleElement = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperativeAPI) => {
+const handleSelectSingleElement = (excalidrawApi: ExcalidrawImperativeAPI, type: ElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
 
@@ -199,14 +187,18 @@ const handleTabSingleElement = (event: KeyboardEvent, excalidrawApi: ExcalidrawI
     if (!element) return;
 
     const newElement = ElementCreationUtil.createElementFromElement({
-        type: "ellipse",
+        type,
         element,
     });
 
     const updatedElements = ElementUtil.removeElements(elements, [element.id]);
+    const { updatedState } = ElementUtil.createNewElementSelection([newElement], state);
+
+    // need to update in next tick to avoid selection issues
     excalidrawApi.updateScene({
         elements: [...updatedElements, newElement],
         commitToHistory: true,
+        appState: updatedState,
     });
 };
 
@@ -214,5 +206,5 @@ export const KeyboardUtil = {
     handleMetaEnter,
     handleMetaArrowDown,
     handleMetaArrowUp,
-    handleTabSingleElement,
+    handleSelectSingleElement,
 };

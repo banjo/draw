@@ -103,7 +103,7 @@ export const useBoardCollaboration = ({
     );
 
     const onDrawingChange = async (e: readonly ExcalidrawElement[], state: AppState) => {
-        const changes = DrawingUtil.getChanges({
+        const changes = DrawingUtil.getChangesWithLockedElements({
             newElements: e,
             oldElements: elements,
             newState: state,

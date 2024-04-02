@@ -1,12 +1,13 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
+import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
 import { ElementBasicPosition, ElementMeasurement } from "@/features/draw/models/element";
 import { IPoint, Point } from "@/features/draw/models/point";
-import { ArrowKey } from "@/features/draw/utils/keyboard-util";
 import { Maybe } from "@banjoanton/utils";
 import { getCommonBounds } from "@excalidraw/excalidraw";
 import { Bounds } from "@excalidraw/excalidraw/types/element/bounds";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+import { AppState } from "@excalidraw/excalidraw/types/types";
 
 const getPositionFromBounds = (bounds: Bounds) => {
     const [startX, startY, endX, endY] = bounds;
@@ -175,6 +176,28 @@ const reverseStep = (direction: ArrowKey, position: ElementBasicPosition, step?:
     return reverseStepMap[direction](position, step);
 };
 
+/**
+ * Get position in the Window scope from an element.
+ */
+const getElementWindowPosition = (element: ExcalidrawElement, state: AppState) => {
+    const position = ElementPositionUtil.getPositionFromElement(element);
+
+    // Canvas position of the element
+    const x = position.positions.startX;
+    const y = position.positions.startY;
+
+    const { scrollX, scrollY, zoom } = state;
+
+    // Adjust the position to the window and the zoom
+    const adjustedX = (x + scrollX) * zoom.value;
+    const adjustedY = (y + scrollY) * zoom.value;
+
+    return {
+        x: adjustedX,
+        y: adjustedY,
+    };
+};
+
 export const ElementPositionUtil = {
     getPositionFromElements,
     getPositionFromElement,
@@ -182,4 +205,5 @@ export const ElementPositionUtil = {
     getArrowOptionsFromSourceElement,
     getAddedElementOptions,
     reverseStep,
+    getElementWindowPosition,
 };

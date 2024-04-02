@@ -21,7 +21,7 @@ type Changes = {
     lockStateHasChanged: boolean;
 } & ChangeResults;
 
-const getChanges = ({
+const getChangesWithLockedElements = ({
     newElements,
     oldElements,
     newState,
@@ -41,6 +41,35 @@ const getChanges = ({
         allOldElements,
         currentLockedElements,
     };
+};
+
+type IsOnlyMouseChangeProps = {
+    newElements: ExcalidrawElements;
+    oldElements: ExcalidrawElements;
+    newAppState: AppState;
+    oldAppState: AppState;
+};
+
+// TODO: is this correct?
+const isOnlyMouseChange = ({
+    newElements,
+    oldElements,
+    oldAppState,
+    newAppState,
+}: IsOnlyMouseChangeProps) => {
+    if (newElements.length !== oldElements.length) return false;
+
+    const allNewElements = ElementUtil.removeDeletedElements(newElements);
+    const allOldElements = ElementUtil.removeDeletedElements(oldElements);
+    const elementsUpdated = !isEqual(allNewElements, allOldElements);
+
+    console.log("elementsUpdated", elementsUpdated);
+
+    if (elementsUpdated) return false;
+
+    const stateUpdated = !isEqual(oldAppState, newAppState);
+    console.log("stateUpdated", stateUpdated);
+    return !stateUpdated;
 };
 
 type PrepareCollaborationChangesProps = ChangeResults & {
@@ -88,4 +117,16 @@ const prepareCollaborationChanges = ({
     return { currentOrder, elementsToSave };
 };
 
-export const DrawingUtil = { getChanges, prepareCollaborationChanges };
+const focusCanvas = () => {
+    const element = document.querySelector(".excalidraw") as HTMLDivElement;
+    if (element) {
+        element.focus();
+    }
+};
+
+export const DrawingUtil = {
+    getChangesWithLockedElements,
+    prepareCollaborationChanges,
+    isOnlyMouseChange,
+    focusCanvas,
+};

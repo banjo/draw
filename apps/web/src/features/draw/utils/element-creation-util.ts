@@ -44,7 +44,7 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
     return createdElement;
 };
 
-type ElementType = "rectangle" | "ellipse" | "diamond";
+export type ElementType = "rectangle" | "ellipse" | "diamond";
 type ElementBase = {
     x: number;
     y: number;

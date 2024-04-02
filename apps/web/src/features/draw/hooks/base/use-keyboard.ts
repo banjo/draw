@@ -1,14 +1,18 @@
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { ArrowKey, KeyboardUtil, MetaArrowResult } from "@/features/draw/utils/keyboard-util";
-import { Maybe } from "@banjoanton/utils";
+import { KeyboardUtil, MetaArrowResult } from "@/features/draw/utils/keyboard-util";
+import { Callback, Maybe, includes } from "@banjoanton/utils";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { KeyboardEventHandler, useState } from "react";
 
 type In = {
     excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
+    handleChangeElementDialogClick: Callback;
 };
 
-export const useKeyboard = ({ excalidrawApi }: In) => {
+export const ARROW_KEYS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"] as const;
+export type ArrowKey = (typeof ARROW_KEYS)[number];
+
+export const useKeyboard = ({ excalidrawApi, handleChangeElementDialogClick }: In) => {
     const [activeElements, setActiveElements] = useState<Maybe<MetaArrowResult>>(undefined);
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
@@ -21,8 +25,7 @@ export const useKeyboard = ({ excalidrawApi }: In) => {
 
         // If one element selected, allow change element type
         if (ElementUtil.getSelectedElementIds(state).length === 1 && event.key === "Tab") {
-            console.log("hello");
-            KeyboardUtil.handleTabSingleElement(event, excalidrawApi);
+            handleChangeElementDialogClick();
         }
 
         if (event.metaKey && event.key === "Enter") {
@@ -31,12 +34,11 @@ export const useKeyboard = ({ excalidrawApi }: In) => {
             return;
         }
 
-        const arrowKeys = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"];
-        if (event.metaKey && arrowKeys.includes(event.key)) {
+        if (event.metaKey && includes(ARROW_KEYS, event.key)) {
             // create new element to arrow direction
             const result = KeyboardUtil.handleMetaArrowDown(
                 event,
-                event.key as ArrowKey,
+                event.key,
                 excalidrawApi,
                 activeElements
             );
