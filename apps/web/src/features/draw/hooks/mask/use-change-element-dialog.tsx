@@ -5,6 +5,7 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { KeyboardUtil } from "@/features/draw/utils/keyboard-util";
 import { cn } from "@/lib/utils";
+import { useChangeElementStore } from "@/stores/use-change-element-store";
 import { Callback, Maybe, first } from "@banjoanton/utils";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { Circle, Diamond, LucideIcon, RectangleHorizontalIcon } from "lucide-react";
@@ -118,10 +119,15 @@ const ShapeIconContainer = ({ excalidrawApi, closeSelectElementDialog }: Props) 
 
 export const useChangeElementDialog = ({ excalidrawApi }: In) => {
     const changeElementRef = useRef<HTMLButtonElement>(null);
-    const [showChangeElementDialog, setShowChangeElementDialog] = useState(false);
+    const setShowChangeElementDialog = useChangeElementStore(
+        state => state.setShowChangeElementDialog
+    );
+    const showChangeElementDialog = useChangeElementStore(state => state.showChangeElementDialog);
 
     const selectElementRef = useRef<HTMLDivElement>(null);
     const [showSelectElementDialog, setShowSelectElementDialog] = useState(false);
+
+    const metaKeyIsDown = useChangeElementStore(state => state.metaKeyIsDown);
 
     const handleChangeElementDialog: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
@@ -148,7 +154,7 @@ export const useChangeElementDialog = ({ excalidrawApi }: In) => {
             return;
         }
 
-        if (!showSelectElementDialog) {
+        if (!showSelectElementDialog && !metaKeyIsDown) {
             setShowChangeElementDialog(true);
         }
 

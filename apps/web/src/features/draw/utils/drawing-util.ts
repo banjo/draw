@@ -1,7 +1,7 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { isEqual } from "@banjoanton/utils";
-import { AppState } from "@excalidraw/excalidraw/types/types";
+import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 
 type ApplyLocalDrawingChangesProps = {
     newElements: ExcalidrawElements;
@@ -44,31 +44,25 @@ const getChangesWithLockedElements = ({
 };
 
 type IsOnlyMouseChangeProps = {
-    newElements: ExcalidrawElements;
-    oldElements: ExcalidrawElements;
-    newAppState: AppState;
-    oldAppState: AppState;
+    elements: ExcalidrawElements;
+    appState: AppState;
+    excalidrawApi: ExcalidrawImperativeAPI;
 };
 
 // TODO: is this correct?
-const isOnlyMouseChange = ({
-    newElements,
-    oldElements,
-    oldAppState,
-    newAppState,
-}: IsOnlyMouseChangeProps) => {
-    if (newElements.length !== oldElements.length) return false;
+const isOnlyMouseChange = ({ elements, excalidrawApi, appState }: IsOnlyMouseChangeProps) => {
+    const oldElements = excalidrawApi.getSceneElements();
+    const oldAppState = excalidrawApi.getAppState();
 
-    const allNewElements = ElementUtil.removeDeletedElements(newElements);
+    if (elements.length !== oldElements.length) return false;
+
+    const allNewElements = ElementUtil.removeDeletedElements(elements);
     const allOldElements = ElementUtil.removeDeletedElements(oldElements);
     const elementsUpdated = !isEqual(allNewElements, allOldElements);
 
-    console.log("elementsUpdated", elementsUpdated);
-
     if (elementsUpdated) return false;
 
-    const stateUpdated = !isEqual(oldAppState, newAppState);
-    console.log("stateUpdated", stateUpdated);
+    const stateUpdated = !isEqual(oldAppState, appState);
     return !stateUpdated;
 };
 
