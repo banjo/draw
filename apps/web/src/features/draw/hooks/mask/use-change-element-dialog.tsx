@@ -117,17 +117,39 @@ const ShapeIconContainer = ({ excalidrawApi, closeSelectElementDialog }: Props) 
     );
 };
 
+const useChangeElementTimer = () => {
+    const [showChangeElementByTime, setShowChangeElementByTime] = useState(true);
+    const showChangeElementDialog = useChangeElementStore(s => s.showChangeElementDialog);
+
+    useEffect(() => {
+        if (showChangeElementDialog) {
+            const timeout = setTimeout(() => {
+                setShowChangeElementByTime(false);
+            }, 2000);
+
+            return () => clearTimeout(timeout);
+        }
+    }, [showChangeElementDialog]);
+
+    useEffect(() => {
+        if (!showChangeElementDialog) {
+            setShowChangeElementByTime(true);
+        }
+    }, [showChangeElementDialog]);
+
+    return { showChangeElementByTime };
+};
+
 export const useChangeElementDialog = ({ excalidrawApi }: In) => {
     const changeElementRef = useRef<HTMLButtonElement>(null);
-    const setShowChangeElementDialog = useChangeElementStore(
-        state => state.setShowChangeElementDialog
-    );
-    const showChangeElementDialog = useChangeElementStore(state => state.showChangeElementDialog);
+    const setShowChangeElementDialog = useChangeElementStore(s => s.setShowChangeElementDialog);
+    const showChangeElementDialog = useChangeElementStore(s => s.showChangeElementDialog);
 
     const selectElementRef = useRef<HTMLDivElement>(null);
     const [showSelectElementDialog, setShowSelectElementDialog] = useState(false);
 
-    const metaKeyIsDown = useChangeElementStore(state => state.metaKeyIsDown);
+    const metaKeyIsDown = useChangeElementStore(s => s.metaKeyIsDown);
+    const { showChangeElementByTime } = useChangeElementTimer();
 
     const handleChangeElementDialog: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
@@ -202,7 +224,7 @@ export const useChangeElementDialog = ({ excalidrawApi }: In) => {
     const renderChangeElementDialog = () => {
         return (
             <>
-                {showChangeElementDialog && (
+                {showChangeElementDialog && showChangeElementByTime && (
                     <button
                         type="button"
                         className="absolute z-[3] flex gap-2 justify-center
