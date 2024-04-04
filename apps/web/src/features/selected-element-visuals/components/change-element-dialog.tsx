@@ -10,9 +10,7 @@ type Props = PropsWithChildren<{
 export const ChangeElementDialog = ({ changeElementRef, onClick }: Props) => {
     return (
         <div className="flex flex-row gap-2 items-center absolute z-[3]" ref={changeElementRef}>
-            <KeyboardButton onClick={onClick} className="hover:cursor-default">
-                Tab
-            </KeyboardButton>
+            <KeyboardButton onClick={onClick}>Tab</KeyboardButton>
         </div>
     );
 };

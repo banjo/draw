@@ -91,7 +91,7 @@ export const useSelectedElementVisuals = ({ excalidrawApi }: In) => {
                 {showChangeElementDialog && (
                     <ChangeElementDialog
                         changeElementRef={changeElementRef}
-                        onClick={closeSelectElementDialog}
+                        onClick={handleChangeElementDialogClick}
                     />
                 )}
                 {showSelectElementDialog && (
