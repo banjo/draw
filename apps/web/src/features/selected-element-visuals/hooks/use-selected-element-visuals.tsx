@@ -1,6 +1,5 @@
 import { OnChangeCallback } from "@/features/draw/draw";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
-import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ChangeElementDialog } from "@/features/selected-element-visuals/components/change-element-dialog";
 import { SelectElementDialog } from "@/features/selected-element-visuals/components/select-element-dialog";
@@ -15,11 +14,19 @@ type In = {
 };
 
 export const useSelectedElementVisuals = ({ excalidrawApi }: In) => {
-    const { changeElementRef, setShowChangeElementDialog, showChangeElementDialog } =
-        useChangeElementDialog();
+    const {
+        changeElementRef,
+        setShowChangeElementDialog,
+        showChangeElementDialog,
+        applyPosition: applyChangeElementPosition,
+    } = useChangeElementDialog({ excalidrawApi });
 
-    const { selectElementRef, setShowSelectElementDialog, showSelectElementDialog } =
-        useSelectElementDialog();
+    const {
+        selectElementRef,
+        setShowSelectElementDialog,
+        showSelectElementDialog,
+        applyPosition: applySelectElementPosition,
+    } = useSelectElementDialog({ excalidrawApi });
 
     const metaKeyIsDown = useChangeElementStore(s => s.metaKeyIsDown);
 
@@ -52,23 +59,8 @@ export const useSelectedElementVisuals = ({ excalidrawApi }: In) => {
             setShowChangeElementDialog(true);
         }
 
-        const { width, height } = ElementPositionUtil.getPositionFromElement(selectedElement);
-        const { x, y } = ElementPositionUtil.getElementWindowPosition(selectedElement, appState);
-
-        // make sure the element is centered as well and count for zoom
-        const dialogWidth = changeElementRef.current?.offsetWidth ?? 0;
-        const dialogX = x + (width * appState.zoom.value) / 2 - dialogWidth / 2;
-
-        // place dialog above the element
-        const dialogY = y - 80;
-
-        changeElementRef.current?.setAttribute("style", `top: ${dialogY}px; left: ${dialogX}px`);
-
-        // place select element dialog under the element
-        const selectWidth = selectElementRef.current?.offsetWidth ?? 0;
-        const selectX = x + (width * appState.zoom.value) / 2 - selectWidth / 2;
-        const selectY = y + height + 20;
-        selectElementRef.current?.setAttribute("style", `top: ${selectY}px; left: ${selectX}px`);
+        applyChangeElementPosition(selectedElement);
+        applySelectElementPosition(selectedElement);
     };
 
     const handleChangeElementDialogClick = () => {
