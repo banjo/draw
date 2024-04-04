@@ -49,6 +49,7 @@ const handleMetaArrowDown = (
     const sceneElements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
+    // remove the temporary elements that show the arrow direction
     let elements = sceneElements;
     if (activeElements) {
         elements = ElementUtil.removeElements(sceneElements, [
@@ -98,6 +99,9 @@ const handleMetaArrowDown = (
             y: y,
             type: "rectangle",
         },
+        props: {
+            strokeStyle: "dashed",
+        },
         callback: (draft, helpers) => {
             helpers.defaultSettings(draft);
             helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
@@ -117,6 +121,7 @@ const handleMetaArrowDown = (
         draft => {
             draft.id = arrowId;
             draft.opacity = 50;
+            draft.strokeStyle = "dashed";
             return draft;
         }
     );
@@ -156,11 +161,13 @@ const handleMetaArrowUp = (
     const updatedArrow = UpdateElementUtil.updateElement(arrow, (element, helpers) => {
         helpers.addArrowBindings(element, { endId: newElement.id, startId: selected.id });
         element.opacity = 100;
+        element.strokeStyle = "solid";
         return element;
     });
 
     const updatedNewElement = UpdateElementUtil.updateElement(newElement, element => {
         element.opacity = 100;
+        element.strokeStyle = "solid";
         return element;
     });
 
