@@ -5,7 +5,7 @@ import { useRef } from "react";
 type In = {};
 
 export const useChangeElementDialog = () => {
-    const changeElementRef = useRef<HTMLButtonElement>(null);
+    const changeElementRef = useRef<HTMLDivElement>(null);
     const setShowChangeElementDialog = useChangeElementStore(s => s.setShowChangeElementDialog);
     const showChangeElementDialogByGlobalState = useChangeElementStore(
         s => s.showChangeElementDialog
