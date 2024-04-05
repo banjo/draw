@@ -3,8 +3,10 @@ import { OnChangeCallback } from "@/features/draw/draw";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ChangeElementDialog } from "@/features/selected-element-visuals/components/change-element-dialog";
+import { ExtendElementsContainer } from "@/features/selected-element-visuals/components/extend-elements-container";
 import { SelectElementDialog } from "@/features/selected-element-visuals/components/select-element-dialog";
 import { useChangeElementDialog } from "@/features/selected-element-visuals/hooks/use-change-element-dialog";
+import { useExtendElementsButtons } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { useSelectElementDialog } from "@/features/selected-element-visuals/hooks/use-select-element-dialog";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
 import { first } from "@banjoanton/utils";
@@ -16,14 +18,27 @@ export const useSelectedElementVisuals = () => {
         setShowChangeElementDialog,
         showChangeElementDialog,
         applyPosition: applyChangeElementPosition,
-    } = useChangeElementDialog({ excalidrawApi });
+    } = useChangeElementDialog();
 
     const {
         selectElementRef,
         setShowSelectElementDialog,
         showSelectElementDialog,
         applyPosition: applySelectElementPosition,
-    } = useSelectElementDialog({ excalidrawApi });
+    } = useSelectElementDialog();
+
+    const {
+        refs: extendElementRefs,
+        setShowExtendElements,
+        showExtendElements,
+        applyPosition: applyExtendElementsPosition,
+    } = useExtendElementsButtons();
+
+    const hideAllElements = () => {
+        setShowChangeElementDialog(false);
+        setShowSelectElementDialog(false);
+        setShowExtendElements(false);
+    };
 
     const metaKeyIsDown = useChangeElementStore(s => s.metaKeyIsDown);
 
@@ -33,22 +48,19 @@ export const useSelectedElementVisuals = () => {
         const selected = ElementUtil.getSelectedElements(appState, elements);
 
         if (selected.length !== 1) {
-            setShowChangeElementDialog(false);
-            setShowSelectElementDialog(false);
+            hideAllElements();
             return;
         }
 
         const selectedElement = first(selected);
 
         if (!selectedElement) {
-            setShowChangeElementDialog(false);
-            setShowSelectElementDialog(false);
+            hideAllElements();
             return;
         }
 
         if (appState.draggingElement) {
-            setShowChangeElementDialog(false);
-            setShowSelectElementDialog(false);
+            hideAllElements();
             return;
         }
 
@@ -58,6 +70,9 @@ export const useSelectedElementVisuals = () => {
 
         applyChangeElementPosition(selectedElement);
         applySelectElementPosition(selectedElement);
+        applyExtendElementsPosition(selectedElement);
+
+        setShowExtendElements(true);
     };
 
     const handleChangeElementDialogClick = () => {
@@ -86,10 +101,10 @@ export const useSelectedElementVisuals = () => {
                 {showSelectElementDialog && (
                     <SelectElementDialog
                         customRef={selectElementRef}
-                        excalidrawApi={excalidrawApi}
                         closeSelectElementDialog={closeSelectElementDialog}
                     />
                 )}
+                {showExtendElements && <ExtendElementsContainer refs={extendElementRefs} />}
             </>
         );
     };

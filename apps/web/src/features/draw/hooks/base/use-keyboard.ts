@@ -47,7 +47,6 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         if (event.metaKey && includes(ARROW_KEYS, event.key)) {
             // create new element to arrow direction
             const result = KeyboardUtil.handleMetaArrowDown(
-                event,
                 event.key,
                 excalidrawApi,
                 activeElements
@@ -68,7 +67,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
 
         // finalize arrow creation
         if (activeElements && event.key === "Meta") {
-            KeyboardUtil.handleMetaArrowUp(event, activeElements, excalidrawApi);
+            KeyboardUtil.handleMetaArrowUp(activeElements, excalidrawApi);
             setActiveElements(undefined);
             return;
         }

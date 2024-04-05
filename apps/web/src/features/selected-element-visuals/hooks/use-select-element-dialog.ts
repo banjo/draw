@@ -1,14 +1,10 @@
+import { useGlobal } from "@/contexts/global-context";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
-import { Maybe } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useRef, useState } from "react";
 
-type Props = {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
-};
-
-export const useSelectElementDialog = ({ excalidrawApi }: Props) => {
+export const useSelectElementDialog = () => {
+    const { excalidrawApi } = useGlobal();
     const selectElementRef = useRef<HTMLDivElement>(null);
     const [showSelectElementDialog, setShowSelectElementDialog] = useState(false);
 

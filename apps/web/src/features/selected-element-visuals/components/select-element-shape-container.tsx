@@ -1,18 +1,18 @@
+import { useGlobal } from "@/contexts/global-context";
 import { ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { KeyboardUtil } from "@/features/draw/utils/keyboard-util";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
-import { Callback, Maybe, first } from "@banjoanton/utils";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { Callback, first } from "@banjoanton/utils";
 import { Circle, Diamond, LucideIcon, RectangleHorizontalIcon } from "lucide-react";
 import { KeyboardEventHandler, useState } from "react";
 
 type Props = {
     closeSelectElementDialog: Callback;
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
 };
 
-export const SelectElementShapeContainer = ({ excalidrawApi, closeSelectElementDialog }: Props) => {
+export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props) => {
+    const { excalidrawApi } = useGlobal();
     const shapes: { type: ElementType; icon: LucideIcon }[] = [
         { type: "rectangle", icon: RectangleHorizontalIcon },
         { type: "ellipse", icon: Circle },

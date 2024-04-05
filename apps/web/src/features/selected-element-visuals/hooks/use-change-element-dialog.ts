@@ -1,16 +1,12 @@
+import { useGlobal } from "@/contexts/global-context";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { useChangeElementTimer } from "@/features/selected-element-visuals/hooks/use-change-element-timer";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
-import { Maybe } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { useRef } from "react";
 
-type Props = {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
-};
-
-export const useChangeElementDialog = ({ excalidrawApi }: Props) => {
+export const useChangeElementDialog = () => {
+    const { excalidrawApi } = useGlobal();
     const changeElementRef = useRef<HTMLDivElement>(null);
     const setShowChangeElementDialog = useChangeElementStore(s => s.setShowChangeElementDialog);
     const showChangeElementDialogByGlobalState = useChangeElementStore(
@@ -33,7 +29,7 @@ export const useChangeElementDialog = ({ excalidrawApi }: Props) => {
         const dialogX = x + (width * appState.zoom.value) / 2 - dialogWidth / 2;
 
         // place dialog above the element
-        const dialogY = y - 80;
+        const dialogY = y - 100;
 
         changeElementRef.current?.setAttribute("style", `top: ${dialogY}px; left: ${dialogX}px`);
     };

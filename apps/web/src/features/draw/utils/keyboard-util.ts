@@ -41,30 +41,28 @@ const handleMetaEnter = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperati
 export type MetaArrowResult = { arrowId: string; elementId: string; selectedId: string };
 
 const handleMetaArrowDown = (
-    event: KeyboardEvent,
     direction: ArrowKey,
     excalidrawApi: ExcalidrawImperativeAPI,
-    activeElements: Maybe<MetaArrowResult>
+    activeElements: Maybe<MetaArrowResult>,
+    revertStep = true
 ): Maybe<MetaArrowResult> => {
     const sceneElements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
-    // remove the temporary elements that show the arrow direction
     let elements = sceneElements;
     if (activeElements) {
-        elements = ElementUtil.removeElements(sceneElements, [
-            activeElements.arrowId,
-            activeElements.elementId,
-        ]);
+        elements = ElementUtil.removeActiveElements(sceneElements, activeElements);
     }
 
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
     if (selectedElements.length === 0) return;
 
     // move selected elements to original position as arrow keys adjust
-    selectedElements.forEach(selected => {
-        UpdateElementUtil.mutateReverseStep(direction, selected);
-    });
+    if (revertStep) {
+        selectedElements.forEach(selected => {
+            UpdateElementUtil.mutateReverseStep(direction, selected);
+        });
+    }
 
     const sourceElement = ElementPositionUtil.getClosestElement(direction, selectedElements);
     if (!sourceElement) return;
@@ -138,7 +136,6 @@ const handleMetaArrowDown = (
 };
 
 const handleMetaArrowUp = (
-    event: KeyboardEvent,
     metaArrowResult: MetaArrowResult,
     excalidrawApi: ExcalidrawImperativeAPI
 ) => {
