@@ -163,12 +163,22 @@ const createElementExtensionFromShadow = (
         helpers.addArrowBindings(element, { endId: newElement.id, startId: selected.id });
         element.opacity = 100;
         element.strokeStyle = "solid";
+
+        if (element.customData) {
+            element.customData.shadow = undefined;
+        }
+
         return element;
     });
 
     const updatedNewElement = UpdateElementUtil.updateElement(newElement, element => {
         element.opacity = 100;
         element.strokeStyle = "solid";
+
+        if (element.customData) {
+            element.customData.shadow = undefined;
+        }
+
         return element;
     });
 
