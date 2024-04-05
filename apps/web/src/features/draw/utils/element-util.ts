@@ -1,5 +1,5 @@
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
-import { MetaArrowResult } from "@/features/draw/utils/keyboard-util";
+import { ElementExtensionShadow } from "@/features/draw/utils/keyboard-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { isDefined, produce, randomString } from "@banjoanton/utils";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
@@ -107,7 +107,10 @@ const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElem
 /**
  * Remove active elements, created to show temporary arrow extensions
  */
-const removeActiveElements = (elements: ExcalidrawElements, activeElements: MetaArrowResult) => {
+const removeActiveElements = (
+    elements: ExcalidrawElements,
+    activeElements: ElementExtensionShadow
+) => {
     return ElementUtil.removeElements(elements, [activeElements.arrowId, activeElements.elementId]);
 };
 

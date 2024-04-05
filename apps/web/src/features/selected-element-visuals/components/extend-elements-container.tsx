@@ -1,7 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { KeyboardUtil, MetaArrowResult } from "@/features/draw/utils/keyboard-util";
+import { ElementExtensionShadow, ElementVisualUtils } from "@/features/draw/utils/keyboard-util";
 import { ExtendElementButton } from "@/features/selected-element-visuals/components/extend-element-button";
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { Maybe } from "@banjoanton/utils";
@@ -27,47 +27,47 @@ const iconMap: Record<ArrowKey, LucideIcon> = {
 
 export const ExtendElementsContainer = ({ refs }: Props) => {
     const { excalidrawApi } = useGlobal();
-    const [activeElements, setActiveElements] = useState<Maybe<MetaArrowResult>>(undefined);
+    const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
 
     const onMouseLeave = () => {
         if (!excalidrawApi) return;
 
         let elements = excalidrawApi.getSceneElements();
-        if (activeElements) {
-            elements = ElementUtil.removeActiveElements(elements, activeElements);
+        if (shadowElements) {
+            elements = ElementUtil.removeActiveElements(elements, shadowElements);
         }
 
         excalidrawApi.updateScene({
             elements,
         });
-        setActiveElements(undefined);
+        setShadowElements(undefined);
     };
 
     const getOnMouseEnter = (position: ArrowKey) => () => {
         if (!excalidrawApi) return;
-        const newActiveElements = KeyboardUtil.handleMetaArrowDown(
+        const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
             position,
             excalidrawApi,
-            activeElements,
+            shadowElements,
             false
         );
         if (newActiveElements) {
-            setActiveElements(newActiveElements);
+            setShadowElements(newActiveElements);
         }
     };
 
     const getOnClick = (position: ArrowKey) => () => {
         if (!excalidrawApi) return;
 
-        const newActiveElements = KeyboardUtil.handleMetaArrowDown(
+        const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
             position,
             excalidrawApi,
-            activeElements,
+            shadowElements,
             false
         );
 
         if (!newActiveElements) return;
-        KeyboardUtil.handleMetaArrowUp(newActiveElements, excalidrawApi);
+        ElementVisualUtils.createElementExtensionFromShadow(newActiveElements, excalidrawApi);
     };
 
     return (

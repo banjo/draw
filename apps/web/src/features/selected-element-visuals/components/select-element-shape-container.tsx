@@ -1,7 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { KeyboardUtil } from "@/features/draw/utils/keyboard-util";
+import { ElementVisualUtils } from "@/features/draw/utils/keyboard-util";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
 import { Callback, first } from "@banjoanton/utils";
 import { Circle, Diamond, LucideIcon, RectangleHorizontalIcon } from "lucide-react";
@@ -38,7 +38,7 @@ export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props)
 
     const handleSelectElement = (type: ElementType) => {
         if (!excalidrawApi) return;
-        KeyboardUtil.handleSelectSingleElement(excalidrawApi, type);
+        ElementVisualUtils.updateElementFromTypeSelection(excalidrawApi, type);
     };
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {

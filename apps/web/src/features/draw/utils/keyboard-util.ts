@@ -11,7 +11,7 @@ import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
-const handleMetaEnter = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperativeAPI) => {
+const smartCopy = (excalidrawApi: ExcalidrawImperativeAPI) => {
     const elements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
@@ -38,14 +38,14 @@ const handleMetaEnter = (event: KeyboardEvent, excalidrawApi: ExcalidrawImperati
     });
 };
 
-export type MetaArrowResult = { arrowId: string; elementId: string; selectedId: string };
+export type ElementExtensionShadow = { arrowId: string; elementId: string; selectedId: string };
 
-const handleMetaArrowDown = (
+const createElementExtensionShadow = (
     direction: ArrowKey,
     excalidrawApi: ExcalidrawImperativeAPI,
-    activeElements: Maybe<MetaArrowResult>,
+    activeElements: Maybe<ElementExtensionShadow>,
     revertStep = true
-): Maybe<MetaArrowResult> => {
+): Maybe<ElementExtensionShadow> => {
     const sceneElements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
@@ -135,14 +135,14 @@ const handleMetaArrowDown = (
     };
 };
 
-const handleMetaArrowUp = (
-    metaArrowResult: MetaArrowResult,
+const createElementExtensionFromShadow = (
+    shadow: ElementExtensionShadow,
     excalidrawApi: ExcalidrawImperativeAPI
 ) => {
     const elements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
-    const { arrowId, elementId, selectedId } = metaArrowResult;
+    const { arrowId, elementId, selectedId } = shadow;
     const elementsToModify = ElementUtil.getElementsByIds(elements, [
         arrowId,
         elementId,
@@ -181,7 +181,10 @@ const handleMetaArrowUp = (
     });
 };
 
-const handleSelectSingleElement = (excalidrawApi: ExcalidrawImperativeAPI, type: ElementType) => {
+const updateElementFromTypeSelection = (
+    excalidrawApi: ExcalidrawImperativeAPI,
+    type: ElementType
+) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
 
@@ -198,7 +201,6 @@ const handleSelectSingleElement = (excalidrawApi: ExcalidrawImperativeAPI, type:
     const updatedElements = ElementUtil.removeElements(elements, [element.id]);
     const { updatedState } = ElementUtil.createNewElementSelection([newElement], state);
 
-    // need to update in next tick to avoid selection issues
     excalidrawApi.updateScene({
         elements: [...updatedElements, newElement],
         commitToHistory: true,
@@ -206,9 +208,9 @@ const handleSelectSingleElement = (excalidrawApi: ExcalidrawImperativeAPI, type:
     });
 };
 
-export const KeyboardUtil = {
-    handleMetaEnter,
-    handleMetaArrowDown,
-    handleMetaArrowUp,
-    handleSelectSingleElement,
+export const ElementVisualUtils = {
+    smartCopy,
+    createElementExtensionShadow,
+    createElementExtensionFromShadow,
+    updateElementFromTypeSelection,
 };
