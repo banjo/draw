@@ -74,6 +74,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         <>
             {refs.map(({ position, ref }) => (
                 <ExtendElementButton
+                    key={position}
                     customRef={ref}
                     Icon={iconMap[position]}
                     onMouseLeave={onMouseLeave}
