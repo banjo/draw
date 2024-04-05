@@ -1,7 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { ElementVisualUtils } from "@/features/draw/utils/keyboard-util";
+import { ElementVisualUtils } from "@/features/draw/utils/element-visual-utils";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
 import { Callback, first } from "@banjoanton/utils";
 import { Circle, Diamond, LucideIcon, RectangleHorizontalIcon } from "lucide-react";

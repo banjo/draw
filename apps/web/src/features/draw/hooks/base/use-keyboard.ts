@@ -1,6 +1,9 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { ElementExtensionShadow, ElementVisualUtils } from "@/features/draw/utils/keyboard-util";
+import {
+    ElementExtensionShadow,
+    ElementVisualUtils,
+} from "@/features/draw/utils/element-visual-utils";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
 import { Callback, Maybe, includes } from "@banjoanton/utils";
 import { KeyboardEventHandler, useState } from "react";

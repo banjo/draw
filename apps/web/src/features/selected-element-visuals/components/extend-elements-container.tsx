@@ -1,7 +1,10 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { ElementExtensionShadow, ElementVisualUtils } from "@/features/draw/utils/keyboard-util";
+import {
+    ElementExtensionShadow,
+    ElementVisualUtils,
+} from "@/features/draw/utils/element-visual-utils";
 import { ExtendElementButton } from "@/features/selected-element-visuals/components/extend-element-button";
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { Maybe } from "@banjoanton/utils";
