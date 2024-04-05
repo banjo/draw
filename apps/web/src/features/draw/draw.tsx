@@ -3,6 +3,7 @@ import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
 import { useHistory } from "@/features/draw/hooks/base/use-history";
 import { useImages } from "@/features/draw/hooks/base/use-images";
+import { useInit } from "@/features/draw/hooks/base/use-init";
 import { useKeyboard } from "@/features/draw/hooks/base/use-keyboard";
 import { useLibrary } from "@/features/draw/hooks/base/use-library";
 import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
@@ -25,6 +26,8 @@ export type OnChangeCallback = Maybe<
 export const Draw = ({ slug }: DrawProps) => {
     const { elements, setElements } = useElementsState({ slug });
     const { setExcalidrawApi, excalidrawApi } = useGlobal();
+
+    useInit();
 
     const { onLibraryChange, library } = useLibrary();
     const { onPointerUpdate, renderCollabButton, isCollaborating, onDrawingChange } =

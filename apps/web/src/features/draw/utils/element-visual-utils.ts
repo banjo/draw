@@ -43,15 +43,15 @@ export type ElementExtensionShadow = { arrowId: string; elementId: string; selec
 const createElementExtensionShadow = (
     direction: ArrowKey,
     excalidrawApi: ExcalidrawImperativeAPI,
-    activeElements: Maybe<ElementExtensionShadow>,
+    shadowElements: Maybe<ElementExtensionShadow>,
     revertStep = true
 ): Maybe<ElementExtensionShadow> => {
     const sceneElements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
     let elements = sceneElements;
-    if (activeElements) {
-        elements = ElementUtil.removeActiveElements(sceneElements, activeElements);
+    if (shadowElements) {
+        elements = ElementUtil.removeShadowElementsById(sceneElements, shadowElements);
     }
 
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
@@ -99,6 +99,9 @@ const createElementExtensionShadow = (
         },
         props: {
             strokeStyle: "dashed",
+            customData: {
+                shadow: true,
+            },
         },
         callback: (draft, helpers) => {
             helpers.defaultSettings(draft);
@@ -120,6 +123,7 @@ const createElementExtensionShadow = (
             draft.id = arrowId;
             draft.opacity = 50;
             draft.strokeStyle = "dashed";
+            draft.customData = { shadow: true };
             return draft;
         }
     );

@@ -37,7 +37,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
 
         let elements = excalidrawApi.getSceneElements();
         if (shadowElements) {
-            elements = ElementUtil.removeActiveElements(elements, shadowElements);
+            elements = ElementUtil.removeShadowElementsById(elements, shadowElements);
         }
 
         excalidrawApi.updateScene({

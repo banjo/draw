@@ -107,11 +107,15 @@ const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElem
 /**
  * Remove active elements, created to show temporary arrow extensions
  */
-const removeActiveElements = (
+const removeShadowElementsById = (
     elements: ExcalidrawElements,
-    activeElements: ElementExtensionShadow
+    shadowElements: ElementExtensionShadow
 ) => {
-    return ElementUtil.removeElements(elements, [activeElements.arrowId, activeElements.elementId]);
+    return ElementUtil.removeElements(elements, [shadowElements.arrowId, shadowElements.elementId]);
+};
+
+const removeShadowElementsByType = (elements: ExcalidrawElements) => {
+    return elements.filter(e => e.customData?.shadow !== true);
 };
 
 export const ElementUtil = {
@@ -127,5 +131,6 @@ export const ElementUtil = {
     getElementsByIds,
     mergeElements,
     removeElements,
-    removeActiveElements,
+    removeShadowElementsById,
+    removeShadowElementsByType,
 };
