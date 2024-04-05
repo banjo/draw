@@ -1,19 +1,19 @@
+import { useGlobal } from "@/contexts/global-context";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { KeyboardUtil, MetaArrowResult } from "@/features/draw/utils/keyboard-util";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
 import { Callback, Maybe, includes } from "@banjoanton/utils";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { KeyboardEventHandler, useState } from "react";
 
 type In = {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
     handleChangeElementDialogClick: Callback;
 };
 
 export const ARROW_KEYS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"] as const;
 export type ArrowKey = (typeof ARROW_KEYS)[number];
 
-export const useKeyboard = ({ excalidrawApi, handleChangeElementDialogClick }: In) => {
+export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
+    const { excalidrawApi } = useGlobal();
     const [activeElements, setActiveElements] = useState<Maybe<MetaArrowResult>>(undefined);
     const setShowChangeElementDialog = useChangeElementStore(
         state => state.setShowChangeElementDialog

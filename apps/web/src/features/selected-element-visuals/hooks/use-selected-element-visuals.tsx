@@ -1,3 +1,4 @@
+import { useGlobal } from "@/contexts/global-context";
 import { OnChangeCallback } from "@/features/draw/draw";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -6,14 +7,10 @@ import { SelectElementDialog } from "@/features/selected-element-visuals/compone
 import { useChangeElementDialog } from "@/features/selected-element-visuals/hooks/use-change-element-dialog";
 import { useSelectElementDialog } from "@/features/selected-element-visuals/hooks/use-select-element-dialog";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
-import { Maybe, first } from "@banjoanton/utils";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { first } from "@banjoanton/utils";
 
-type In = {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
-};
-
-export const useSelectedElementVisuals = ({ excalidrawApi }: In) => {
+export const useSelectedElementVisuals = () => {
+    const { excalidrawApi } = useGlobal();
     const {
         changeElementRef,
         setShowChangeElementDialog,

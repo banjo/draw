@@ -1,11 +1,11 @@
 import { useAuth } from "@/contexts/auth-context";
+import { useGlobal } from "@/contexts/global-context";
 import { SaveDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
@@ -13,13 +13,13 @@ import { useNavigate } from "react-router-dom";
 import { Icons, ResponsiveIcon } from "ui";
 
 type In = {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
     slug: Maybe<string>;
     saveDrawing: SaveDrawing;
     toggleSidebar: () => void;
 };
 
-export const useMenu = ({ excalidrawApi, slug, saveDrawing, toggleSidebar }: In) => {
+export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
+    const { excalidrawApi } = useGlobal();
     const navigate = useNavigate();
     const { signInWithGoogle, user, signOut } = useAuth();
     const { handleError } = useError();

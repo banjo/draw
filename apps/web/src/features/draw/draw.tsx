@@ -1,3 +1,4 @@
+import { useGlobal } from "@/contexts/global-context";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
 import { useHistory } from "@/features/draw/hooks/base/use-history";
@@ -12,7 +13,6 @@ import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState, BinaryFiles, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
-import { useState } from "react";
 
 type DrawProps = {
     slug?: string;
@@ -24,13 +24,12 @@ export type OnChangeCallback = Maybe<
 
 export const Draw = ({ slug }: DrawProps) => {
     const { elements, setElements } = useElementsState({ slug });
-    const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawImperativeAPI>>(undefined);
+    const { setExcalidrawApi, excalidrawApi } = useGlobal();
 
     const { onLibraryChange, library } = useLibrary();
     const { onPointerUpdate, renderCollabButton, isCollaborating, onDrawingChange } =
         useCollaboration({
             slug,
-            excalidrawApi,
             elements,
             setElements,
         });
@@ -40,29 +39,25 @@ export const Draw = ({ slug }: DrawProps) => {
     });
 
     const { renderSidebar, renderSidebarButton, toggleSidebar } = useSidebar({
-        excalidrawApi,
         slug,
     });
+
     const { renderMenu } = useMenu({
         slug,
-        excalidrawApi,
         saveDrawing,
         toggleSidebar,
     });
 
-    useImages({ elements, excalidrawApi });
-    useHistory({ slug, excalidrawApi });
+    useImages({ elements });
+    useHistory({ slug });
 
     const {
         handleSelectedElementVisuals,
         render: renderSelectedElementVisuals,
         handleChangeElementDialogClick,
-    } = useSelectedElementVisuals({
-        excalidrawApi,
-    });
+    } = useSelectedElementVisuals();
 
     const { handleKeyDown, handleKeyUp } = useKeyboard({
-        excalidrawApi,
         handleChangeElementDialogClick,
     });
 

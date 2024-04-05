@@ -1,17 +1,18 @@
+import { useGlobal } from "@/contexts/global-context";
 import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { Maybe, wrapAsync } from "@banjoanton/utils";
+import { wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
-import { BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
 import { useEffect, useState } from "react";
 
 type In = {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
     elements: ExcalidrawElements;
 };
 
-export const useImages = ({ excalidrawApi, elements }: In) => {
+export const useImages = ({ elements }: In) => {
+    const { excalidrawApi } = useGlobal();
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
     const { handleError } = useError();
     const utils = trpc.useContext();
