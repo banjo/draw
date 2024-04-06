@@ -5,6 +5,7 @@ export * from "./model/board-delta-update";
 export * from "./model/board-update-response";
 export * from "./model/cause";
 export * from "./model/collaborator";
+export * from "./model/element-position";
 export * from "./model/excalidraw-api";
 export * from "./model/excalidraw-element";
 export * from "./model/excalidraw-element-data";

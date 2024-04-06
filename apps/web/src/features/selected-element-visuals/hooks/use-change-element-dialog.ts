@@ -1,8 +1,8 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ExcalidrawElement } from "@/features/draw/models/element";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { useChangeElementTimer } from "@/features/selected-element-visuals/hooks/use-change-element-timer";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
+import { ExcalidrawElement } from "common";
 import { useRef } from "react";
 
 export const useChangeElementDialog = () => {
@@ -21,7 +21,7 @@ export const useChangeElementDialog = () => {
         if (!excalidrawApi) return;
 
         const appState = excalidrawApi.getAppState();
-        const { width, height } = ElementPositionUtil.getPositionFromElement(selectedElement);
+        const { width } = ElementPositionUtil.getPositionFromElement(selectedElement);
         const { x, y } = ElementPositionUtil.getElementWindowPosition(selectedElement, appState);
 
         // make sure the element is centered as well and count for zoom

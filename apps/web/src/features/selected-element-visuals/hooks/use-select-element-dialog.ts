@@ -1,6 +1,6 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ExcalidrawElement } from "@/features/draw/models/element";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
+import { ExcalidrawElement } from "common";
 import { useEffect, useRef, useState } from "react";
 
 export const useSelectElementDialog = () => {

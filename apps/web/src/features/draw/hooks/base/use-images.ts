@@ -2,9 +2,8 @@ import { useGlobal } from "@/contexts/global-context";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { wrapAsync } from "@banjoanton/utils";
-import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawElements } from "common";
+import { ExcalidrawElements, isImageElement } from "common";
 import { useEffect, useState } from "react";
 
 type In = {
@@ -46,9 +45,10 @@ export const useImages = ({ elements }: In) => {
     useEffect(() => {
         if (!elements || !excalidrawApi) return;
 
-        const images = elements.filter(
-            element => element.type === "image" && !element.isDeleted && element.fileId
-        ) as ExcalidrawImageElement[];
+        const images = elements
+            .filter(isImageElement)
+            .filter(element => element.fileId && !element.isDeleted);
+
         if (images.length === 0) return;
 
         const currentImages = excalidrawApi.getFiles();
@@ -68,12 +68,10 @@ export const useImages = ({ elements }: In) => {
         const images = Object.values(files).filter(file => file.mimeType.startsWith("image/"));
         const imagesReferencedOnCanvas = images.filter(
             image =>
-                elements?.some(
-                    element =>
-                        element.type === "image" &&
-                        element.fileId === image.id &&
-                        element.isDeleted !== true
-                )
+                elements?.some(element => {
+                    if (!isImageElement(element)) return false;
+                    return element.fileId === image.id && element.isDeleted !== true;
+                })
         );
 
         const notUploadedImages = imagesReferencedOnCanvas.filter(

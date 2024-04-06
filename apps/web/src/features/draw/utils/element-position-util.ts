@@ -3,7 +3,6 @@ import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
 
 import { IPoint, Point } from "@/features/draw/models/point";
 import { Maybe } from "@banjoanton/utils";
-import { getCommonBounds } from "@excalidraw/excalidraw";
 import { Bounds } from "@excalidraw/excalidraw/types/element/bounds";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import {
@@ -11,6 +10,7 @@ import {
     ElementMeasurement,
     ExcalidrawElement,
     ExcalidrawElements,
+    getCommonBounds,
 } from "common";
 
 const getPositionFromBounds = (bounds: Bounds) => {
