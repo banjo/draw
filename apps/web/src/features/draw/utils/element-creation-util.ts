@@ -6,7 +6,7 @@ import { IPoint } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
-import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
+import { CustomData, ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
     convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
@@ -43,15 +43,15 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
 };
 
 export type ElementType = "rectangle" | "ellipse" | "diamond";
+type ElementTypeAttribute = { type: ElementType };
 type ElementBase = {
     x: number;
     y: number;
     width: number;
     height: number;
-    type: ElementType;
 };
 type CreateElementProps = {
-    base: ElementBase;
+    base: ElementBase & ElementTypeAttribute;
     props?: Partial<ExcalidrawElementSkeleton>;
     callback?: UpdateCallback<ExcalidrawElement>;
 };
@@ -89,10 +89,33 @@ const createElementFromElement = ({ element, newValues, type }: CreateElementFro
     return createElementFromSkeleton(newElement);
 };
 
+type CreateCodeBlockElementProps = {
+    base: ElementBase;
+    props?: Partial<ExcalidrawElementSkeleton>;
+    callback?: UpdateCallback<ExcalidrawElement>;
+    code: string;
+};
+const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElementProps) => {
+    const customData = CustomData.createCodeblock({ code, shadow: false });
+
+    return createElement({
+        base: {
+            ...base,
+            type: "rectangle",
+        },
+        props: {
+            ...props,
+            customData,
+        },
+        callback,
+    });
+};
+
 export const ElementCreationUtil = {
     createArrow,
     createElement,
     createElementFromSkeleton,
     createElementsFromSkeleton,
     createElementFromElement,
+    createCodeBlock,
 };

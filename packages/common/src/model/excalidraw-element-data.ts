@@ -52,9 +52,4 @@ export const CustomData = {
             type: "default",
         };
     },
-    isDefault: (data?: CustomData): data is CustomDataDefault => data?.type === "default",
-    isCodeblock: (data?: CustomData): data is CustomDataCodeblock => data?.type === "codeblock",
-    isShadow: (data?: CustomData): boolean => data?.shadow === true,
-    isNotShadow: (data?: CustomData): boolean => !data?.shadow,
-    isType: (type: CustomElementType, data?: CustomData): boolean => data?.type === type,
 };
