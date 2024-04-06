@@ -1,23 +1,25 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ElementVisualUtils } from "@/features/draw/utils/element-visual-utils";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
 import { Callback, first } from "@banjoanton/utils";
-import { Circle, Diamond, LucideIcon, RectangleHorizontalIcon } from "lucide-react";
+import { CustomElementType } from "common";
+import { Circle, Code, Diamond, LucideIcon, RectangleHorizontalIcon } from "lucide-react";
 import { KeyboardEventHandler, useState } from "react";
 
 type Props = {
     closeSelectElementDialog: Callback;
 };
 
+const shapes: { type: CustomElementType; icon: LucideIcon }[] = [
+    { type: "rectangle", icon: RectangleHorizontalIcon },
+    { type: "ellipse", icon: Circle },
+    { type: "diamond", icon: Diamond },
+    { type: "codeblock", icon: Code },
+];
+
 export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props) => {
     const { excalidrawApi } = useGlobal();
-    const shapes: { type: ElementType; icon: LucideIcon }[] = [
-        { type: "rectangle", icon: RectangleHorizontalIcon },
-        { type: "ellipse", icon: Circle },
-        { type: "diamond", icon: Diamond },
-    ];
 
     const [selectedIndex, setSelectedIndex] = useState(() => {
         if (!excalidrawApi) return 0;
@@ -30,13 +32,13 @@ export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props)
         const selected = first(selectedElements);
         if (!selected) return 0;
 
-        const index = shapes.findIndex(({ type }) => type === selected.type);
+        const index = shapes.findIndex(({ type }) => type === selected.customData?.type);
         if (index === -1) return 0;
 
         return index;
     });
 
-    const handleSelectElement = (type: ElementType) => {
+    const handleSelectElement = (type: CustomElementType) => {
         if (!excalidrawApi) return;
         ElementVisualUtils.updateElementFromTypeSelection(excalidrawApi, type);
     };

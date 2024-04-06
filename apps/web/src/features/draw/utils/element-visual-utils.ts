@@ -1,12 +1,12 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
-import { ElementCreationUtil, ElementType } from "@/features/draw/utils/element-creation-util";
+import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Maybe, clone, first } from "@banjoanton/utils";
-import { CustomData, ElementMeasurement, ExcalidrawApi } from "common";
+import { CustomData, CustomElementType, ElementMeasurement, ExcalidrawApi } from "common";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
@@ -122,7 +122,7 @@ const createElementExtensionShadow = (
             draft.id = arrowId;
             draft.opacity = 50;
             draft.strokeStyle = "dashed";
-            draft.customData = CustomData.createDefault({ shadow: true });
+            draft.customData = CustomData.createDefault({ shadow: true, type: "arrow" });
             return draft;
         }
     );
@@ -198,7 +198,7 @@ const createElementExtensionFromShadow = (
     });
 };
 
-const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: ElementType) => {
+const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: CustomElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
 

@@ -6,7 +6,7 @@ import { IPoint } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
-import { CustomData, ExcalidrawElement, ExcalidrawLinearElement } from "common";
+import { CustomData, CustomElementType, ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
     convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
@@ -27,6 +27,7 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
         x: props.x,
         y: props.y,
         points: props.points,
+        customData: CustomData.createDefault({ shadow: false, type: "arrow" }),
     };
 
     const createdElement = createElementFromSkeleton(arrow);
@@ -62,6 +63,7 @@ const createElement = ({ base, props, callback }: CreateElementProps) => {
         x: base.x,
         y: base.y,
         type: base.type as any, // just type mismatch
+        customData: CustomData.createDefault({ shadow: false, type: base.type }),
         ...props,
     };
 
@@ -75,15 +77,16 @@ const createElement = ({ base, props, callback }: CreateElementProps) => {
 };
 
 type CreateElementFromElementProps = {
-    type: ElementType;
+    type: CustomElementType;
     element: ExcalidrawElement;
     newValues?: Partial<ExcalidrawElement>;
 };
 const createElementFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
-    const newElement = {
+    const newElement: ExcalidrawElementSkeleton = {
         ...element,
         ...newValues,
-        type,
+        customData: CustomData.updateDefault(element.customData, { type }),
+        type: ExcalidrawUtil.getElementTypeFromCustomType(type),
     };
 
     return createElementFromSkeleton(newElement);
@@ -91,9 +94,9 @@ const createElementFromElement = ({ element, newValues, type }: CreateElementFro
 
 type CreateCodeBlockElementProps = {
     base: ElementBase;
+    code: string;
     props?: Partial<ExcalidrawElementSkeleton>;
     callback?: UpdateCallback<ExcalidrawElement>;
-    code: string;
 };
 const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElementProps) => {
     const customData = CustomData.createCodeblock({ code, shadow: false });

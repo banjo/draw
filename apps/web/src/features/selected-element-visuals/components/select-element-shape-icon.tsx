@@ -1,4 +1,4 @@
-import { ElementType } from "@/features/draw/utils/element-creation-util";
+import { CustomElementType } from "common";
 import { LucideIcon } from "lucide-react";
 import { cn } from "ui";
 
@@ -9,8 +9,8 @@ export const SelectElementShapeIcon = ({
     isSelected,
 }: {
     Icon: LucideIcon;
-    handleClick: (type: ElementType) => void;
-    type: ElementType;
+    handleClick: (type: CustomElementType) => void;
+    type: CustomElementType;
     isSelected?: boolean;
 }) => {
     const handleButtonClick = () => {
