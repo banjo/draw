@@ -82,6 +82,18 @@ type CreateElementFromElementProps = {
     newValues?: Partial<ExcalidrawElement>;
 };
 const createElementFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
+    if (type === "codeblock") {
+        return createCodeBlock({
+            base: {
+                x: element.x,
+                y: element.y,
+                width: element.width,
+                height: element.height,
+            },
+            code: "",
+        });
+    }
+
     const newElement: ExcalidrawElementSkeleton = {
         ...element,
         ...newValues,
@@ -101,6 +113,7 @@ type CreateCodeBlockElementProps = {
 const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElementProps) => {
     const customData = CustomData.createCodeblock({ code, shadow: false });
 
+    // TODO: remove border and set background to a color to allow selection
     return createElement({
         base: {
             ...base,
@@ -108,6 +121,12 @@ const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElement
         },
         props: {
             ...props,
+            backgroundColor: "#ffc9c9",
+            fillStyle: "solid",
+            strokeWidth: 1,
+            roughness: 0,
+            roundness: null,
+            strokeColor: "transparent",
             customData,
         },
         callback,

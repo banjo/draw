@@ -13,9 +13,9 @@ type BaseCustomData = {
     type: CustomElementType;
 };
 
-type CustomDataDefault = BaseCustomData;
+export type CustomDataDefault = BaseCustomData;
 
-type CustomDataCodeblock = BaseCustomData & {
+export type CustomDataCodeblock = BaseCustomData & {
     type: "codeblock";
     code: string;
 };

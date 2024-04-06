@@ -5,6 +5,7 @@ import {
     ElementExtensionShadow,
     ElementVisualUtils,
 } from "@/features/draw/utils/element-visual-utils";
+import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { ExtendElementButton } from "@/features/selected-element-visuals/components/extend-element-button";
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { Maybe } from "@banjoanton/utils";
@@ -36,6 +37,15 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         if (!excalidrawApi) return;
 
         let elements = excalidrawApi.getSceneElements();
+        const appState = excalidrawApi.getAppState();
+        const selected = ElementUtil.getSelectedElements(appState, elements);
+
+        if (selected.length === 1 && shadowElements) {
+            UpdateElementUtil.mutateElements(selected, (element, helpers) => {
+                helpers.removeBoundElements(element, [shadowElements.arrowId]);
+            });
+        }
+
         if (shadowElements) {
             elements = ElementUtil.removeShadowElementsById(elements, shadowElements);
         }

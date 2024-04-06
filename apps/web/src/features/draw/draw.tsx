@@ -9,6 +9,7 @@ import { useLibrary } from "@/features/draw/hooks/base/use-library";
 import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
 import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
+import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
@@ -60,18 +61,23 @@ export const Draw = ({ slug }: DrawProps) => {
         handleChangeElementDialogClick,
     } = useSelectedElementVisuals();
 
+    const { render: renderCodeBlocks, updateCodeBlockElements } = useCodeBlockElement();
+
     const { handleKeyDown, handleKeyUp } = useKeyboard({
         handleChangeElementDialogClick,
     });
 
-    const handleOnChange: OnChangeCallback = (elements, appState, files) => {
+    const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
         if (!excalidrawApi) return;
+        const elements = excalidrawApi.getSceneElements(); // get elements from excalidraw api, changeElements is buggy
         onDrawingChange(elements, appState);
+        updateCodeBlockElements(elements, appState, files);
         handleSelectedElementVisuals(elements, appState, files);
     };
 
     return (
         <div style={{ height: "100dvh" }} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
+            {renderCodeBlocks()}
             {renderSelectedElementVisuals()}
             <Excalidraw
                 excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}

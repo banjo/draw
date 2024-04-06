@@ -63,6 +63,14 @@ const createElementExtensionShadow = (
         });
     }
 
+    if (shadowElements) {
+        selectedElements.forEach(selected => {
+            UpdateElementUtil.mutateElement(selected, (draft, helpers) => {
+                helpers.removeBoundElements(draft, [shadowElements.arrowId]);
+            });
+        });
+    }
+
     const sourceElement = ElementPositionUtil.getClosestElement(direction, selectedElements);
     if (!sourceElement) return;
 
@@ -138,6 +146,7 @@ const createElementExtensionShadow = (
     };
 };
 
+// TODO: remove bound elements when arrow is no longer visible
 const createElementExtensionFromShadow = (
     shadow: ElementExtensionShadow,
     excalidrawApi: ExcalidrawApi

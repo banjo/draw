@@ -117,6 +117,10 @@ const removeShadowElementsByType = (elements: ExcalidrawElements) => {
     return elements.filter(e => e.customData?.shadow !== true);
 };
 
+const getShadowElements = (elements: ExcalidrawElements) => {
+    return elements.filter(e => e.customData?.shadow === true);
+};
+
 export const ElementUtil = {
     removeDeletedElements,
     resetElement,
@@ -132,4 +136,5 @@ export const ElementUtil = {
     removeElements,
     removeShadowElementsById,
     removeShadowElementsByType,
+    getShadowElements,
 };

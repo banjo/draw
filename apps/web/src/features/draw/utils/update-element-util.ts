@@ -22,6 +22,13 @@ const addBoundElements = (element: Mutable<ExcalidrawElement>, boundElements: Bo
     }
 };
 
+const removeBoundElements = (element: Mutable<ExcalidrawElement>, ids: string[]) => {
+    if (!element.boundElements) return;
+    element.boundElements = element.boundElements.filter(
+        boundElement => !ids.includes(boundElement.id)
+    );
+};
+
 const defaultSettings = (element: Mutable<ExcalidrawElement>) => {
     element.roughness = 1;
     element.strokeWidth = 2;
@@ -58,6 +65,7 @@ const helpers = {
     addBoundElements,
     defaultSettings,
     addArrowBindings,
+    removeBoundElements,
 };
 
 type UpdateHelpers = typeof helpers;
