@@ -1,13 +1,17 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
-import { ElementBasicPosition, ElementMeasurement } from "@/features/draw/models/element";
+
 import { IPoint, Point } from "@/features/draw/models/point";
 import { Maybe } from "@banjoanton/utils";
 import { getCommonBounds } from "@excalidraw/excalidraw";
 import { Bounds } from "@excalidraw/excalidraw/types/element/bounds";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState } from "@excalidraw/excalidraw/types/types";
+import {
+    ElementBasicPosition,
+    ElementMeasurement,
+    ExcalidrawElement,
+    ExcalidrawElements,
+} from "common";
 
 const getPositionFromBounds = (bounds: Bounds) => {
     const [startX, startY, endX, endY] = bounds;

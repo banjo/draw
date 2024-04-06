@@ -1,7 +1,7 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { isEqual } from "@banjoanton/utils";
-import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { AppState } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawApi, ExcalidrawElements } from "common";
 
 type ApplyLocalDrawingChangesProps = {
     newElements: ExcalidrawElements;
@@ -46,7 +46,7 @@ const getChangesWithLockedElements = ({
 type IsOnlyMouseChangeProps = {
     elements: ExcalidrawElements;
     appState: AppState;
-    excalidrawApi: ExcalidrawImperativeAPI;
+    excalidrawApi: ExcalidrawApi;
 };
 
 // TODO: is this correct?

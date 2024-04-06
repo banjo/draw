@@ -2,7 +2,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { getExtendElementHandler } from "@/features/selected-element-visuals/models/extend-element-map";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
+import { ExcalidrawElement } from "common";
 import { useRef, useState } from "react";
 
 export type ExtendElementRefSummary = { ref: React.RefObject<HTMLDivElement>; position: ArrowKey };

@@ -1,5 +1,5 @@
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { z } from "zod";
+import { ExcalidrawElement } from "./excalidraw-element";
 
 export const ExcalidrawSimpleElementSchema = z
     .object({

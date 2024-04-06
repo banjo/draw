@@ -1,10 +1,10 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawImageElement } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawElements } from "common";
 import { useEffect, useState } from "react";
 
 type In = {

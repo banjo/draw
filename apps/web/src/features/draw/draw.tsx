@@ -12,15 +12,15 @@ import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { AppState, BinaryFiles, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawApi, ExcalidrawElements } from "common";
 
 type DrawProps = {
     slug?: string;
 };
 
 export type OnChangeCallback = Maybe<
-    (elements: readonly ExcalidrawElement[], appState: AppState, files: BinaryFiles) => void
+    (elements: ExcalidrawElements, appState: AppState, files: BinaryFiles) => void
 >;
 
 export const Draw = ({ slug }: DrawProps) => {
@@ -74,13 +74,15 @@ export const Draw = ({ slug }: DrawProps) => {
         <div style={{ height: "100dvh" }} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
             {renderSelectedElementVisuals()}
             <Excalidraw
-                excalidrawAPI={(api: ExcalidrawImperativeAPI) => setExcalidrawApi(api)}
+                excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}
+                // @ts-ignore - better local typings
                 onChange={handleOnChange}
                 onLibraryChange={onLibraryChange}
                 isCollaborating={isCollaborating}
                 onPointerUpdate={onPointerUpdate}
                 handleKeyboardGlobally={false}
                 autoFocus={true}
+                // @ts-ignore - better local typings
                 initialData={{ elements, scrollToContent: true, libraryItems: library }}
                 UIOptions={{
                     dockedSidebarBreakpoint: 0,

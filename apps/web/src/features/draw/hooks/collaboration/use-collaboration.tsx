@@ -1,10 +1,10 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useBoardCollaboration } from "@/features/draw/hooks/collaboration/use-board-collaboration";
 import { usePointerCollaboration } from "@/features/draw/hooks/collaboration/use-pointer-collaboration";
 import { noop, uuid } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import { ExcalidrawElements } from "common";
 import { useCallback } from "react";
 
 type In = {

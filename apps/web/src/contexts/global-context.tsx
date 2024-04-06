@@ -1,10 +1,10 @@
 import { Maybe, noop } from "@banjoanton/utils";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawApi } from "common";
 import { PropsWithChildren, createContext, useContext, useState } from "react";
 
 export interface GlobalContextInterface {
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
-    setExcalidrawApi: React.Dispatch<React.SetStateAction<Maybe<ExcalidrawImperativeAPI>>>;
+    excalidrawApi: Maybe<ExcalidrawApi>;
+    setExcalidrawApi: React.Dispatch<React.SetStateAction<Maybe<ExcalidrawApi>>>;
 }
 
 const emptyGlobalContext: GlobalContextInterface = {
@@ -16,7 +16,7 @@ const GlobalContext = createContext<GlobalContextInterface>(emptyGlobalContext);
 const useGlobal = () => useContext(GlobalContext);
 
 const GlobalContextProvider = ({ children }: PropsWithChildren) => {
-    const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawImperativeAPI>>(undefined);
+    const [excalidrawApi, setExcalidrawApi] = useState<Maybe<ExcalidrawApi>>(undefined);
 
     const context: GlobalContextInterface = {
         excalidrawApi,

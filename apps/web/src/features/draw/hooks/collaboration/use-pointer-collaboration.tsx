@@ -1,19 +1,15 @@
 import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined } from "@banjoanton/utils";
-import {
-    Collaborator,
-    CollaboratorPointer,
-    ExcalidrawImperativeAPI,
-    Gesture,
-} from "@excalidraw/excalidraw/types/types";
+import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
 import { useDebounce } from "@uidotdev/usehooks";
+import { ExcalidrawApi } from "common";
 import { useEffect, useMemo, useState } from "react";
 import generateName from "sillyname";
 
 type In = {
     slug?: string;
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
+    excalidrawApi: Maybe<ExcalidrawApi>;
     localId: string;
 };
 

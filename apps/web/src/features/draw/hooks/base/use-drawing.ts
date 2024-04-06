@@ -1,8 +1,8 @@
 import { useAuth } from "@/contexts/auth-context";
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { Maybe, debounce, wrapAsync } from "@banjoanton/utils";
+import { ExcalidrawElement, ExcalidrawElements } from "common";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 

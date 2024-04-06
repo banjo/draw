@@ -1,4 +1,3 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-mutation";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -6,13 +5,14 @@ import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { Maybe, isDefined } from "@banjoanton/utils";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
-import { AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { AppState } from "@excalidraw/excalidraw/types/types";
 import {
     Board,
     BoardDeltaUpdate,
     BoardUpdateResponse,
     DeltaUpdateUtil,
+    ExcalidrawApi,
+    ExcalidrawElements,
     ExcalidrawSimpleElement,
 } from "common";
 import { useEffect, useState } from "react";
@@ -20,7 +20,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 type In = {
     slug?: string;
-    excalidrawApi: Maybe<ExcalidrawImperativeAPI>;
+    excalidrawApi: Maybe<ExcalidrawApi>;
     setElements: (elements: ExcalidrawElements) => void;
     elements: ExcalidrawElements;
     localId: string;
@@ -71,7 +71,8 @@ export const useBoardCollaboration = ({
                         elements,
                     });
 
-                    setElements(structuredClone(elements));
+                    const cloned = structuredClone(elements);
+                    setElements(cloned);
                     setIsLoading(false);
                     return;
                 }
@@ -102,7 +103,7 @@ export const useBoardCollaboration = ({
         }
     );
 
-    const onDrawingChange = async (e: readonly ExcalidrawElement[], state: AppState) => {
+    const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
         const changes = DrawingUtil.getChangesWithLockedElements({
             newElements: e,
             oldElements: elements,

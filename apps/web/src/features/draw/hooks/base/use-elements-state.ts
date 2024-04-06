@@ -1,6 +1,6 @@
 import { Maybe, debounce } from "@banjoanton/utils";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { useLocalStorage } from "@uidotdev/usehooks";
+import { ExcalidrawElements } from "common";
 import { useEffect, useMemo, useState } from "react";
 
 type In = {
@@ -8,8 +8,6 @@ type In = {
 };
 
 const localStorageKey = `drawing-base`;
-
-export type ExcalidrawElements = ExcalidrawElement[] | readonly ExcalidrawElement[];
 
 export const useElementsState = ({ slug }: In) => {
     const [localStorageElements, setLocalStorageElements] = useLocalStorage<ExcalidrawElements>(

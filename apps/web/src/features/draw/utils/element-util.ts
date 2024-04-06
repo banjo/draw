@@ -1,9 +1,8 @@
-import { ExcalidrawElements } from "@/features/draw/hooks/base/use-elements-state";
 import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-utils";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { isDefined, produce, randomString } from "@banjoanton/utils";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import { AppState } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawElement, ExcalidrawElements } from "common";
 
 const getSelectedElementIds = (state: AppState) => Object.keys(state.selectedElementIds);
 

@@ -2,11 +2,8 @@ import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_GAP } from "@/features/draw/models/constants";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { defaults, produce } from "@banjoanton/utils";
-import {
-    ExcalidrawElement,
-    ExcalidrawLinearElement,
-} from "@excalidraw/excalidraw/types/element/types";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
 type BoundElement = {
     id: string;

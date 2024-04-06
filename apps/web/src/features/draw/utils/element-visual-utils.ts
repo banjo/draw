@@ -1,17 +1,15 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
-import { ElementMeasurement } from "@/features/draw/models/element";
 import { ElementCreationUtil, ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Maybe, clone, first } from "@banjoanton/utils";
-import { isLinearElement } from "@excalidraw/excalidraw";
-import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+import { CustomData, ElementMeasurement, ExcalidrawApi, isLinearElement } from "common";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
-const smartCopy = (excalidrawApi: ExcalidrawImperativeAPI) => {
+const smartCopy = (excalidrawApi: ExcalidrawApi) => {
     const elements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
@@ -42,7 +40,7 @@ export type ElementExtensionShadow = { arrowId: string; elementId: string; selec
 
 const createElementExtensionShadow = (
     direction: ArrowKey,
-    excalidrawApi: ExcalidrawImperativeAPI,
+    excalidrawApi: ExcalidrawApi,
     shadowElements: Maybe<ElementExtensionShadow>,
     revertStep = true
 ): Maybe<ElementExtensionShadow> => {
@@ -123,7 +121,7 @@ const createElementExtensionShadow = (
             draft.id = arrowId;
             draft.opacity = 50;
             draft.strokeStyle = "dashed";
-            draft.customData = { shadow: true };
+            draft.customData = CustomData.createDefault({ shadow: true });
             return draft;
         }
     );
@@ -141,7 +139,7 @@ const createElementExtensionShadow = (
 
 const createElementExtensionFromShadow = (
     shadow: ElementExtensionShadow,
-    excalidrawApi: ExcalidrawImperativeAPI
+    excalidrawApi: ExcalidrawApi
 ) => {
     const elements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
@@ -165,7 +163,9 @@ const createElementExtensionFromShadow = (
         element.strokeStyle = "solid";
 
         if (element.customData) {
-            element.customData.shadow = undefined;
+            element.customData = CustomData.updateDefault(element.customData, {
+                shadow: false,
+            });
         }
 
         return element;
@@ -176,7 +176,9 @@ const createElementExtensionFromShadow = (
         element.strokeStyle = "solid";
 
         if (element.customData) {
-            element.customData.shadow = undefined;
+            element.customData = CustomData.updateDefault(element.customData, {
+                shadow: false,
+            });
         }
 
         return element;
@@ -195,10 +197,7 @@ const createElementExtensionFromShadow = (
     });
 };
 
-const updateElementFromTypeSelection = (
-    excalidrawApi: ExcalidrawImperativeAPI,
-    type: ElementType
-) => {
+const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: ElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
 

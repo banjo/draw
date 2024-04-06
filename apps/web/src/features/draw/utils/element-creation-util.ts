@@ -1,17 +1,14 @@
 import { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/types/data/transform";
 
-import { convertToExcalidrawElements, isLinearElement } from "@excalidraw/excalidraw";
+import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 
 import { IPoint } from "@/features/draw/models/point";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import {
-    ExcalidrawElement,
-    ExcalidrawLinearElement,
-} from "@excalidraw/excalidraw/types/element/types";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { ExcalidrawElement, ExcalidrawLinearElement, isLinearElement } from "common";
 
-const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton) =>
-    convertToExcalidrawElements([skeleton])[0]!;
+const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
+    convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
 
 const createElementsFromSkeleton = (skeleton: ExcalidrawElementSkeleton[]) =>
     convertToExcalidrawElements(skeleton);
