@@ -3,9 +3,10 @@ import { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/types/data/tra
 import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 
 import { IPoint } from "@/features/draw/models/point";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
-import { ExcalidrawElement, ExcalidrawLinearElement, isLinearElement } from "common";
+import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
     convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
@@ -30,7 +31,7 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
 
     const createdElement = createElementFromSkeleton(arrow);
 
-    if (!isLinearElement(createdElement)) {
+    if (!ExcalidrawUtil.isLinearElement(createdElement)) {
         throw new Error("Something wrong when creating arrow");
     }
 

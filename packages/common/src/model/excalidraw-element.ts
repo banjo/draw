@@ -15,14 +15,8 @@ type ExcalidrawElementWithoutCustomData = Omit<BaseExcalidrawElement, "customDat
 export type ExcalidrawLinearElement = Omit<BaseExcalidrawLinearElement, "customData"> &
     CustomElementData;
 
-export type ExcalidrawImageElement2 = Omit<BaseExcalidrawImageElement, "customData"> &
+export type ExcalidrawImageElement = Omit<BaseExcalidrawImageElement, "customData"> &
     CustomElementData;
 
 export type ExcalidrawElement = ExcalidrawElementWithoutCustomData & CustomElementData;
 export type ExcalidrawElements = ExcalidrawElement[]; // before we needed this for readonly
-
-export const isLinearElement = (element: ExcalidrawElement): element is ExcalidrawLinearElement =>
-    element.type === "arrow" || element.type === "line";
-
-export const isImageElement = (element: ExcalidrawElement): element is ExcalidrawImageElement2 =>
-    element.type === "image";

@@ -1,5 +1,3 @@
-import { getCommonBounds as getCommonBoundsOriginal } from "@excalidraw/excalidraw";
-import { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import {
     AppState,
     Collaborator,
@@ -21,6 +19,3 @@ export type ExcalidrawApi = Omit<
     }) => void;
     getSceneElementsIncludingDeleted: () => ExcalidrawElements;
 };
-
-export const getCommonBounds = (elements: ExcalidrawElements) =>
-    getCommonBoundsOriginal(elements as readonly ExcalidrawElement[]);

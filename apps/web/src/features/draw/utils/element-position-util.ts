@@ -2,6 +2,7 @@ import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
 
 import { IPoint, Point } from "@/features/draw/models/point";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { Maybe } from "@banjoanton/utils";
 import { Bounds } from "@excalidraw/excalidraw/types/element/bounds";
 import { AppState } from "@excalidraw/excalidraw/types/types";
@@ -10,7 +11,6 @@ import {
     ElementMeasurement,
     ExcalidrawElement,
     ExcalidrawElements,
-    getCommonBounds,
 } from "common";
 
 const getPositionFromBounds = (bounds: Bounds) => {
@@ -29,7 +29,7 @@ const getPositionFromBounds = (bounds: Bounds) => {
 export type BoundsPositions = ReturnType<typeof getPositionFromBounds>;
 
 const getPositionFromElement = (element: ExcalidrawElement) => {
-    const bounds = getCommonBounds([element]);
+    const bounds = ExcalidrawUtil.getCommonBounds([element]);
     const positions = getPositionFromBounds(bounds);
 
     return {
@@ -47,7 +47,7 @@ const getPositionFromElements = (elements: ExcalidrawElements) => {
         return getPositionFromElement(element);
     });
 
-    const groupBounds = getCommonBounds(elements);
+    const groupBounds = ExcalidrawUtil.getCommonBounds(elements);
     const groupPositions = getPositionFromBounds(groupBounds);
     const group = {
         positions: groupPositions,

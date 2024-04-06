@@ -1,9 +1,10 @@
 import { useGlobal } from "@/contexts/global-context";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { wrapAsync } from "@banjoanton/utils";
 import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawElements, isImageElement } from "common";
+import { ExcalidrawElements } from "common";
 import { useEffect, useState } from "react";
 
 type In = {
@@ -46,7 +47,7 @@ export const useImages = ({ elements }: In) => {
         if (!elements || !excalidrawApi) return;
 
         const images = elements
-            .filter(isImageElement)
+            .filter(ExcalidrawUtil.isImageElement)
             .filter(element => element.fileId && !element.isDeleted);
 
         if (images.length === 0) return;
@@ -69,7 +70,7 @@ export const useImages = ({ elements }: In) => {
         const imagesReferencedOnCanvas = images.filter(
             image =>
                 elements?.some(element => {
-                    if (!isImageElement(element)) return false;
+                    if (!ExcalidrawUtil.isImageElement(element)) return false;
                     return element.fileId === image.id && element.isDeleted !== true;
                 })
         );

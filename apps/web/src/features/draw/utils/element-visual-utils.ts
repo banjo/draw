@@ -3,9 +3,10 @@ import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants"
 import { ElementCreationUtil, ElementType } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Maybe, clone, first } from "@banjoanton/utils";
-import { CustomData, ElementMeasurement, ExcalidrawApi, isLinearElement } from "common";
+import { CustomData, ElementMeasurement, ExcalidrawApi } from "common";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
@@ -155,7 +156,7 @@ const createElementExtensionFromShadow = (
 
     const [arrow, newElement, selected] = elementsToModify;
     if (!arrow || !newElement || !selected) return;
-    if (!isLinearElement(arrow)) return;
+    if (!ExcalidrawUtil.isLinearElement(arrow)) return;
 
     const updatedArrow = UpdateElementUtil.updateElement(arrow, (element, helpers) => {
         helpers.addArrowBindings(element, { endId: newElement.id, startId: selected.id });
