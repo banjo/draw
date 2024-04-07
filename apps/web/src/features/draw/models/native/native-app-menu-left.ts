@@ -1,21 +1,26 @@
+import { Maybe } from "@banjoanton/utils";
+
 class NativeAppMenuLeftModel {
-    private element: Element;
-    constructor() {
-        const appMenu = document.querySelector(".App-menu__left");
+    private _element: Maybe<Element>;
 
-        if (!appMenu) {
-            throw new Error("App menu not found");
+    // lazy load the element
+    private get element(): Maybe<Element> {
+        if (!this._element) {
+            const appMenu = document.querySelector(".App-menu__left");
+            if (!appMenu) {
+                return undefined;
+            }
+            this._element = appMenu;
         }
-
-        this.element = appMenu;
+        return this._element;
     }
 
     hide() {
-        this.element.setAttribute("style", "display: none");
+        this.element?.setAttribute("style", "display: none");
     }
 
     show() {
-        this.element.setAttribute("style", "display: block");
+        this.element?.setAttribute("style", "display: block");
     }
 }
 
