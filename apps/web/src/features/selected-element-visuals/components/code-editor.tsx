@@ -69,7 +69,6 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     };
 
     const zoom = excalidrawApi?.getAppState().zoom.value ?? 1;
-    console.log(zoom);
 
     return (
         <div
