@@ -12,6 +12,7 @@
     },
     "dependencies": {
         "@excalidraw/excalidraw": "^0.17.3",
+        "@monaco-editor/react": "^4.6.0",
         "@originjs/vite-plugin-commonjs": "^1.0.3",
         "@radix-ui/react-dialog": "^1.0.4",
         "@radix-ui/react-dropdown-menu": "^2.0.5",
@@ -52,6 +53,7 @@
         "@vitejs/plugin-react": "^4.0.4",
         "api": "workspace:*",
         "autoprefixer": "^10.4.15",
+        "common": "workspace:*",
         "db": "workspace:*",
         "eslint": "^8.49.0",
         "eslint-plugin-prettier": "^5.0.0",
@@ -63,7 +65,6 @@
         "tailwindcss": "^3.3.3",
         "tsconfig": "workspace:*",
         "ui": "workspace:*",
-        "common": "workspace:*",
         "vite": "^4.4.9",
         "vite-tsconfig-paths": "^4.2.1"
     },

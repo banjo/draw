@@ -35,6 +35,12 @@ const defaultCustomData: CustomDataDefault = {
     type: "rectangle",
 };
 
+const defaultCustomDataCodeblock: CustomDataCodeblock = {
+    shadow: false,
+    type: "codeblock",
+    code: "",
+};
+
 export const CustomData = {
     createDefault: (props: BaseCustomData): CustomDataDefault => ({
         ...props,
@@ -55,6 +61,22 @@ export const CustomData = {
         return {
             ...current,
             ...props,
+        };
+    },
+    updateCodeblock: (
+        current: Maybe<CustomData>,
+        props: Partial<CodeBlockProps>
+    ): CustomDataCodeblock => {
+        const allProps = defaults(props, defaultCustomDataCodeblock);
+
+        if (!current) {
+            return CustomData.createCodeblock(allProps);
+        }
+        return {
+            code: "",
+            ...current,
+            ...props,
+            type: "codeblock",
         };
     },
 };

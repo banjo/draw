@@ -3,9 +3,11 @@ import { OnChangeCallback } from "@/features/draw/draw";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { isEqual } from "@banjoanton/utils";
-import { CustomDataCodeblock, ExcalidrawElement } from "common";
-import { useState } from "react";
+import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
+import { Maybe, debounce, isEqual } from "@banjoanton/utils";
+import Editor, { Monaco } from "@monaco-editor/react";
+import { CustomData, CustomDataCodeblock, ExcalidrawElement } from "common";
+import { useRef, useState } from "react";
 
 type CodeBlockStyle = {
     left: string;
@@ -17,6 +19,49 @@ type CodeBlockStyle = {
 type CodeBlockElement = {
     style: CodeBlockStyle;
     element: ExcalidrawElement;
+};
+
+const CodeEditor = ({ element, style }: CodeBlockElement) => {
+    const editorRef = useRef(null);
+
+    const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+        editorRef.current = editor;
+    };
+
+    const onChange = async (value: Maybe<string>) => {
+        UpdateElementUtil.mutateElement(element, (element, helpers) => {
+            element.customData = CustomData.updateCodeblock(element.customData, {
+                code: value,
+            });
+        });
+    };
+
+    const debouncedOnChange = debounce(onChange, 500);
+    const customData = element.customData as CustomDataCodeblock;
+
+    return (
+        <div className="absolute z-[3] rounded-md" style={style}>
+            <Editor
+                className="p-2 bg-[#1e1e1e]"
+                defaultLanguage="javascript"
+                defaultValue={customData.code}
+                onChange={debouncedOnChange}
+                onMount={handleEditorDidMount}
+                options={{
+                    lineNumbers: "off",
+                    minimap: { enabled: false },
+                    glyphMargin: false,
+                    folding: false,
+                    scrollbar: { vertical: "hidden", horizontal: "hidden" },
+                    scrollBeyondLastLine: false,
+                    lineDecorationsWidth: 0,
+                    renderLineHighlight: "none",
+                    overviewRulerLanes: 0,
+                }}
+                theme="vs-dark"
+            />
+        </div>
+    );
 };
 
 export const useCodeBlockElement = () => {
@@ -68,17 +113,12 @@ export const useCodeBlockElement = () => {
         return (
             <>
                 {codeBlockElements.map(({ element, style }) => {
-                    // lazy cast
-                    const data = element.customData as CustomDataCodeblock;
-
                     return (
-                        <div
+                        <CodeEditor
                             key={"code-block" + element.id}
                             style={style}
-                            className="absolute z-[3] pointer-events-none bg-green-100"
-                        >
-                            {data.code}
-                        </div>
+                            element={element}
+                        />
                     );
                 })}
             </>

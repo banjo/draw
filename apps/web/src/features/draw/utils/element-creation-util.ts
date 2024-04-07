@@ -121,7 +121,7 @@ const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElement
         },
         props: {
             ...props,
-            backgroundColor: "#ffc9c9",
+            backgroundColor: "#ffffff",
             fillStyle: "solid",
             strokeWidth: 1,
             roughness: 0,
