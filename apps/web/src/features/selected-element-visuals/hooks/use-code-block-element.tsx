@@ -58,11 +58,11 @@ export const useCodeBlockElement = () => {
         if (selected) {
             setSelectedElement(selected);
             NativeAppMenuLeft().hide();
-            NativeMobileBottomToolbar().hide();
+            NativeMobileBottomToolbar().hideEditButton();
         } else {
             setSelectedElement(undefined);
             NativeAppMenuLeft().show();
-            NativeMobileBottomToolbar().show();
+            NativeMobileBottomToolbar().showEditButton();
         }
     };
 

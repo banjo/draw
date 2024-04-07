@@ -14,14 +14,14 @@ export const NativeMobileBottomToolbar = () => {
     };
 
     const hideEditButton = () => {
-        const editButton = element?.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
+        const editButton = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
         if (editButton) {
             editButton.setAttribute("style", "display: none");
         }
     };
 
     const showEditButton = () => {
-        const editButton = element?.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
+        const editButton = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
         if (editButton) {
             editButton.setAttribute("style", "display: block");
         }
