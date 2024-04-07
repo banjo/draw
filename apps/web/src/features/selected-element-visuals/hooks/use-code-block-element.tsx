@@ -34,12 +34,13 @@ export const useCodeBlockElement = () => {
 
         const newCodeBlockElements: CodeBlockElement[] = codeElements.map(element => {
             const windowPosition = ElementPositionUtil.getElementWindowPosition(element, appState);
+            const zoom = appState.zoom.value;
 
             const style = {
                 left: `${windowPosition.x}px`,
                 top: `${windowPosition.y}px`,
-                width: `${element.width}px`,
-                height: `${element.height}px`,
+                width: `${element.width * zoom}px`,
+                height: `${element.height * zoom}px`,
             };
 
             return {
