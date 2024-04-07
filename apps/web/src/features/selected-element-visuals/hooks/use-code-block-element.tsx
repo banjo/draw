@@ -1,5 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { OnChangeCallback } from "@/features/draw/draw";
+import { NativeAppMenuLeft } from "@/features/draw/models/native/native-app-menu-left";
+import { NativeMobileBottomToolbar } from "@/features/draw/models/native/native-mobile-bottom-toolbar";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -50,23 +52,12 @@ export const useCodeBlockElement = () => {
 
         const selected = ElementUtil.getSelectedElements(appState, codeElements);
 
-        // hide app menu when code block is selected
-        const appMenu = document.querySelector(".App-menu__left");
-        const editMenuMobile = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
-        if (selected.length === 1) {
-            if (appMenu) {
-                appMenu.setAttribute("style", "display: none");
-            }
-            if (editMenuMobile) {
-                editMenuMobile.setAttribute("style", "display: none");
-            }
+        if (selected.length > 0) {
+            NativeAppMenuLeft.hide();
+            NativeMobileBottomToolbar.hide();
         } else {
-            if (appMenu) {
-                appMenu.setAttribute("style", "display: block");
-            }
-            if (editMenuMobile) {
-                editMenuMobile.setAttribute("style", "display: block");
-            }
+            NativeAppMenuLeft.show();
+            NativeMobileBottomToolbar.show();
         }
     };
 
