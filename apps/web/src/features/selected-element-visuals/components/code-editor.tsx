@@ -68,6 +68,9 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
         }
     };
 
+    const zoom = excalidrawApi?.getAppState().zoom.value ?? 1;
+    console.log(zoom);
+
     return (
         <div
             className="absolute z-[3] rounded-lg cursor-move overflow-hidden"
@@ -100,7 +103,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     automaticLayout: true,
                     contextmenu: false,
                     wordWrap: "off",
-                    fontSize: 14,
+                    fontSize: 14 * zoom,
                 }}
                 theme="vs-dark"
             />
