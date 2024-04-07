@@ -10,6 +10,7 @@ import { Editor, Monaco } from "@monaco-editor/react";
 import { CustomData, CustomDataCodeblock } from "common";
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
 import { useEffect, useRef } from "react";
+import "./code-editor.css";
 
 export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const { excalidrawApi } = useGlobal();
@@ -69,7 +70,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
 
     return (
         <div
-            className="absolute z-[3] rounded-md cursor-move"
+            className="absolute z-[3] rounded-lg cursor-move overflow-hidden"
             style={style}
             ref={containerRef}
             onKeyDown={handleKeyDown}
@@ -91,6 +92,15 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     lineDecorationsWidth: 0,
                     renderLineHighlight: "none",
                     overviewRulerLanes: 0,
+                    readOnly: false,
+                    quickSuggestions: false,
+                    suggestOnTriggerCharacters: false,
+                    matchBrackets: "never",
+                    renderWhitespace: "none",
+                    automaticLayout: true,
+                    contextmenu: false,
+                    wordWrap: "off",
+                    fontSize: 14,
                 }}
                 theme="vs-dark"
             />

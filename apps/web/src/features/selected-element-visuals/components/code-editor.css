@@ -1,0 +1,4 @@
+/* Remove the indentation guide in the code editor */
+.core-guide-indent {
+    display: none !important;
+}
