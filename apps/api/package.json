@@ -12,7 +12,8 @@
         "run": "run-p run-http run-ws",
         "dev": "tsx watch src/dev-server.ts",
         "build": "tsup",
-        "clean": "rimraf node_modules dist"
+        "clean": "rimraf node_modules dist",
+        "typecheck": "tsc --noEmit"
     },
     "keywords": [],
     "author": "",

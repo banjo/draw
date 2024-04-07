@@ -5,7 +5,8 @@
     "main": "./src/index.ts",
     "types": "./src/index.ts",
     "scripts": {
-        "add": "pnpm dlx shadcn-ui@latest add"
+        "add": "pnpm dlx shadcn-ui@latest add",
+        "typecheck": "tsc --noEmit"
     },
     "files": [
         "src/styles/globals.css"

@@ -112,7 +112,7 @@ const prepareCollaborationChanges = ({
 };
 
 const focusCanvas = () => {
-    const element = document.querySelector(".excalidraw") as HTMLDivElement;
+    const element = document.querySelector<HTMLDivElement>(".excalidraw");
     if (element) {
         element.focus();
     }
