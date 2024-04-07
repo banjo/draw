@@ -32,9 +32,45 @@ const getElementTypeFromCustomType = (type: CustomElementType): ElementType => {
     return elementToCustomElementType[type];
 };
 
+const parentSelector = ".layer-ui__wrapper";
+const createCustomNativeElement = (
+    id: string,
+    selector = parentSelector,
+    position: "first" | "last" | number | Node = "last"
+) => {
+    const parent = document.querySelector(selector);
+    if (!parent) return;
+
+    // Create the custom element
+    const customElement = document.createElement("div");
+    customElement.id = id;
+    customElement.classList.add("custom-native-element");
+
+    // Determine where to insert the new element
+    let referenceNode: Node | null = null;
+    if (position === "first") {
+        referenceNode = parent.firstChild;
+    } else if (position === "last") {
+        parent.appendChild(customElement);
+        return;
+    } else if (typeof position === "number") {
+        referenceNode = parent.childNodes[position] || null;
+    } else if (position instanceof Node) {
+        referenceNode = position;
+    }
+
+    // Insert the new element before the reference node
+    if (referenceNode !== null) {
+        parent.insertBefore(customElement, referenceNode);
+    } else {
+        parent.appendChild(customElement);
+    }
+};
+
 export const ExcalidrawUtil = {
     getCommonBounds,
     isLinearElement,
     isImageElement,
     getElementTypeFromCustomType,
+    createCustomNativeElement,
 };

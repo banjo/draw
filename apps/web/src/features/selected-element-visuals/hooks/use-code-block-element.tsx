@@ -6,6 +6,7 @@ import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { CodeEditor } from "@/features/selected-element-visuals/components/code-editor";
+import { CodeEditorMenuContainer } from "@/features/selected-element-visuals/components/code-editor-menu";
 import { isEqual } from "@banjoanton/utils";
 import { ExcalidrawElement } from "common";
 import { useState } from "react";
@@ -25,6 +26,7 @@ export type CodeBlockElement = {
 export const useCodeBlockElement = () => {
     const { excalidrawApi } = useGlobal();
     const [codeBlockElements, setCodeBlockElements] = useState<CodeBlockElement[]>([]);
+    const [isSelected, setIsSelected] = useState(false);
 
     const updateCodeBlockElements: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
@@ -53,9 +55,11 @@ export const useCodeBlockElement = () => {
         const selected = ElementUtil.getSelectedElements(appState, codeElements);
 
         if (selected.length > 0) {
+            setIsSelected(true);
             NativeAppMenuLeft().hide();
             NativeMobileBottomToolbar().hide();
         } else {
+            setIsSelected(false);
             NativeAppMenuLeft().show();
             NativeMobileBottomToolbar().show();
         }
@@ -75,6 +79,7 @@ export const useCodeBlockElement = () => {
                         />
                     );
                 })}
+                {isSelected && <CodeEditorMenuContainer />}
             </>
         );
     };
