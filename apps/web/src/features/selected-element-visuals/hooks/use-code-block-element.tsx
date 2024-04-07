@@ -3,11 +3,10 @@ import { OnChangeCallback } from "@/features/draw/draw";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { Maybe, debounce, isEqual } from "@banjoanton/utils";
-import Editor, { Monaco } from "@monaco-editor/react";
-import { CustomData, CustomDataCodeblock, ExcalidrawElement } from "common";
-import { useEffect, useRef, useState } from "react";
+import { CodeEditor } from "@/features/selected-element-visuals/components/code-editor";
+import { isEqual } from "@banjoanton/utils";
+import { ExcalidrawElement } from "common";
+import { useState } from "react";
 
 type CodeBlockStyle = {
     left: string;
@@ -16,73 +15,9 @@ type CodeBlockStyle = {
     height: string;
 };
 
-type CodeBlockElement = {
+export type CodeBlockElement = {
     style: CodeBlockStyle;
     element: ExcalidrawElement;
-};
-
-const CodeEditor = ({ element, style }: CodeBlockElement) => {
-    const { excalidrawApi } = useGlobal();
-    const editorRef = useRef(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const handleEditorDidMount = (editor: any, monaco: Monaco) => {
-        editorRef.current = editor;
-    };
-
-    const onChange = async (value: Maybe<string>) => {
-        UpdateElementUtil.mutateElement(element, (element, helpers) => {
-            element.customData = CustomData.updateCodeblock(element.customData, {
-                code: value,
-            });
-        });
-    };
-
-    const debouncedOnChange = debounce(onChange, 500);
-    const customData = element.customData as CustomDataCodeblock;
-
-    useEffect(() => {
-        const container = containerRef.current;
-
-        const handleClick = () => {
-            if (!excalidrawApi) return;
-            const state = excalidrawApi.getAppState();
-
-            const { updatedState } = ElementUtil.createNewElementSelection([element], state);
-
-            excalidrawApi.updateScene({
-                appState: updatedState,
-            });
-        };
-
-        if (container) {
-            container.addEventListener("click", handleClick);
-        }
-    }, []);
-
-    return (
-        <div className="absolute z-[3] rounded-md cursor-move" style={style} ref={containerRef}>
-            <Editor
-                className="p-2 bg-[#1e1e1e] cursor-move"
-                defaultLanguage="javascript"
-                defaultValue={customData.code}
-                onChange={debouncedOnChange}
-                onMount={handleEditorDidMount}
-                options={{
-                    lineNumbers: "off",
-                    minimap: { enabled: false },
-                    glyphMargin: false,
-                    folding: false,
-                    scrollbar: { vertical: "hidden", horizontal: "hidden" },
-                    scrollBeyondLastLine: false,
-                    lineDecorationsWidth: 0,
-                    renderLineHighlight: "none",
-                    overviewRulerLanes: 0,
-                }}
-                theme="vs-dark"
-            />
-        </div>
-    );
 };
 
 export const useCodeBlockElement = () => {
@@ -117,13 +52,20 @@ export const useCodeBlockElement = () => {
 
         // hide app menu when code block is selected
         const appMenu = document.querySelector(".App-menu__left");
+        const editMenuMobile = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
         if (selected.length === 1) {
             if (appMenu) {
                 appMenu.setAttribute("style", "display: none");
             }
+            if (editMenuMobile) {
+                editMenuMobile.setAttribute("style", "display: none");
+            }
         } else {
             if (appMenu) {
                 appMenu.setAttribute("style", "display: block");
+            }
+            if (editMenuMobile) {
+                editMenuMobile.setAttribute("style", "display: block");
             }
         }
     };
