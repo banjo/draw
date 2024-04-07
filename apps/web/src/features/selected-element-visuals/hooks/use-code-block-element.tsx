@@ -7,7 +7,7 @@ import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Maybe, debounce, isEqual } from "@banjoanton/utils";
 import Editor, { Monaco } from "@monaco-editor/react";
 import { CustomData, CustomDataCodeblock, ExcalidrawElement } from "common";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type CodeBlockStyle = {
     left: string;
@@ -22,7 +22,9 @@ type CodeBlockElement = {
 };
 
 const CodeEditor = ({ element, style }: CodeBlockElement) => {
+    const { excalidrawApi } = useGlobal();
     const editorRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const handleEditorDidMount = (editor: any, monaco: Monaco) => {
         editorRef.current = editor;
@@ -39,10 +41,29 @@ const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const debouncedOnChange = debounce(onChange, 500);
     const customData = element.customData as CustomDataCodeblock;
 
+    useEffect(() => {
+        const container = containerRef.current;
+
+        const handleClick = () => {
+            if (!excalidrawApi) return;
+            const state = excalidrawApi.getAppState();
+
+            const { updatedState } = ElementUtil.createNewElementSelection([element], state);
+
+            excalidrawApi.updateScene({
+                appState: updatedState,
+            });
+        };
+
+        if (container) {
+            container.addEventListener("click", handleClick);
+        }
+    }, []);
+
     return (
-        <div className="absolute z-[3] rounded-md" style={style}>
+        <div className="absolute z-[3] rounded-md cursor-move" style={style} ref={containerRef}>
             <Editor
-                className="p-2 bg-[#1e1e1e]"
+                className="p-2 bg-[#1e1e1e] cursor-move"
                 defaultLanguage="javascript"
                 defaultValue={customData.code}
                 onChange={debouncedOnChange}
