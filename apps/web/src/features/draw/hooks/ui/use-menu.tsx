@@ -126,7 +126,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                             onSelect={goToLocalDrawing}
                             icon={<ResponsiveIcon Icon={FolderIcon} />}
                         >
-                            Go to offline drawing
+                            Offline mode
                         </MainMenu.Item>
 
                         <MainMenu.Separator />
