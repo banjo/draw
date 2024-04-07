@@ -13,7 +13,7 @@ export type LogLevel = (typeof LOG_LEVELS)[number];
 export const createLogger = (name: string) => {
     if (isBrowser()) {
         const clientVariables = Env.allClient();
-        return pino({ name, level: clientVariables.LOG_LEVEL || "info" });
+        return pino({ name, level: clientVariables.VITE_LOG_LEVEL || "info" });
     }
 
     const targets: TransportTargetOptions[] = [

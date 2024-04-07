@@ -6,6 +6,7 @@ import {
 } from "@/features/draw/utils/element-visual-utils";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
 import { Callback, Maybe, includes } from "@banjoanton/utils";
+import { createLogger } from "common";
 import { KeyboardEventHandler, useState } from "react";
 
 type In = {
@@ -14,6 +15,8 @@ type In = {
 
 export const ARROW_KEYS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"] as const;
 export type ArrowKey = (typeof ARROW_KEYS)[number];
+
+const logger = createLogger("use-keyboard");
 
 export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const { excalidrawApi } = useGlobal();
@@ -26,8 +29,8 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
         if (!excalidrawApi) return;
 
-        console.log(excalidrawApi.getSceneElements());
-        console.log(excalidrawApi.getAppState());
+        logger.debug(excalidrawApi.getSceneElements());
+        logger.debug(excalidrawApi.getAppState());
 
         const state = excalidrawApi.getAppState();
 

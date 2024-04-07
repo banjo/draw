@@ -58,7 +58,7 @@ const ClientEnvSchema = z.object({
     VITE_WS_URL: z.string().url(),
     VITE_DEVELOPMENT_UID: z.string().optional(),
     VITE_LOCAL_DEVELOPMENT: z.enum(["true", "false"]).optional(),
-    LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
+    VITE_LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
 });
 
 const client = () => {
