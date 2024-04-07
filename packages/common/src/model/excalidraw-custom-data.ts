@@ -18,6 +18,7 @@ export type CustomDataDefault = BaseCustomData;
 export type CustomDataCodeblock = BaseCustomData & {
     type: "codeblock";
     code: string;
+    language: string;
 };
 
 export type CustomData = CustomDataDefault | CustomDataCodeblock;
@@ -28,6 +29,7 @@ type Props = {
 
 type CodeBlockProps = Props & {
     code: string;
+    language: string;
 };
 
 const defaultCustomData: CustomDataDefault = {
@@ -39,6 +41,7 @@ const defaultCustomDataCodeblock: CustomDataCodeblock = {
     shadow: false,
     type: "codeblock",
     code: "",
+    language: "javascript",
 };
 
 export const CustomData = {
@@ -47,7 +50,7 @@ export const CustomData = {
     }),
     createCodeblock: (props: CodeBlockProps): CustomDataCodeblock => ({
         ...props,
-        type: "codeblock",
+        ...defaultCustomDataCodeblock,
     }),
     updateDefault: (
         current: Maybe<CustomData>,
@@ -73,7 +76,7 @@ export const CustomData = {
             return CustomData.createCodeblock(allProps);
         }
         return {
-            code: "",
+            ...defaultCustomDataCodeblock,
             ...current,
             ...props,
             type: "codeblock",

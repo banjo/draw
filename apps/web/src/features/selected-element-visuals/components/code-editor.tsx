@@ -3,9 +3,9 @@ import { NativeContainer } from "@/features/draw/models/native/native-container"
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { CodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
-import { DEFAULT_CODE_EDITOR_LANGUAGE } from "@/features/selected-element-visuals/models/code-editor-langauges";
+import { CODE_EDITOR_LANGUAGES } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
-import { Maybe, debounce } from "@banjoanton/utils";
+import { Maybe, debounce, includes } from "@banjoanton/utils";
 import { Editor, Monaco } from "@monaco-editor/react";
 import { CustomData, CustomDataCodeblock } from "common";
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
@@ -14,11 +14,11 @@ import { useEffect, useRef } from "react";
 export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const { excalidrawApi } = useGlobal();
     const selectedLanguage = useCodeEditorStore(state => state.selectedLanguage);
+    const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
     const editorRef = useRef<editor.ICodeEditor>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleEditorDidMount = (editor: editor.ICodeEditor, monaco: Monaco) => {
-        // TODO: is this correct type?
         // @ts-ignore
         editorRef.current = editor;
     };
@@ -33,6 +33,12 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
 
     const debouncedOnChange = debounce(onChange, 500);
     const customData = element.customData as CustomDataCodeblock;
+
+    useEffect(() => {
+        if (customData.language && includes(CODE_EDITOR_LANGUAGES, customData.language)) {
+            setSelectedLanguage(customData.language);
+        }
+    }, []);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -70,7 +76,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
         >
             <Editor
                 className="p-2 bg-[#1e1e1e] cursor-move"
-                defaultLanguage={DEFAULT_CODE_EDITOR_LANGUAGE.toLowerCase()}
+                defaultLanguage={selectedLanguage.toLowerCase()}
                 language={selectedLanguage.toLowerCase()}
                 defaultValue={customData.code}
                 onChange={debouncedOnChange}

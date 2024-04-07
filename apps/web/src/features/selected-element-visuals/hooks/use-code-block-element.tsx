@@ -7,7 +7,7 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { CodeEditor } from "@/features/selected-element-visuals/components/code-editor";
 import { CodeEditorMenuContainer } from "@/features/selected-element-visuals/components/code-editor-menu";
-import { isEqual } from "@banjoanton/utils";
+import { Maybe, first, isEqual } from "@banjoanton/utils";
 import { ExcalidrawElement } from "common";
 import { useState } from "react";
 
@@ -26,7 +26,7 @@ export type CodeBlockElement = {
 export const useCodeBlockElement = () => {
     const { excalidrawApi } = useGlobal();
     const [codeBlockElements, setCodeBlockElements] = useState<CodeBlockElement[]>([]);
-    const [isSelected, setIsSelected] = useState(false);
+    const [selectedElement, setSelectedElement] = useState<Maybe<ExcalidrawElement>>(undefined);
 
     const updateCodeBlockElements: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
@@ -52,14 +52,15 @@ export const useCodeBlockElement = () => {
             setCodeBlockElements(newCodeBlockElements);
         }
 
-        const selected = ElementUtil.getSelectedElements(appState, codeElements);
+        const selectedElements = ElementUtil.getSelectedElements(appState, codeElements);
+        const selected = first(selectedElements);
 
-        if (selected.length > 0) {
-            setIsSelected(true);
+        if (selected) {
+            setSelectedElement(selected);
             NativeAppMenuLeft().hide();
             NativeMobileBottomToolbar().hide();
         } else {
-            setIsSelected(false);
+            setSelectedElement(undefined);
             NativeAppMenuLeft().show();
             NativeMobileBottomToolbar().show();
         }
@@ -79,7 +80,7 @@ export const useCodeBlockElement = () => {
                         />
                     );
                 })}
-                {isSelected && <CodeEditorMenuContainer />}
+                {selectedElement && <CodeEditorMenuContainer element={selectedElement} />}
             </>
         );
     };
