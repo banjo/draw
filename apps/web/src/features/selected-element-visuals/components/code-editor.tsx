@@ -57,7 +57,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
         if (event.key === "Escape") {
             if (!excalidrawApi) return;
             editorRef.current?.getDomNode()?.blur();
-            NativeContainer.focus();
+            NativeContainer().focus();
         }
     };
 

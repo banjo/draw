@@ -1,27 +1,20 @@
-import { Maybe } from "@banjoanton/utils";
+export const NativeAppMenuLeft = () => {
+    const element = document.querySelector(".App-menu__left");
 
-class NativeAppMenuLeftModel {
-    private _element: Maybe<Element>;
-
-    // lazy load the element
-    private get element(): Maybe<Element> {
-        if (!this._element) {
-            const appMenu = document.querySelector(".App-menu__left");
-            if (!appMenu) {
-                return undefined;
-            }
-            this._element = appMenu;
+    const hide = () => {
+        if (element) {
+            element.setAttribute("style", "display: none");
         }
-        return this._element;
-    }
+    };
 
-    hide() {
-        this.element?.setAttribute("style", "display: none");
-    }
+    const show = () => {
+        if (element) {
+            element.setAttribute("style", "display: block");
+        }
+    };
 
-    show() {
-        this.element?.setAttribute("style", "display: block");
-    }
-}
-
-export const NativeAppMenuLeft = new NativeAppMenuLeftModel();
+    return {
+        hide,
+        show,
+    };
+};

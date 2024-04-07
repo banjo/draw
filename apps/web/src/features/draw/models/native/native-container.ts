@@ -1,27 +1,16 @@
-import { Maybe } from "@banjoanton/utils";
+export const NativeContainer = () => {
+    const element = document.querySelector<HTMLDivElement>(".excalidraw-container");
 
-class NativeContainerModel {
-    private _element: Maybe<HTMLDivElement>;
+    const focus = () => {
+        element?.focus();
+    };
 
-    // lazy load the element
-    private get element(): Maybe<HTMLDivElement> {
-        if (!this._element) {
-            const appMenu: HTMLDivElement | null = document.querySelector(".excalidraw-container");
-            if (!appMenu) {
-                return undefined;
-            }
-            this._element = appMenu;
-        }
-        return this._element;
-    }
+    const blur = () => {
+        element?.blur();
+    };
 
-    focus() {
-        this.element?.focus();
-    }
-
-    blur() {
-        this.element?.blur();
-    }
-}
-
-export const NativeContainer = new NativeContainerModel();
+    return {
+        focus,
+        blur,
+    };
+};

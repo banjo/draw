@@ -53,11 +53,11 @@ export const useCodeBlockElement = () => {
         const selected = ElementUtil.getSelectedElements(appState, codeElements);
 
         if (selected.length > 0) {
-            NativeAppMenuLeft.hide();
-            NativeMobileBottomToolbar.hide();
+            NativeAppMenuLeft().hide();
+            NativeMobileBottomToolbar().hide();
         } else {
-            NativeAppMenuLeft.show();
-            NativeMobileBottomToolbar.show();
+            NativeAppMenuLeft().show();
+            NativeMobileBottomToolbar().show();
         }
     };
 
