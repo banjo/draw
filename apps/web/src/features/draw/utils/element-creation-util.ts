@@ -5,6 +5,7 @@ import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import { IPoint } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
+import { DEFAULT_CODE_EDITOR_LANGUAGE } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
 import { CustomData, CustomElementType, ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
@@ -111,9 +112,12 @@ type CreateCodeBlockElementProps = {
     callback?: UpdateCallback<ExcalidrawElement>;
 };
 const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElementProps) => {
-    const customData = CustomData.createCodeblock({ code, shadow: false });
+    const customData = CustomData.createCodeblock({
+        code,
+        shadow: false,
+        language: DEFAULT_CODE_EDITOR_LANGUAGE,
+    });
 
-    // TODO: remove border and set background to a color to allow selection
     return createElement({
         base: {
             ...base,
