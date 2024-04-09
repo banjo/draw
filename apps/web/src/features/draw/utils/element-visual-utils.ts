@@ -123,14 +123,16 @@ const createElementExtensionShadow = (
             x: arrowOptions.startX,
             y: arrowOptions.startY,
             points: [[0, 0], arrowOptions.relativeEndPoint],
-            startBindingId: sourceElement.id,
-            endBindingId: newElement.id,
         },
-        draft => {
+        (draft, helpers) => {
             draft.id = arrowId;
             draft.opacity = 50;
             draft.strokeStyle = "dashed";
             draft.customData = CustomData.createDefault({ shadow: true, type: "arrow" });
+            helpers.addArrowBindings(draft, {
+                startId: sourceElement.id,
+                endId: newElement.id,
+            });
             return draft;
         }
     );
