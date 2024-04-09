@@ -19,8 +19,6 @@ type ArrowBase = {
     x: number;
     y: number;
     points: Mutable<IPoint>[];
-    startBindingId?: string;
-    endBindingId?: string;
 };
 const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinearElement>) => {
     const arrow: ExcalidrawElementSkeleton = {

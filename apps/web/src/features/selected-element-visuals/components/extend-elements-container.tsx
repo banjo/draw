@@ -40,20 +40,48 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
     const { excalidrawApi } = useGlobal();
     const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
     const [arrowId, setArrowId] = useState<string | undefined>(undefined);
+    const [direction, setDirection] = useState<Maybe<ArrowKey>>(undefined);
 
     const onDragStart = (pos: DragPosition) => {
         if (!excalidrawApi) return;
 
         const state = excalidrawApi.getAppState();
+        let elements = excalidrawApi.getSceneElements();
+
+        if (shadowElements) {
+            elements = ElementUtil.removeShadowElementsByType(elements);
+        }
+
+        const selected = first(ElementUtil.getSelectedElements(state, elements));
+        if (!selected || !direction) return;
+
+        // TODO: use this for arrow creation
+        const arrowPosition = ElementPositionUtil.getArrowOptionsFromSourceElement(
+            direction,
+            selected
+        );
 
         const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
-        const arrow = ElementCreationUtil.createArrow({
-            points: [
-                [0, 0],
-                [0, 0],
-            ],
-            x: x,
-            y: y,
+
+        const arrow = ElementCreationUtil.createArrow(
+            {
+                points: [
+                    [0, 0],
+                    [0, 0],
+                ],
+                x,
+                y,
+            },
+            (element, helpers) => {
+                helpers.addArrowBindings(element, {
+                    startId: selected.id,
+                });
+                return element;
+            }
+        );
+
+        UpdateElementUtil.mutateElement(selected, (element, helpers) => {
+            helpers.addBoundElements(element, [{ id: arrow.id, type: "arrow" }]);
         });
 
         StateUtil.mutateState(state, (draft, helpers) => {
@@ -62,12 +90,6 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             helpers.setActiveTool(draft, "arrow");
             helpers.arrowActiveToolDefaultSettings(draft);
         });
-
-        let elements = excalidrawApi.getSceneElements();
-
-        if (shadowElements) {
-            elements = ElementUtil.removeShadowElementsByType(elements);
-        }
 
         excalidrawApi.updateScene({
             appState: state,
@@ -109,6 +131,9 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         const state = excalidrawApi.getAppState();
         const elements = excalidrawApi.getSceneElements();
 
+        const selected = first(ElementUtil.getSelectedElements(state, elements));
+        if (!selected) return;
+
         const arrow = ElementUtil.getElementById(elements, arrowId);
         if (!arrow) return;
 
@@ -137,24 +162,23 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
 
                 helpers.addArrowBindings(element, {
                     endId: suggestedEndBinding?.id,
+                    startId: selected.id,
                 });
 
                 return element;
             }
         );
 
-        const stateAfterMouseDown = StateUtil.updateState(state, draft => {
+        UpdateElementUtil.mutateElement(selected, (element, helpers) => {
+            helpers.addBoundElements(element, [{ id: finalArrow.id, type: "arrow" }]);
+        });
+
+        const stateAfterMouseDown = StateUtil.updateState(state, (draft, helpers) => {
             draft.draggingElement = null;
             draft.editingElement = null;
-            draft.activeTool = {
-                type: "selection",
-                customType: null,
-                locked: false,
-                lastActiveTool: null,
-            };
             draft.cursorButton = "up";
-            draft.suggestedBindings = [];
-
+            helpers.setActiveTool(draft, "selection");
+            helpers.clearBindings(draft);
             return draft;
         });
 
@@ -198,6 +222,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
 
     const getOnMouseEnter = (position: ArrowKey) => () => {
         if (!excalidrawApi) return;
+        setDirection(position);
         const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
             position,
             excalidrawApi,

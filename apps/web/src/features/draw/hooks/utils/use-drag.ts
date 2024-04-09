@@ -9,6 +9,7 @@ type Props = {
     onDragStart?: (position: DragPosition) => void;
     onDrag?: (position: DragPosition) => void;
     onDragEnd?: (position: DragPosition) => void;
+    relativeToStart?: boolean;
 };
 
 export const useDrag = (props?: Props) => {
@@ -23,6 +24,7 @@ export const useDrag = (props?: Props) => {
                 x: e.clientX - startPosition.x,
                 y: e.clientY - startPosition.y,
             };
+
             setDragPosition(newDragPosition);
             onDrag?.(newDragPosition);
         }
