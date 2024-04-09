@@ -1,6 +1,6 @@
 import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-utils";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { isDefined, produce, randomString } from "@banjoanton/utils";
+import { Maybe, isDefined, produce, randomString } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElement, ExcalidrawElements } from "common";
 
@@ -21,6 +21,10 @@ const getLockedElementIds = (state: AppState) => {
         : [];
 
     return editingElementsId;
+};
+
+const getElementById = (elements: ExcalidrawElements, id: Maybe<string>) => {
+    return elements.find(element => element.id === id);
 };
 
 const getElementsByIds = (elements: ExcalidrawElements, ids: string[]) => {
@@ -137,4 +141,5 @@ export const ElementUtil = {
     removeShadowElementsById,
     removeShadowElementsByType,
     getShadowElements,
+    getElementById,
 };

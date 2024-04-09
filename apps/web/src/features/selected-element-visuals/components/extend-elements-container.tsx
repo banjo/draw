@@ -1,14 +1,21 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
+import { DragPosition, useDrag } from "@/features/draw/hooks/utils/use-drag";
+import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
+import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import {
     ElementExtensionShadow,
     ElementVisualUtils,
 } from "@/features/draw/utils/element-visual-utils";
+import { StateUtil } from "@/features/draw/utils/state-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { ExtendElementButton } from "@/features/selected-element-visuals/components/extend-element-button";
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
-import { Maybe } from "@banjoanton/utils";
+import { Maybe, first } from "@banjoanton/utils";
+import { ExcalidrawBindableElement } from "@excalidraw/excalidraw/types/element/types";
+import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { ExcalidrawLinearElement } from "common";
 import {
     ArrowDownCircle,
     ArrowLeftCircle,
@@ -32,6 +39,139 @@ const iconMap: Record<ArrowKey, LucideIcon> = {
 export const ExtendElementsContainer = ({ refs }: Props) => {
     const { excalidrawApi } = useGlobal();
     const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
+    const [arrowId, setArrowId] = useState<string | undefined>(undefined);
+
+    const onDragStart = (pos: DragPosition) => {
+        if (!excalidrawApi) return;
+
+        const state = excalidrawApi.getAppState();
+
+        const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
+        const arrow = ElementCreationUtil.createArrow({
+            points: [
+                [0, 0],
+                [0, 0],
+            ],
+            x: x,
+            y: y,
+        });
+
+        StateUtil.mutateState(state, (draft, helpers) => {
+            helpers.dragElement(draft, arrow);
+            draft.cursorButton = "down";
+            helpers.setActiveTool(draft, "arrow");
+            helpers.arrowActiveToolDefaultSettings(draft);
+        });
+
+        let elements = excalidrawApi.getSceneElements();
+
+        if (shadowElements) {
+            elements = ElementUtil.removeShadowElementsByType(elements);
+        }
+
+        excalidrawApi.updateScene({
+            appState: state,
+            elements: [...elements, arrow],
+        });
+
+        setArrowId(arrow.id);
+    };
+
+    const onDrag = (pos: DragPosition) => {
+        if (!excalidrawApi || !arrowId) return;
+
+        const state = excalidrawApi.getAppState();
+        const elements = excalidrawApi.getSceneElements();
+
+        const arrow = ElementUtil.getElementById(elements, arrowId);
+        if (!arrow) return;
+
+        const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
+
+        const updatedArrow = UpdateElementUtil.updateElement(arrow, (element, helpers) => {
+            const arrow = element as Mutable<ExcalidrawLinearElement>;
+            arrow.points = [
+                [0, 0],
+                [x, y],
+            ];
+            return arrow;
+        });
+
+        const updatedElements = ElementUtil.mergeElements(elements, [updatedArrow]);
+        excalidrawApi.updateScene({
+            elements: updatedElements,
+        });
+    };
+
+    const onDragEnd = ({ x, y }: DragPosition) => {
+        if (!excalidrawApi || !arrowId) return;
+
+        const state = excalidrawApi.getAppState();
+        const elements = excalidrawApi.getSceneElements();
+
+        const arrow = ElementUtil.getElementById(elements, arrowId);
+        if (!arrow) return;
+
+        const suggestedEndBinding = first(
+            state.suggestedBindings
+        ) as Maybe<ExcalidrawBindableElement>;
+        const suggestedEndElement = ElementUtil.getElementById(elements, suggestedEndBinding?.id);
+
+        if (suggestedEndElement) {
+            UpdateElementUtil.mutateElement(suggestedEndElement, (element, helpers) => {
+                helpers.addBoundElements(element, [{ id: arrow.id, type: "arrow" }]);
+            });
+        }
+
+        const finalArrow = ElementCreationUtil.createArrow(
+            {
+                points: [
+                    [0, 0],
+                    [x, y],
+                ],
+                x: arrow.x,
+                y: arrow.y,
+            },
+            (element, helpers) => {
+                element.id = arrow.id;
+
+                helpers.addArrowBindings(element, {
+                    endId: suggestedEndBinding?.id,
+                });
+
+                return element;
+            }
+        );
+
+        const stateAfterMouseDown = StateUtil.updateState(state, draft => {
+            draft.draggingElement = null;
+            draft.editingElement = null;
+            draft.activeTool = {
+                type: "selection",
+                customType: null,
+                locked: false,
+                lastActiveTool: null,
+            };
+            draft.cursorButton = "up";
+            draft.suggestedBindings = [];
+
+            return draft;
+        });
+
+        const mergedElements = ElementUtil.mergeElements(elements, [finalArrow]);
+        const { updatedState } = ElementUtil.createNewElementSelection(
+            [finalArrow],
+            stateAfterMouseDown
+        );
+
+        excalidrawApi.updateScene({
+            appState: updatedState,
+            elements: mergedElements,
+            commitToHistory: true,
+        });
+    };
+
+    const drag = useDrag({ onDrag, onDragStart, onDragEnd });
 
     const onMouseLeave = () => {
         if (!excalidrawApi) return;
@@ -93,6 +233,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
                     onMouseLeave={onMouseLeave}
                     onMouseEnter={getOnMouseEnter(position)}
                     onClick={getOnClick(position)}
+                    drag={drag}
                 />
             ))}
         </>

@@ -202,6 +202,18 @@ const getElementWindowPosition = (element: ExcalidrawElement, state: AppState) =
     };
 };
 
+const getScenePositionFromWindowPosition = (
+    position: ElementBasicPosition,
+    state: AppState
+): ElementBasicPosition => {
+    const { scrollX, scrollY, zoom } = state;
+
+    const x = position.x / zoom.value - scrollX;
+    const y = position.y / zoom.value - scrollY;
+
+    return ElementBasicPosition.from({ x, y });
+};
+
 export const ElementPositionUtil = {
     getPositionFromElements,
     getPositionFromElement,
@@ -210,4 +222,5 @@ export const ElementPositionUtil = {
     getAddedElementOptions,
     reverseStep,
     getElementWindowPosition,
+    getScenePositionFromWindowPosition,
 };

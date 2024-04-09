@@ -1,3 +1,4 @@
+import { UseDragReturnProps } from "@/features/draw/hooks/utils/use-drag";
 import { Callback } from "@banjoanton/utils";
 import { LucideIcon } from "lucide-react";
 import { cn } from "ui";
@@ -8,6 +9,7 @@ type Props = {
     onMouseEnter?: Callback;
     onMouseLeave?: Callback;
     onClick?: Callback;
+    drag?: UseDragReturnProps;
 };
 
 export const ExtendElementButton = ({
@@ -16,11 +18,13 @@ export const ExtendElementButton = ({
     onClick,
     onMouseEnter,
     onMouseLeave,
+    drag,
 }: Props) => {
     return (
         <div
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
+            onMouseDown={drag?.onMouseDown}
             onClick={onClick}
             ref={customRef}
             className={cn(
