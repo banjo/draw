@@ -1,3 +1,4 @@
+import { useGlobal } from "@/contexts/global-context";
 import { Maybe, debounce } from "@banjoanton/utils";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { ExcalidrawElements } from "common";
@@ -10,6 +11,7 @@ type In = {
 const localStorageKey = `drawing-base`;
 
 export const useElementsState = ({ slug }: In) => {
+    const { excalidrawApi } = useGlobal();
     const [localStorageElements, setLocalStorageElements] = useLocalStorage<ExcalidrawElements>(
         localStorageKey,
         []
@@ -31,6 +33,11 @@ export const useElementsState = ({ slug }: In) => {
         if (slug) return;
         setLocalStorageElements(elements);
     }, [elements, slug]);
+
+    useEffect(() => {
+        if (!excalidrawApi) return;
+        excalidrawApi.scrollToContent();
+    }, [slug, excalidrawApi]);
 
     return {
         elements,
