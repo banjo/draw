@@ -9,7 +9,7 @@ type Props = {
     onDragStart?: (position: DragPosition) => void;
     onDrag?: (position: DragPosition) => void;
     onDragEnd?: (position: DragPosition) => void;
-    relativeToStart?: boolean;
+    relativeToStart: boolean;
 };
 
 export const useDrag = (props?: Props) => {
@@ -20,10 +20,15 @@ export const useDrag = (props?: Props) => {
 
     const handleMouseMove = (e: React.MouseEvent | MouseEvent) => {
         if (isDragging) {
-            const newDragPosition = {
-                x: e.clientX - startPosition.x,
-                y: e.clientY - startPosition.y,
-            };
+            const newDragPosition: DragPosition = props?.relativeToStart
+                ? {
+                      x: e.clientX - startPosition.x,
+                      y: e.clientY - startPosition.y,
+                  }
+                : {
+                      x: e.clientX,
+                      y: e.clientY,
+                  };
 
             setDragPosition(newDragPosition);
             onDrag?.(newDragPosition);
@@ -33,10 +38,15 @@ export const useDrag = (props?: Props) => {
     const handleMouseUp = (e: React.MouseEvent | MouseEvent) => {
         setIsDragging(false);
 
-        const newDragPosition = {
-            x: e.clientX - startPosition.x,
-            y: e.clientY - startPosition.y,
-        };
+        const newDragPosition = props?.relativeToStart
+            ? {
+                  x: e.clientX - startPosition.x,
+                  y: e.clientY - startPosition.y,
+              }
+            : {
+                  x: e.clientX,
+                  y: e.clientY,
+              };
         onDragEnd?.(newDragPosition);
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);

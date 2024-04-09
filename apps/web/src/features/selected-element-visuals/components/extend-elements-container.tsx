@@ -55,13 +55,10 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         const selected = first(ElementUtil.getSelectedElements(state, elements));
         if (!selected || !direction) return;
 
-        // TODO: use this for arrow creation
         const arrowPosition = ElementPositionUtil.getArrowOptionsFromSourceElement(
             direction,
             selected
         );
-
-        const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
 
         const arrow = ElementCreationUtil.createArrow(
             {
@@ -69,8 +66,8 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
                     [0, 0],
                     [0, 0],
                 ],
-                x,
-                y,
+                x: arrowPosition.startX,
+                y: arrowPosition.startY,
             },
             (element, helpers) => {
                 helpers.addArrowBindings(element, {
@@ -114,7 +111,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             const arrow = element as Mutable<ExcalidrawLinearElement>;
             arrow.points = [
                 [0, 0],
-                [x, y],
+                [x - arrow.x, y - arrow.y],
             ];
             return arrow;
         });
@@ -125,7 +122,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         });
     };
 
-    const onDragEnd = ({ x, y }: DragPosition) => {
+    const onDragEnd = (pos: DragPosition) => {
         if (!excalidrawApi || !arrowId) return;
 
         const state = excalidrawApi.getAppState();
@@ -148,11 +145,13 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             });
         }
 
+        const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
+
         const finalArrow = ElementCreationUtil.createArrow(
             {
                 points: [
                     [0, 0],
-                    [x, y],
+                    [x - arrow.x, y - arrow.y],
                 ],
                 x: arrow.x,
                 y: arrow.y,
@@ -195,7 +194,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         });
     };
 
-    const drag = useDrag({ onDrag, onDragStart, onDragEnd });
+    const drag = useDrag({ onDrag, onDragStart, onDragEnd, relativeToStart: false });
 
     const onMouseLeave = () => {
         if (!excalidrawApi) return;
