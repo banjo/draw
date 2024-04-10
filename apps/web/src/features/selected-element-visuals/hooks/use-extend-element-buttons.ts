@@ -1,6 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { getExtendElementHandler } from "@/features/selected-element-visuals/models/extend-element-map";
 import { ExcalidrawElement } from "common";
 import { useRef, useState } from "react";
@@ -24,6 +25,9 @@ export const useExtendElementsButtons = () => {
 
     const applyPosition = (selectedElement: ExcalidrawElement) => {
         if (!excalidrawApi) return;
+        const isLinearElement = ExcalidrawUtil.isLinearElement(selectedElement);
+        if (isLinearElement) return;
+
         const appState = excalidrawApi.getAppState();
         const { width, height } = ElementPositionUtil.getPositionFromElement(selectedElement);
         const { x, y } = ElementPositionUtil.getElementWindowPosition(selectedElement, appState);
