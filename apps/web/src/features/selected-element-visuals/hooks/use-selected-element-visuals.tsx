@@ -2,6 +2,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { OnChangeCallback } from "@/features/draw/draw";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { ChangeElementDialog } from "@/features/selected-element-visuals/components/change-element-dialog";
 import { ExtendElementsContainer } from "@/features/selected-element-visuals/components/extend-elements-container";
 import { SelectElementDialog } from "@/features/selected-element-visuals/components/select-element-dialog";
@@ -55,6 +56,11 @@ export const useSelectedElementVisuals = () => {
         const selectedElement = first(selected);
 
         if (!selectedElement) {
+            hideAllElements();
+            return;
+        }
+
+        if (ExcalidrawUtil.isLinearElement(selectedElement)) {
             hideAllElements();
             return;
         }
