@@ -14,8 +14,7 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
     const elements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
 
-    const selectedIds = ElementUtil.getSelectedElementIds(state);
-    const selectedElements = elements.filter(element => selectedIds.includes(element.id));
+    const selectedElements = ElementUtil.getSelectedElements(state, elements);
 
     const copiedElements = selectedElements.map(element => {
         const cloned = clone(element);
