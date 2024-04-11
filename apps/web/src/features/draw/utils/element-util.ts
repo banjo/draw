@@ -2,7 +2,7 @@ import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-uti
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Maybe, isDefined, produce, randomString } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawElement, ExcalidrawElements } from "common";
+import { ExcalidrawElement, ExcalidrawElements, ExcalidrawLinearElement } from "common";
 
 const getSelectedElementIds = (state: AppState) => Object.keys(state.selectedElementIds);
 
@@ -110,6 +110,42 @@ const createNewElementSelection = (renderedElements: ExcalidrawElements, state: 
     return { updatedState };
 };
 
+const createNewLinearElementSelection = (
+    linearElement: ExcalidrawLinearElement,
+    state: AppState
+) => {
+    const baseSelection = createNewElementSelection([linearElement], state);
+
+    const updatedState = produce(baseSelection.updatedState, draft => {
+        draft.selectedLinearElement = {
+            elementId: linearElement.id as any,
+            selectedPointsIndices: null,
+            lastUncommittedPoint: null,
+            isDragging: false,
+            pointerOffset: {
+                x: 0,
+                y: 0,
+            },
+            startBindingElement: "keep",
+            endBindingElement: "keep",
+            pointerDownState: {
+                prevSelectedPointsIndices: null,
+                lastClickedPoint: -1,
+                origin: null,
+                segmentMidpoint: {
+                    value: null,
+                    index: null,
+                    added: false,
+                },
+            },
+            hoverPointIndex: -1,
+            segmentMidPointHoveredCoords: null,
+        };
+    });
+
+    return { updatedState };
+};
+
 /**
  * Merge new elements into the existing elements, replacing the existing elements with the same id.
  */
@@ -155,4 +191,5 @@ export const ElementUtil = {
     removeShadowElementsByType,
     getShadowElements,
     getElementById,
+    createNewLinearElementSelection,
 };

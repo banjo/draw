@@ -1,6 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { DragPosition, useDrag } from "@/features/draw/hooks/utils/use-drag";
+import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -182,8 +183,9 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         });
 
         const mergedElements = ElementUtil.mergeElements(elements, [finalArrow]);
-        const { updatedState } = ElementUtil.createNewElementSelection(
-            [finalArrow],
+
+        const { updatedState } = ElementUtil.createNewLinearElementSelection(
+            finalArrow,
             stateAfterMouseDown
         );
 
@@ -192,6 +194,8 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             elements: mergedElements,
             commitToHistory: true,
         });
+
+        DrawingUtil.focusCanvas();
     };
 
     const drag = useDrag({ onDrag, onDragStart, onDragEnd, relativeToStart: false });
