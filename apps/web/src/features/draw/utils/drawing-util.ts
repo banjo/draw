@@ -1,7 +1,7 @@
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { isEqual } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawApi, ExcalidrawElements } from "common";
+import { ElementMeasurement, ExcalidrawApi, ExcalidrawElements } from "common";
 
 type ApplyLocalDrawingChangesProps = {
     newElements: ExcalidrawElements;
@@ -118,9 +118,17 @@ const focusCanvas = () => {
     }
 };
 
+const isElementTooSmall = (element: ElementMeasurement, zoomLevel: number, min: number) => {
+    const adjustedWidth = element.width * zoomLevel;
+    const adjustedHeight = element.height * zoomLevel;
+
+    return adjustedWidth < min || adjustedHeight < min;
+};
+
 export const DrawingUtil = {
     getChangesWithLockedElements,
     prepareCollaborationChanges,
     isOnlyMouseChange,
     focusCanvas,
+    isElementTooSmall,
 };

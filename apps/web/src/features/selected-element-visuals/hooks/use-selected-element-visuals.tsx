@@ -11,6 +11,9 @@ import { useExtendElementsButtons } from "@/features/selected-element-visuals/ho
 import { useSelectElementDialog } from "@/features/selected-element-visuals/hooks/use-select-element-dialog";
 import { useChangeElementStore } from "@/stores/use-change-element-store";
 import { first } from "@banjoanton/utils";
+import { ElementMeasurement } from "common";
+
+const MIN_ELEMENT_VISUAL_SIZE = 40;
 
 export const useSelectedElementVisuals = () => {
     const { excalidrawApi } = useGlobal();
@@ -61,6 +64,22 @@ export const useSelectedElementVisuals = () => {
         }
 
         if (ExcalidrawUtil.isLinearElement(selectedElement)) {
+            hideAllElements();
+            return;
+        }
+
+        const elementMeasurements = ElementMeasurement.from({
+            height: selectedElement.height,
+            width: selectedElement.width,
+        });
+
+        const elementIsTooSmall = DrawingUtil.isElementTooSmall(
+            elementMeasurements,
+            appState.zoom.value,
+            MIN_ELEMENT_VISUAL_SIZE
+        );
+
+        if (elementIsTooSmall) {
             hideAllElements();
             return;
         }
