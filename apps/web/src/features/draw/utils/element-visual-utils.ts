@@ -29,12 +29,19 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
         newElement: ExcalidrawElement;
     };
     const handledBoundElements: HandledBoundElements[] = [];
+
+    type GroupIds = {
+        oldId: string;
+        newId: string;
+    };
+    const groupedIds: GroupIds[] = [];
+
     const copiedElements = selectedElements.map(element => {
         const boundElementsIds = element.boundElements?.map(bound => bound.id) ?? [];
         const boundTextElements = ElementUtil.getElementsByIds(elements, boundElementsIds).filter(
             e => e.type === "text"
         );
-
+        const currentGroupIds = element.groupIds;
         const cloned = clone(element);
         const updatedMainElement = ElementUtil.resetElement(cloned);
 
@@ -59,6 +66,19 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
                 draft,
                 updatedBoundElements.map(e => ({ id: e.id, type: e.type }))
             );
+
+            currentGroupIds.forEach(groupId => {
+                const alreadyExists = groupedIds.find(g => g.oldId === groupId);
+
+                if (alreadyExists) {
+                    draft.groupIds = [...draft.groupIds, alreadyExists.newId];
+                    return;
+                }
+
+                const newGroupId = ElementUtil.createElementId();
+                groupedIds.push({ oldId: groupId, newId: newGroupId });
+                draft.groupIds = [...draft.groupIds, newGroupId];
+            });
         });
 
         return updatedMainElement;

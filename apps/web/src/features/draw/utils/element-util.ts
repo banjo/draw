@@ -86,10 +86,19 @@ const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppS
 
 const createNewElementSelection = (renderedElements: ExcalidrawElements, state: AppState) => {
     const ids = renderedElements.map(element => element.id);
+    const groups = renderedElements.map(element => element.groupIds).flat();
 
     const updatedState = produce(state, draft => {
         // @ts-ignore
         draft.selectedElementIds = ids.reduce(
+            (acc, id) => {
+                acc[id] = true;
+                return acc;
+            },
+            {} as Record<string, boolean>
+        );
+
+        draft.selectedGroupIds = groups.reduce(
             (acc, id) => {
                 acc[id] = true;
                 return acc;
