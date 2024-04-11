@@ -8,6 +8,7 @@ import {
     ExcalidrawElements,
     ExcalidrawImageElement,
     ExcalidrawLinearElement,
+    ExcalidrawTextElement,
 } from "common";
 
 const getCommonBounds = (elements: ExcalidrawElements) => {
@@ -19,6 +20,9 @@ const isLinearElement = (element: Maybe<ExcalidrawElement>): element is Excalidr
 
 const isImageElement = (element: Maybe<ExcalidrawElement>): element is ExcalidrawImageElement =>
     element?.type === "image";
+
+const isTextElement = (element: Maybe<ExcalidrawElement>): element is ExcalidrawTextElement =>
+    element?.type === "text";
 
 const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     arrow: "rectangle", // wont happen
@@ -71,6 +75,7 @@ export const ExcalidrawUtil = {
     getCommonBounds,
     isLinearElement,
     isImageElement,
+    isTextElement,
     getElementTypeFromCustomType,
     createCustomNativeElement,
 };

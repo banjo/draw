@@ -42,6 +42,9 @@ const removeElements = (elements: ExcalidrawElements, ids: string[]) => {
 const idDictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
 const createElementId = () => randomString(21, idDictionary);
 
+/**
+ * Reset element by mutation, creating a new id and setting version to 0.
+ */
 const resetElement = (element: ExcalidrawElement): ExcalidrawElement => ({
     ...element,
     isDeleted: false,
@@ -49,6 +52,7 @@ const resetElement = (element: ExcalidrawElement): ExcalidrawElement => ({
     version: 0,
     versionNonce: 0,
     groupIds: [],
+    boundElements: [],
 });
 
 const resetElements = (elements: ExcalidrawElements) => elements.map(resetElement);

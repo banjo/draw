@@ -2,6 +2,7 @@ import {
     ExcalidrawElement as BaseExcalidrawElement,
     ExcalidrawImageElement as BaseExcalidrawImageElement,
     ExcalidrawLinearElement as BaseExcalidrawLinearElement,
+    ExcalidrawTextElement as BaseExcalidrawTextElement,
 } from "@excalidraw/excalidraw/types/element/types";
 import { CustomData } from "./excalidraw-custom-data";
 
@@ -16,6 +17,9 @@ export type ExcalidrawLinearElement = Omit<BaseExcalidrawLinearElement, "customD
     CustomElementData;
 
 export type ExcalidrawImageElement = Omit<BaseExcalidrawImageElement, "customData"> &
+    CustomElementData;
+
+export type ExcalidrawTextElement = Omit<BaseExcalidrawTextElement, "customData"> &
     CustomElementData;
 
 export type ExcalidrawElement = ExcalidrawElementWithoutCustomData & CustomElementData;

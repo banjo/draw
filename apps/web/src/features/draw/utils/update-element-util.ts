@@ -7,7 +7,7 @@ import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
 type BoundElement = {
     id: string;
-    type: "arrow";
+    type: "arrow" | "text";
 };
 
 const addBoundElements = (element: Mutable<ExcalidrawElement>, boundElements: BoundElement[]) => {

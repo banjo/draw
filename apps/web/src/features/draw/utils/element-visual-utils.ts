@@ -6,7 +6,14 @@ import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Maybe, clone, first } from "@banjoanton/utils";
-import { CustomData, CustomElementType, ElementMeasurement, ExcalidrawApi } from "common";
+import {
+    CustomData,
+    CustomElementType,
+    ElementMeasurement,
+    ExcalidrawApi,
+    ExcalidrawElement,
+    ExcalidrawTextElement,
+} from "common";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
@@ -16,21 +23,59 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
 
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
 
+    type HandledBoundElements = {
+        oldId: string;
+        newId: string;
+        newElement: ExcalidrawElement;
+    };
+    const handledBoundElements: HandledBoundElements[] = [];
     const copiedElements = selectedElements.map(element => {
+        const boundElementsIds = element.boundElements?.map(bound => bound.id) ?? [];
+        const boundTextElements = ElementUtil.getElementsByIds(elements, boundElementsIds).filter(
+            e => e.type === "text"
+        );
+
         const cloned = clone(element);
-        return ElementUtil.resetElement(cloned);
+        const updatedMainElement = ElementUtil.resetElement(cloned);
+
+        const updatedBoundElements = boundTextElements.map(boundElement => {
+            const cloned = clone(boundElement);
+            const updatedBoundElement = ElementUtil.resetElement(cloned) as ExcalidrawTextElement;
+
+            UpdateElementUtil.mutateElement(updatedBoundElement, (draft, helpers) => {
+                draft.containerId = updatedMainElement.id;
+            });
+
+            handledBoundElements.push({
+                oldId: boundElement.id,
+                newId: updatedBoundElement.id,
+                newElement: updatedBoundElement,
+            });
+            return updatedBoundElement;
+        });
+
+        UpdateElementUtil.mutateElement(updatedMainElement, (draft, helpers) => {
+            helpers.addBoundElements(
+                draft,
+                updatedBoundElements.map(e => ({ id: e.id, type: e.type }))
+            );
+        });
+
+        return updatedMainElement;
     });
 
-    // TODO: maybe not element group by default? Or maybe do?
-    const { updatedState } = ElementUtil.createNewElementGroup(copiedElements, state);
+    const allNewElements = [...copiedElements, ...handledBoundElements.map(e => e.newElement)];
 
-    UpdateElementUtil.mutateElements(copiedElements, element => {
+    UpdateElementUtil.mutateElements(allNewElements, element => {
         element.x += 50;
         element.y += 50;
     });
 
+    // do not include bound elements in the selection
+    const { updatedState } = ElementUtil.createNewElementSelection(copiedElements, state);
+
     excalidrawApi.updateScene({
-        elements: [...elements, ...copiedElements],
+        elements: [...elements, ...allNewElements],
         commitToHistory: true,
         appState: updatedState,
     });
