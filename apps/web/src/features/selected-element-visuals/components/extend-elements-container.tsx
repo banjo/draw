@@ -13,7 +13,8 @@ import { StateUtil } from "@/features/draw/utils/state-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { ExtendElementButton } from "@/features/selected-element-visuals/components/extend-element-button";
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
-import { Maybe, first } from "@banjoanton/utils";
+import { logger } from "@/utils/logger";
+import { Maybe, first, isDefined } from "@banjoanton/utils";
 import { ExcalidrawBindableElement } from "@excalidraw/excalidraw/types/element/types";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
 import { ExcalidrawLinearElement } from "common";
@@ -45,6 +46,11 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
 
     const onDragStart = (pos: DragPosition) => {
         if (!excalidrawApi) return;
+
+        if (isDefined(arrowId)) {
+            logger.error("Arrow id should be undefined");
+            return;
+        }
 
         const state = excalidrawApi.getAppState();
         let elements = excalidrawApi.getSceneElements();
@@ -116,6 +122,8 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             ];
             return arrow;
         });
+
+        console.log({ updatedArrow });
 
         const updatedElements = ElementUtil.mergeElements(elements, [updatedArrow]);
         excalidrawApi.updateScene({
@@ -198,6 +206,20 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         DrawingUtil.focusCanvas();
     };
 
+    const getOnClick = (position: ArrowKey) => () => {
+        if (!excalidrawApi) return;
+
+        const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
+            position,
+            excalidrawApi,
+            shadowElements,
+            false
+        );
+
+        if (!newActiveElements) return;
+        ElementVisualUtils.createElementExtensionFromShadow(newActiveElements, excalidrawApi);
+    };
+
     const drag = useDrag({ onDrag, onDragStart, onDragEnd, relativeToStart: false });
 
     const onMouseLeave = () => {
@@ -235,20 +257,6 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         if (newActiveElements) {
             setShadowElements(newActiveElements);
         }
-    };
-
-    const getOnClick = (position: ArrowKey) => () => {
-        if (!excalidrawApi) return;
-
-        const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
-            position,
-            excalidrawApi,
-            shadowElements,
-            false
-        );
-
-        if (!newActiveElements) return;
-        ElementVisualUtils.createElementExtensionFromShadow(newActiveElements, excalidrawApi);
     };
 
     return (
