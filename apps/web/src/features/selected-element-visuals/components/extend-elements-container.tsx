@@ -123,8 +123,6 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             return arrow;
         });
 
-        console.log({ updatedArrow });
-
         const updatedElements = ElementUtil.mergeElements(elements, [updatedArrow]);
         excalidrawApi.updateScene({
             elements: updatedElements,
