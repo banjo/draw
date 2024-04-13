@@ -26,6 +26,7 @@ const isTextElement = (element: Maybe<ExcalidrawElement>): element is Excalidraw
 
 const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     arrow: "rectangle", // wont happen
+    image: "rectangle", // wont happen
     codeblock: "rectangle",
     diamond: "diamond",
     ellipse: "ellipse",
