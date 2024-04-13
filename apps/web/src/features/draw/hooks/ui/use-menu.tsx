@@ -1,12 +1,20 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useGlobal } from "@/contexts/global-context";
 import { SaveDrawing } from "@/features/draw/hooks/base/use-drawing";
+import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
+import { FileUtil } from "@/features/draw/utils/file-util";
+import { StateUtil } from "@/features/draw/utils/state-util";
+import { CODE_ELEMENT_CLASS } from "@/features/selected-element-visuals/components/code-editor";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { copyToClipboard } from "@/utils/clipboard";
-import { Maybe, wrapAsync } from "@banjoanton/utils";
-import { MainMenu } from "@excalidraw/excalidraw";
-import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
+import { logger } from "@/utils/logger";
+import { Maybe, raise, toIsoDateString, wrapAsync } from "@banjoanton/utils";
+import { MainMenu, exportToCanvas } from "@excalidraw/excalidraw";
+import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawElement } from "common";
+import html2canvas from "html2canvas";
+import { BrushIcon, CopyIcon, FileDown, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -99,6 +107,84 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
         window.location.href = "/";
     };
 
+    const saveToImage = async () => {
+        if (!excalidrawApi) return;
+
+        const codeHtmlElements = [
+            ...document.querySelectorAll(`.${CODE_ELEMENT_CLASS}`),
+        ] as HTMLElement[];
+
+        const codeExcalidrawElements = excalidrawApi
+            .getSceneElements()
+            .filter(e => e.customData?.type === "codeblock");
+
+        if (codeExcalidrawElements.length !== codeHtmlElements.length) {
+            logger.error("Code elements mismatch");
+        }
+
+        type CustomElementImageData = {
+            data: string;
+            mimeType: string;
+            element: ExcalidrawElement;
+            binaryFileData: BinaryFileData;
+            htmlElement: HTMLElement;
+        };
+
+        const customElements: CustomElementImageData[] = await Promise.all(
+            codeHtmlElements.map(async htmlElement => {
+                const canvas = await html2canvas(htmlElement, {
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: null,
+                    scale: 3,
+                });
+
+                const mimeType = "image/png";
+                const data = canvas.toDataURL(mimeType, 1);
+                const elementId = htmlElement.dataset.elementId ?? raise("Element id not found");
+                const element =
+                    codeExcalidrawElements.find(e => e.id === elementId) ??
+                    raise("Element not found");
+
+                const binaryFileData = FileUtil.createImageFile({ data, mimeType });
+                return { data, element, mimeType, binaryFileData, htmlElement };
+            })
+        );
+
+        const newImageElements = customElements.map(({ element, binaryFileData }) => {
+            return ElementCreationUtil.createImage({
+                base: {
+                    height: element.height,
+                    width: element.width,
+                    x: element.x,
+                    y: element.y,
+                },
+                fileId: binaryFileData.id,
+            });
+        });
+
+        const currentElements = excalidrawApi.getSceneElements();
+
+        const state = StateUtil.updateState(excalidrawApi.getAppState(), draft => {
+            draft.exportWithDarkMode = false;
+            draft.exportBackground = true;
+            return draft;
+        });
+
+        excalidrawApi.addFiles(customElements.map(e => e.binaryFileData));
+
+        const canvas = await exportToCanvas({
+            // @ts-ignore - wrong with local types
+            elements: [...currentElements, ...newImageElements],
+            files: excalidrawApi.getFiles(),
+            appState: state,
+            exportPadding: 5,
+        });
+
+        const fileName = `banjodraw-${toIsoDateString(new Date())}.png`;
+        FileUtil.downloadImage(canvas.toDataURL("image/png"), fileName);
+    };
+
     const renderMenu = () => {
         return (
             <MainMenu>
@@ -176,8 +262,11 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                     </>
                 )}
 
-                <MainMenu.DefaultItems.SaveAsImage />
-                <MainMenu.DefaultItems.Export />
+                {/* TODO: USE ImageDown WHEN IT WORKS  */}
+                <MainMenu.Item onSelect={saveToImage} icon={<ResponsiveIcon Icon={FileDown} />}>
+                    Export image as PNG
+                </MainMenu.Item>
+
                 <MainMenu.Separator />
                 <MainMenu.DefaultItems.Help />
             </MainMenu>

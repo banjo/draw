@@ -6,8 +6,15 @@ import { IPoint } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { DEFAULT_CODE_EDITOR_LANGUAGE } from "@/features/selected-element-visuals/models/code-editor-langauges";
+import { FileId } from "@excalidraw/excalidraw/types/element/types";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
-import { CustomData, CustomElementType, ExcalidrawElement, ExcalidrawLinearElement } from "common";
+import {
+    CustomData,
+    CustomElementType,
+    ExcalidrawElement,
+    ExcalidrawImageElement,
+    ExcalidrawLinearElement,
+} from "common";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
     convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
@@ -135,6 +142,42 @@ const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElement
     });
 };
 
+type CreateImageElementProps = {
+    base: ElementBase;
+    fileId: string;
+    props?: Partial<ExcalidrawImageElement>;
+    callback?: UpdateCallback<ExcalidrawImageElement>;
+};
+const createImage = ({
+    base,
+    fileId,
+    callback,
+}: CreateImageElementProps): ExcalidrawImageElement => {
+    const customData = CustomData.createDefault({ shadow: false, type: "image" });
+
+    const image: ExcalidrawElementSkeleton = {
+        type: "image",
+        x: base.x,
+        y: base.y,
+        customData,
+        width: base.width,
+        height: base.height,
+        fileId: fileId as FileId,
+    };
+
+    const createdElement = createElementFromSkeleton(image);
+
+    if (!ExcalidrawUtil.isImageElement(createdElement)) {
+        throw new Error("Something wrong when creating image");
+    }
+
+    if (callback) {
+        return UpdateElementUtil.updateElement(createdElement, callback);
+    }
+
+    return createdElement;
+};
+
 export const ElementCreationUtil = {
     createArrow,
     createElement,
@@ -142,4 +185,5 @@ export const ElementCreationUtil = {
     createElementsFromSkeleton,
     createElementFromElement,
     createCodeBlock,
+    createImage,
 };

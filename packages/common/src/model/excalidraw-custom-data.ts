@@ -1,6 +1,12 @@
 import { defaults, Maybe } from "@banjoanton/utils";
 
-export type CustomElementType = "rectangle" | "ellipse" | "diamond" | "arrow" | "codeblock";
+export type CustomElementType =
+    | "rectangle"
+    | "ellipse"
+    | "diamond"
+    | "arrow"
+    | "codeblock"
+    | "image";
 
 type BaseCustomData = {
     /**

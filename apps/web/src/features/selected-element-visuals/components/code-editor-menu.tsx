@@ -36,7 +36,9 @@ const CodeEditorMenu = ({ element }: Props) => {
     };
 
     return (
-        <div className="absolute z-[3] pointer-events-auto h-full bg-[#ECECF4] rounded-lg flex items-center gap-4">
+        <div
+            className={`absolute z-[3] pointer-events-auto h-full bg-[#ECECF4] rounded-lg flex items-center gap-4`}
+        >
             <select
                 value={selected}
                 className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"

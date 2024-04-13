@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { CUSTOM_ELEMENT_CLASS } from "@/features/draw/models/constants";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
@@ -11,6 +12,8 @@ import { CustomData, CustomDataCodeblock } from "common";
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
 import { useEffect, useRef } from "react";
 import "./code-editor.css";
+
+export const CODE_ELEMENT_CLASS = "code-element";
 
 export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const { excalidrawApi } = useGlobal();
@@ -72,7 +75,8 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
 
     return (
         <div
-            className="absolute z-[3] rounded-lg cursor-move overflow-hidden"
+            className={`absolute z-[3] rounded-lg cursor-move overflow-hidden ${CODE_ELEMENT_CLASS} ${CUSTOM_ELEMENT_CLASS}`}
+            data-element-id={element.id}
             style={style}
             ref={containerRef}
             onKeyDown={handleKeyDown}

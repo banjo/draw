@@ -1,9 +1,9 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
+import { FileUtil } from "@/features/draw/utils/file-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { wrapAsync } from "@banjoanton/utils";
-import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElements } from "common";
 import { useEffect, useState } from "react";
 
@@ -32,12 +32,13 @@ export const useImages = ({ elements }: In) => {
             return;
         }
 
-        const files: BinaryFileData[] = images.map(image => ({
-            id: image.imageId as any,
-            dataURL: image.data as any,
-            mimeType: image.mimeType as any,
-            created: new Date().getMilliseconds(),
-        }));
+        const files = FileUtil.createImageFiles(
+            images.map(image => ({
+                data: image.data,
+                mimeType: image.mimeType,
+                id: image.id,
+            }))
+        );
 
         excalidrawApi.addFiles(files);
     };
