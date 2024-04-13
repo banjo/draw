@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { useContextMenu } from "@/features/draw/hooks/base/use-context-menu";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
 import { useHistory } from "@/features/draw/hooks/base/use-history";
@@ -67,6 +68,8 @@ export const Draw = ({ slug }: DrawProps) => {
         handleChangeElementDialogClick,
     });
 
+    const { onContextMenu } = useContextMenu();
+
     const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
         if (!excalidrawApi) return;
         const elements = excalidrawApi.getSceneElements(); // get elements from excalidraw api, changeElements is buggy
@@ -76,7 +79,12 @@ export const Draw = ({ slug }: DrawProps) => {
     };
 
     return (
-        <div style={{ height: "100dvh" }} onKeyDown={handleKeyDown} onKeyUp={handleKeyUp}>
+        <div
+            style={{ height: "100dvh" }}
+            onKeyDown={handleKeyDown}
+            onKeyUp={handleKeyUp}
+            onContextMenu={onContextMenu}
+        >
             {renderCodeBlocks()}
             {renderSelectedElementVisuals()}
             <Excalidraw

@@ -5,7 +5,11 @@ import { StateUtil } from "@/features/draw/utils/state-util";
 import { CODE_ELEMENT_CLASS } from "@/features/selected-element-visuals/components/code-editor";
 import { logger } from "@/utils/logger";
 import { toIsoDateString } from "@banjoanton/utils";
-import { exportToCanvas, exportToSvg as exportToSvgFunc } from "@excalidraw/excalidraw";
+import {
+    exportToCanvas,
+    exportToClipboard,
+    exportToSvg as exportToSvgFunc,
+} from "@excalidraw/excalidraw";
 import { ExcalidrawApi } from "common";
 
 const getCodeElements = (): HTMLElement[] => {
@@ -32,11 +36,11 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
     const newImageElements = customElements.map(CustomElementImageData.toExcalidrawImageElement);
 
     const currentElements = excalidrawApi.getSceneElements();
+    const appState = excalidrawApi.getAppState();
 
-    const state = StateUtil.updateState(excalidrawApi.getAppState(), draft => {
+    StateUtil.mutateState(appState, draft => {
         draft.exportWithDarkMode = false;
         draft.exportBackground = true;
-        return draft;
     });
 
     excalidrawApi.addFiles(customElements.map(e => e.binaryFileData));
@@ -44,13 +48,43 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
     return {
         elements: [...currentElements, ...newImageElements],
         files: excalidrawApi.getFiles(),
-        appState: state,
+        appState: appState,
         exportPadding: 5,
     };
 };
 
 export const useExport = () => {
     const { excalidrawApi } = useGlobal();
+
+    const exportPngToClipboard = async () => {
+        if (!excalidrawApi) return;
+
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
+
+        await exportToClipboard({
+            // @ts-ignore - wrong with local types
+            elements,
+            files,
+            appState,
+            type: "png",
+            quality: 1,
+        });
+    };
+
+    const exportSvgToClipboard = async () => {
+        if (!excalidrawApi) return;
+
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
+
+        await exportToClipboard({
+            // @ts-ignore - wrong with local types
+            elements,
+            files,
+            appState,
+            type: "svg",
+            quality: 1,
+        });
+    };
 
     const exportToPng = async () => {
         if (!excalidrawApi) return;
@@ -92,5 +126,5 @@ export const useExport = () => {
         FileUtil.downloadImage(url, fileName);
     };
 
-    return { exportToPng, exportToSvg };
+    return { exportToPng, exportToSvg, exportPngToClipboard, exportSvgToClipboard };
 };
