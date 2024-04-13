@@ -3,7 +3,7 @@ import { createLogger, Env } from "common";
 import "dotenv/config";
 import { app, PORT } from "./lib/http";
 
-const logger = createLogger("dev-server");
+const logger = createLogger("DevServer");
 const isProd = Env.server().NODE_ENV === "production";
 
 app.listen(PORT, () => {
