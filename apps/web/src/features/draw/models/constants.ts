@@ -1,6 +1,6 @@
 // ELEMENTS
-export const ELEMENT_HEIGHT = 100;
-export const ELEMENT_WIDTH = 200;
+export const MIN_ELEMENT_HEIGHT = 50;
+export const MIN_ELEMENT_WIDTH = 50;
 
 export const ELEMENT_GAP = 10;
 

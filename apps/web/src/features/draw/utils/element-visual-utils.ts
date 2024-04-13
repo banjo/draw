@@ -1,5 +1,5 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
-import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
+import { MIN_ELEMENT_HEIGHT, MIN_ELEMENT_WIDTH } from "@/features/draw/models/constants";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
@@ -151,8 +151,8 @@ const createElementExtensionShadow = (
     );
 
     const measurements = ElementMeasurement.from({
-        height: Math.max(sourceElement.height, ELEMENT_HEIGHT),
-        width: Math.max(sourceElement.width, ELEMENT_WIDTH),
+        height: Math.max(sourceElement.height, MIN_ELEMENT_HEIGHT),
+        width: Math.max(sourceElement.width, MIN_ELEMENT_WIDTH),
     });
 
     const { x, y } = ElementPositionUtil.getAddedElementOptions(
