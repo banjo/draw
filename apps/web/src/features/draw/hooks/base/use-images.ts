@@ -36,7 +36,7 @@ export const useImages = ({ elements }: In) => {
             images.map(image => ({
                 data: image.data,
                 mimeType: image.mimeType,
-                id: image.id,
+                id: image.imageId,
             }))
         );
 

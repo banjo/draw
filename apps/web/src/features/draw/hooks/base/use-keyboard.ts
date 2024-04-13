@@ -29,6 +29,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
 
         logger.debug(excalidrawApi.getSceneElements());
         logger.debug(excalidrawApi.getAppState());
+        logger.debug(excalidrawApi.getFiles());
 
         const state = excalidrawApi.getAppState();
 
