@@ -1,5 +1,6 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_HEIGHT, ELEMENT_WIDTH } from "@/features/draw/models/constants";
+import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -259,6 +260,8 @@ const createElementExtensionFromShadow = (
 
         return element;
     });
+
+    DrawingUtil.focusCanvas();
 
     const { updatedState } = ElementUtil.createNewElementSelection([updatedNewElement], state);
     const allElements = ElementUtil.mergeElements(elements, [updatedArrow, updatedNewElement]);
