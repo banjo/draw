@@ -1,5 +1,5 @@
-import "dotenv/config";
 import { createLogger, Env } from "common";
+import "dotenv/config";
 import { app, PORT } from "./lib/http";
 
 const logger = createLogger("HttpServer");
