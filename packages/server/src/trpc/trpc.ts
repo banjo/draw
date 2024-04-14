@@ -14,6 +14,7 @@ import { Cause, createLogger } from "common";
 import { auth } from "firebase-server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { getLocalDevelopmentId, isLocalDevelopment } from "../lib/runtime";
 import { UserRepository } from "../repositories/UserRepository";
 
 const logger = createLogger("auth");
@@ -45,6 +46,10 @@ export const createTRPCContext = async ({
     });
 
     const authHeader = req?.headers.authorization;
+
+    if (isLocalDevelopment()) {
+        return createResponse(getLocalDevelopmentId());
+    }
 
     if (!authHeader) {
         logger.trace("No auth header");
