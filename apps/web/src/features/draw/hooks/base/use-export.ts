@@ -1,10 +1,11 @@
 import { useGlobal } from "@/contexts/global-context";
 import { CustomElementImageData } from "@/features/draw/models/custom-element-image-data";
+import { ElementUtil } from "@/features/draw/utils/element-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
 import { StateUtil } from "@/features/draw/utils/state-util";
 import { CODE_ELEMENT_CLASS } from "@/features/selected-element-visuals/components/code-editor";
 import { logger } from "@/utils/logger";
-import { toIsoDateString } from "@banjoanton/utils";
+import { isEmpty, toIsoDateString } from "@banjoanton/utils";
 import {
     exportToCanvas,
     exportToClipboard,
@@ -16,7 +17,11 @@ const getCodeElements = (): HTMLElement[] => {
     return [...document.querySelectorAll(`.${CODE_ELEMENT_CLASS}`)] as HTMLElement[];
 };
 
-const prepare = async (excalidrawApi: ExcalidrawApi) => {
+const getFileName = (extension: string) => {
+    return `banjodraw-${toIsoDateString(new Date())}.${extension}`;
+};
+
+const prepare = async (excalidrawApi: ExcalidrawApi, selectedOnly: boolean) => {
     const codeHtmlElements = getCodeElements();
 
     const codeExcalidrawElements = excalidrawApi
@@ -37,6 +42,10 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
 
     const currentElements = excalidrawApi.getSceneElements();
     const appState = excalidrawApi.getAppState();
+    const selectedElements = ElementUtil.getSelectedElements(appState, currentElements);
+
+    const elementsToExport =
+        selectedOnly && !isEmpty(selectedElements) ? selectedElements : currentElements;
 
     StateUtil.mutateState(appState, draft => {
         draft.exportWithDarkMode = false;
@@ -46,7 +55,7 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
     excalidrawApi.addFiles(customElements.map(e => e.binaryFileData));
 
     return {
-        elements: [...currentElements, ...newImageElements],
+        elements: [...elementsToExport, ...newImageElements],
         files: excalidrawApi.getFiles(),
         appState: appState,
         exportPadding: 5,
@@ -59,7 +68,7 @@ export const useExport = () => {
     const exportPngToClipboard = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, true);
 
         await exportToClipboard({
             // @ts-ignore - wrong with local types
@@ -74,7 +83,7 @@ export const useExport = () => {
     const exportSvgToClipboard = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, true);
 
         await exportToClipboard({
             // @ts-ignore - wrong with local types
@@ -89,7 +98,7 @@ export const useExport = () => {
     const exportToPng = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, false);
 
         const canvas = await exportToCanvas({
             // @ts-ignore - wrong with local types
@@ -99,14 +108,14 @@ export const useExport = () => {
             exportPadding,
         });
 
-        const fileName = `banjodraw-${toIsoDateString(new Date())}.png`;
+        const fileName = getFileName("png");
         FileUtil.downloadImage(canvas.toDataURL("image/png"), fileName);
     };
 
     const exportToSvg = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, false);
 
         const svg = await exportToSvgFunc({
             // @ts-ignore - wrong with local types
@@ -122,7 +131,7 @@ export const useExport = () => {
         const blob = new Blob([svgString], { type: "image/svg+xml" });
         const url = URL.createObjectURL(blob);
 
-        const fileName = `banjodraw-${toIsoDateString(new Date())}.svg`;
+        const fileName = getFileName("svg");
         FileUtil.downloadImage(url, fileName);
     };
 
