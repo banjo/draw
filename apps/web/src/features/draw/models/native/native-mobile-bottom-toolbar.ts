@@ -1,36 +1,38 @@
-export const NativeMobileBottomToolbar = () => {
-    const element = document.querySelector(".App-toolbar");
+class NativeMobileBottomToolbarClass {
+    private element: HTMLDivElement | null = null;
+    private querySelector = ".App-toolbar";
 
-    const hide = () => {
-        if (element) {
-            element.setAttribute("style", "display: none");
+    constructor() {}
+
+    public parse() {
+        this.element = document.querySelector<HTMLDivElement>(this.querySelector);
+
+        if (!this.element) {
+            throw new Error(`Element with query selector ${this.querySelector} not found`);
         }
-    };
+    }
 
-    const show = () => {
-        if (element) {
-            element.setAttribute("style", "display: block");
-        }
-    };
+    public hide() {
+        this.element?.setAttribute("style", "display: none");
+    }
 
-    const hideEditButton = () => {
+    public show() {
+        this.element?.setAttribute("style", "display: block");
+    }
+
+    public hideEditButton() {
         const editButton = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
         if (editButton) {
             editButton.setAttribute("style", "display: none");
         }
-    };
+    }
 
-    const showEditButton = () => {
+    public showEditButton() {
         const editButton = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
         if (editButton) {
             editButton.setAttribute("style", "display: block");
         }
-    };
+    }
+}
 
-    return {
-        hide,
-        show,
-        hideEditButton,
-        showEditButton,
-    };
-};
+export const NativeMobileBottomToolbar = new NativeMobileBottomToolbarClass();

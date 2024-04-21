@@ -7,14 +7,14 @@ export const useContextMenu = () => {
     const onContextMenu = async (e: React.MouseEvent) => {
         // allow native context menu to show
         setTimeout(() => {
-            const menu = NativeContextMenu();
-            menu.updateEntry({
+            NativeContextMenu.parse();
+            NativeContextMenu.updateEntry({
                 dataTestId: "copyAsPng",
                 label: "Copy to clipboard as PNG",
                 onClick: exportPngToClipboard,
             });
 
-            menu.updateEntry({
+            NativeContextMenu.updateEntry({
                 dataTestId: "copyAsSvg",
                 label: "Copy to clipboard as SVG",
                 onClick: exportSvgToClipboard,

@@ -2,6 +2,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { useContextMenu } from "@/features/draw/hooks/base/use-context-menu";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
+import { useHelpMenu } from "@/features/draw/hooks/base/use-help-menu";
 import { useHistory } from "@/features/draw/hooks/base/use-history";
 import { useImages } from "@/features/draw/hooks/base/use-images";
 import { useInit } from "@/features/draw/hooks/base/use-init";
@@ -69,6 +70,8 @@ export const Draw = ({ slug }: DrawProps) => {
     });
 
     const { onContextMenu } = useContextMenu();
+
+    useHelpMenu();
 
     const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
         if (!excalidrawApi) return;

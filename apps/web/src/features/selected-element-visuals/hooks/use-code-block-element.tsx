@@ -56,14 +56,15 @@ export const useCodeBlockElement = () => {
         const selectedElements = ElementUtil.getSelectedElements(appState, codeElements);
         const selected = first(selectedElements);
 
+        NativeAppMenuLeft.parse();
         if (selected) {
             setSelectedElement(selected);
-            NativeAppMenuLeft().hide();
-            NativeMobileBottomToolbar().hideEditButton();
+            NativeAppMenuLeft.hide();
+            NativeMobileBottomToolbar.hideEditButton();
         } else {
             setSelectedElement(undefined);
-            NativeAppMenuLeft().show();
-            NativeMobileBottomToolbar().showEditButton();
+            NativeAppMenuLeft.show();
+            NativeMobileBottomToolbar.showEditButton();
         }
     };
 

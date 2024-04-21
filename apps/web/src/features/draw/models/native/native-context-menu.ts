@@ -1,30 +1,42 @@
-export const NativeContextMenu = () => {
-    const element = document.querySelector<HTMLElement>(".context-menu");
+type UpdateEntryProps = {
+    dataTestId: string;
+    label: string;
+    shortcut?: string;
+    onClick?: (event: MouseEvent) => void;
+};
 
-    const focus = () => {
-        element?.focus();
-    };
+class NativeContextMenuClass {
+    private element: HTMLElement | null = null;
+    private querySelector = ".context-menu";
 
-    const blur = () => {
-        element?.blur();
-    };
+    constructor() {}
 
-    const getEntry = (dataTestId: string) => {
-        return element?.querySelector(`[data-testid=${dataTestId}]`) as HTMLElement;
-    };
+    public parse() {
+        this.element = document.querySelector<HTMLElement>(this.querySelector);
 
-    const removeMenu = () => {
-        element?.remove();
-    };
+        if (!this.element) {
+            throw new Error(`Element with query selector ${this.querySelector} not found`);
+        }
+    }
 
-    type UpdateEntryProps = {
-        dataTestId: string;
-        label: string;
-        shortcut?: string;
-        onClick?: (event: MouseEvent) => void;
-    };
-    const updateEntry = ({ dataTestId, label, onClick, shortcut }: UpdateEntryProps) => {
-        const entry = getEntry(dataTestId);
+    public focus() {
+        this.element?.focus();
+    }
+
+    public blur() {
+        this.element?.blur();
+    }
+
+    public getEntry(dataTestId: string) {
+        return this.element?.querySelector(`[data-testid=${dataTestId}]`) as HTMLElement;
+    }
+
+    public removeMenu() {
+        this.element?.remove();
+    }
+
+    public updateEntry({ dataTestId, label, onClick, shortcut }: UpdateEntryProps) {
+        const entry = this.getEntry(dataTestId);
         if (!entry) return;
 
         const labelElement = entry.querySelector(".context-menu-item__label");
@@ -43,17 +55,11 @@ export const NativeContextMenu = () => {
             const customOnClick = (event: MouseEvent) => {
                 event.stopPropagation();
                 onClick(event);
-                removeMenu();
+                this.removeMenu();
             };
             button.onclick = customOnClick;
         }
-    };
+    }
+}
 
-    return {
-        focus,
-        blur,
-        getEntry,
-        updateEntry,
-        removeMenu,
-    };
-};
+export const NativeContextMenu = new NativeContextMenuClass();

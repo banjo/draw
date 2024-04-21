@@ -1,16 +1,24 @@
-export const NativeContainer = () => {
-    const element = document.querySelector<HTMLDivElement>(".excalidraw-container");
+class NativeContinerClass {
+    private element: HTMLDivElement | null = null;
+    private querySelector = ".excalidraw-container";
 
-    const focus = () => {
-        element?.focus();
-    };
+    constructor() {}
 
-    const blur = () => {
-        element?.blur();
-    };
+    public parse() {
+        this.element = document.querySelector<HTMLDivElement>(this.querySelector);
 
-    return {
-        focus,
-        blur,
-    };
-};
+        if (!this.element) {
+            throw new Error(`Element with query selector ${this.querySelector} not found`);
+        }
+    }
+
+    public focus() {
+        this.element?.focus();
+    }
+
+    public blur() {
+        this.element?.blur();
+    }
+}
+
+export const NativeContainer = new NativeContinerClass();
