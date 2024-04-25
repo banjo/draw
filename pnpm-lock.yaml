@@ -171,6 +171,9 @@ importers:
       clsx:
         specifier: ^2.0.0
         version: 2.0.0
+      dom-to-image:
+        specifier: ^2.6.0
+        version: 2.6.0
       firebase:
         specifier: ^10.4.0
         version: 10.4.0
@@ -3947,6 +3950,10 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /dom-to-image@2.6.0:
+    resolution: {integrity: sha512-Dt0QdaHmLpjURjU7Tnu3AgYSF2LuOmksSGsUcE6ItvJoCWTBEmiMXcqBdNSAm9+QbbwD7JMoVsuuKX6ZVQv1qA==}
+    dev: false
 
   /dot-case@3.0.4:
     resolution: {integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==}
