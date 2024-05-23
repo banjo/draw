@@ -7,11 +7,23 @@ import { trpc } from "@/lib/trpc";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
-import { BrushIcon, CopyIcon, FileDown, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
+import {
+    BrushIcon,
+    CopyIcon,
+    FileDown,
+    FolderIcon,
+    FolderLock,
+    PlusIcon,
+    SaveIcon,
+} from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Icons, ResponsiveIcon } from "ui";
+import { UpdateElementUtil } from "../../utils/update-element-util";
+import { useLocalIdStore } from "@/stores/use-local-id-store";
+import { BoardDeltaUpdate } from "common";
+import { useDeltaMutation } from "../collaboration/use-delta-mutation";
 
 type In = {
     slug: Maybe<string>;
@@ -21,7 +33,12 @@ type In = {
 
 export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const { excalidrawApi } = useGlobal();
+    const localId = useLocalIdStore(state => state.localId);
     const navigate = useNavigate();
+    const { mutateDeltaUpdateInstantly } = useDeltaMutation({
+        slug,
+    });
+
     const { signInWithGoogle, user, signOut } = useAuth();
     const { handleError } = useError();
 
@@ -100,6 +117,24 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const goToLocalDrawing = () => {
         // TODO: improve this, some strange logic with using local storage elements
         window.location.href = "/";
+    };
+
+    const resetBoardLockedState = () => {
+        if (!excalidrawApi) return;
+        const elements = excalidrawApi.getSceneElements();
+        const currentOrder = elements.map(e => e.id);
+
+        UpdateElementUtil.mutateElements(elements, draft => {
+            draft.locked = false;
+        });
+
+        const deltaBoardUpdate = BoardDeltaUpdate.from({
+            excalidrawElements: elements,
+            order: currentOrder,
+            senderId: localId,
+        });
+
+        mutateDeltaUpdateInstantly(deltaBoardUpdate);
     };
 
     const renderMenu = () => {
@@ -189,6 +224,16 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                 </MainMenu.Item>
 
                 <MainMenu.Separator />
+                {slug && (
+                    <>
+                        <MainMenu.Item
+                            onSelect={resetBoardLockedState}
+                            icon={<ResponsiveIcon Icon={FolderLock} />}
+                        >
+                            Reset locked state
+                        </MainMenu.Item>
+                    </>
+                )}
                 <MainMenu.DefaultItems.Help />
             </MainMenu>
         );
