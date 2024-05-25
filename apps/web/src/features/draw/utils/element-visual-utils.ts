@@ -44,8 +44,10 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
             });
         });
 
+        const allElements = ElementUtil.mergeElements(elements, updatedElements);
+
         excalidrawApi.updateScene({
-            elements: updatedElements,
+            elements: allElements,
             commitToHistory: true,
             appState: updatedState,
         });

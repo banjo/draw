@@ -147,13 +147,19 @@ const createNewLinearElementSelection = (
 };
 
 /**
- * Merge new elements into the existing elements, replacing the existing elements with the same id.
+ * Merge new elements into the existing elements, replacing the existing elements with the same id. All new elements that are not in the existing elements are added.
  */
 const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElements) => {
-    return elements.map(element => {
+    const mergedElements = elements.map(element => {
         const newElement = newElements.find(newElement => newElement.id === element.id);
         return newElement || element;
     });
+
+    const missedNewElements = newElements.filter(
+        newElement => !elements.find(element => element.id === newElement.id)
+    );
+
+    return [...mergedElements, ...missedNewElements];
 };
 
 /**

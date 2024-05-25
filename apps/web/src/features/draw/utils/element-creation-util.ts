@@ -418,9 +418,9 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
         return element;
     });
 
-    const finalElements = ElementUtil.mergeElements(modelElements, [updatedContainer]);
+    const finalElements = ElementUtil.mergeElements(modelElements, [updatedContainer, textElement]);
 
-    return [...finalElements, textElement];
+    return finalElements;
 };
 
 export const ElementCreationUtil = {
