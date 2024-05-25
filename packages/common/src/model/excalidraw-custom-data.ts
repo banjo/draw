@@ -72,6 +72,29 @@ const defaultCustomDataModel: CustomDataModel = {
 };
 
 export const CustomData = {
+    parseModelData: (data: unknown): Maybe<CustomDataModel> => {
+        if (!data || typeof data !== "object") {
+            return undefined;
+        }
+
+        const { shadow, type, currentHeight, textElementCount } = data as CustomDataModel;
+
+        if (
+            typeof shadow !== "boolean" ||
+            type !== "model" ||
+            typeof currentHeight !== "number" ||
+            typeof textElementCount !== "number"
+        ) {
+            return undefined;
+        }
+
+        return {
+            shadow,
+            type,
+            currentHeight,
+            textElementCount,
+        };
+    },
     createDefault: (props: BaseCustomData): CustomDataDefault => ({
         ...props,
     }),

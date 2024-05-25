@@ -17,6 +17,8 @@ import {
 } from "common";
 import { ElementUtil } from "./element-util";
 import { first, toArray } from "@banjoanton/utils";
+import { CustomDataUtil } from "./custom-data-util";
+import toast from "react-hot-toast";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
     convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
@@ -233,6 +235,7 @@ const createText = (
 
 const TEXT_HEIGHT = 25;
 const ELEMENT_WIDTH = 256;
+const SPACING = 10;
 
 type CreateModelElement = {
     base: BasePosition;
@@ -257,12 +260,11 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
         textElementCount: 0,
     });
     const title = "User";
-    const exampleText = "name: string";
-    const exampleText2 = "age: number";
+    const exampleText = "name";
+    const exampleText2 = "age";
 
     const groupId = ElementUtil.createElementId();
 
-    const SPACING = 10;
     let currentY = base.y;
 
     const container = createElement({
@@ -364,6 +366,63 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
     return [container, titleElement, divider, exampleTextElement, exampleTextElement2];
 };
 
+const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: string) => {
+    if (!CustomDataUtil.isModelElements(modelElements)) {
+        toast.error("Cannot append text to non-model elements");
+        return;
+    }
+
+    const container = modelElements.find(CustomDataUtil.isModelElement);
+
+    if (!container) {
+        toast.error("Cannot find container element");
+        return;
+    }
+
+    const customData = CustomData.parseModelData(container.customData);
+
+    if (!customData) {
+        toast.error("Cannot parse custom data");
+        return;
+    }
+
+    const groupId = container.groupIds[0];
+
+    if (!groupId) {
+        toast.error("Cannot find groupId");
+        return;
+    }
+
+    const currentY = container.y + customData.currentHeight;
+
+    const textElement = createText(
+        text,
+        {
+            x: container.x + SPACING,
+            y: currentY,
+            width: ELEMENT_WIDTH,
+            height: TEXT_HEIGHT,
+        },
+        element => {
+            element.groupIds = [groupId];
+            return element;
+        }
+    );
+
+    const updatedContainer = UpdateElementUtil.updateElement(container, element => {
+        element.height += TEXT_HEIGHT + SPACING;
+        element.customData = CustomData.updateModel(element.customData, {
+            currentHeight: element.height,
+            textElementCount: customData.textElementCount + 1,
+        });
+        return element;
+    });
+
+    const finalElements = ElementUtil.mergeElements(modelElements, [updatedContainer]);
+
+    return [...finalElements, textElement];
+};
+
 export const ElementCreationUtil = {
     createLinearElement,
     createElement,
@@ -374,4 +433,5 @@ export const ElementCreationUtil = {
     createImage,
     createModelElement,
     createText,
+    appendTextToModelElement,
 };

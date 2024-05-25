@@ -6,7 +6,7 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { Maybe, clone, first } from "@banjoanton/utils";
+import { Maybe, clone, first, last, produce, uniq } from "@banjoanton/utils";
 import {
     CustomData,
     CustomElementType,
@@ -15,6 +15,7 @@ import {
     ExcalidrawElement,
     ExcalidrawTextElement,
 } from "common";
+import { CustomDataUtil } from "./custom-data-util";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
@@ -23,6 +24,34 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
     const state = excalidrawApi.getAppState();
 
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
+
+    // handle "model" element, which should add a new text element to the container
+    if (CustomDataUtil.isModelElements(selectedElements)) {
+        const updatedElements = ElementCreationUtil.appendTextToModelElement(
+            selectedElements,
+            "example"
+        );
+
+        if (!updatedElements) return;
+
+        const updatedState = produce(state, draft => {
+            // @ts-ignore
+            draft.selectedElementIds = {};
+
+            updatedElements.forEach(element => {
+                // @ts-ignore
+                draft.selectedElementIds[element.id] = true;
+            });
+        });
+
+        excalidrawApi.updateScene({
+            elements: updatedElements,
+            commitToHistory: true,
+            appState: updatedState,
+        });
+
+        return;
+    }
 
     type HandledBoundElements = {
         oldId: string;
