@@ -4,9 +4,12 @@ export type CustomElementType =
     | "rectangle"
     | "ellipse"
     | "diamond"
+    | "text"
     | "arrow"
+    | "line"
     | "codeblock"
-    | "image";
+    | "image"
+    | "model";
 
 type BaseCustomData = {
     /**
@@ -27,7 +30,13 @@ export type CustomDataCodeblock = BaseCustomData & {
     language: string;
 };
 
-export type CustomData = CustomDataDefault | CustomDataCodeblock;
+export type CustomDataModel = BaseCustomData & {
+    type: "model";
+    currentHeight: number;
+    textElementCount: number;
+};
+
+export type CustomData = CustomDataDefault | CustomDataCodeblock | CustomDataModel;
 
 type Props = {
     shadow: boolean;
@@ -36,6 +45,11 @@ type Props = {
 type CodeBlockProps = Props & {
     code: string;
     language: string;
+};
+
+type ModelProps = Props & {
+    currentHeight: number;
+    textElementCount: number;
 };
 
 const defaultCustomData: CustomDataDefault = {
@@ -50,6 +64,13 @@ const defaultCustomDataCodeblock: CustomDataCodeblock = {
     language: "javascript",
 };
 
+const defaultCustomDataModel: CustomDataModel = {
+    shadow: false,
+    type: "model",
+    currentHeight: 0,
+    textElementCount: 0,
+};
+
 export const CustomData = {
     createDefault: (props: BaseCustomData): CustomDataDefault => ({
         ...props,
@@ -57,6 +78,10 @@ export const CustomData = {
     createCodeblock: (props: CodeBlockProps): CustomDataCodeblock => ({
         ...props,
         ...defaultCustomDataCodeblock,
+    }),
+    createModel: (props: ModelProps): CustomDataModel => ({
+        ...props,
+        ...defaultCustomDataModel,
     }),
     updateDefault: (
         current: Maybe<CustomData>,
@@ -86,6 +111,20 @@ export const CustomData = {
             ...current,
             ...props,
             type: "codeblock",
+        };
+    },
+    updateModel: (current: Maybe<CustomData>, props: Partial<ModelProps>): CustomDataModel => {
+        const allProps = defaults(props, defaultCustomDataModel);
+
+        if (!current) {
+            return CustomData.createModel(allProps);
+        }
+
+        return {
+            ...defaultCustomDataModel,
+            ...current,
+            ...props,
+            type: "model",
         };
     },
 };

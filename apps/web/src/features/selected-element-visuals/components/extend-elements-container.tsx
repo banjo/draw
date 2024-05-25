@@ -67,7 +67,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             selected
         );
 
-        const arrow = ElementCreationUtil.createArrow(
+        const arrow = ElementCreationUtil.createLinearElement(
             {
                 points: [
                     [0, 0],
@@ -75,6 +75,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
                 ],
                 x: arrowPosition.startX,
                 y: arrowPosition.startY,
+                type: "arrow",
             },
             (element, helpers) => {
                 helpers.addArrowBindings(element, {
@@ -154,7 +155,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
 
         const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
 
-        const finalArrow = ElementCreationUtil.createArrow(
+        const finalArrow = ElementCreationUtil.createLinearElement(
             {
                 points: [
                     [0, 0],
@@ -162,6 +163,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
                 ],
                 x: arrow.x,
                 y: arrow.y,
+                type: "arrow",
             },
             (element, helpers) => {
                 element.id = arrow.id;

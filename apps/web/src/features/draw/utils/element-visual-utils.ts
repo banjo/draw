@@ -183,11 +183,12 @@ const createElementExtensionShadow = (
         },
     });
 
-    const arrow = ElementCreationUtil.createArrow(
+    const arrow = ElementCreationUtil.createLinearElement(
         {
             x: arrowOptions.startX,
             y: arrowOptions.startY,
             points: [[0, 0], arrowOptions.relativeEndPoint],
+            type: "arrow",
         },
         (draft, helpers) => {
             draft.id = arrowId;
@@ -285,16 +286,16 @@ const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: Cust
     const element = first(selected);
     if (!element) return;
 
-    const newElement = ElementCreationUtil.createElementFromElement({
+    const newElements = ElementCreationUtil.createElementsFromElement({
         type,
         element,
     });
 
     const updatedElements = ElementUtil.removeElements(elements, [element.id]);
-    const { updatedState } = ElementUtil.createNewElementSelection([newElement], state);
+    const { updatedState } = ElementUtil.createNewElementSelection(newElements, state);
 
     excalidrawApi.updateScene({
-        elements: [...updatedElements, newElement],
+        elements: [...updatedElements, ...newElements],
         commitToHistory: true,
         appState: updatedState,
     });

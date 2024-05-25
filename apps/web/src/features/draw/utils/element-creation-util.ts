@@ -15,6 +15,8 @@ import {
     ExcalidrawImageElement,
     ExcalidrawLinearElement,
 } from "common";
+import { ElementUtil } from "./element-util";
+import { first, toArray } from "@banjoanton/utils";
 
 const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): ExcalidrawElement =>
     convertToExcalidrawElements([skeleton])[0]! as ExcalidrawElement;
@@ -22,18 +24,26 @@ const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): Excalid
 const createElementsFromSkeleton = (skeleton: ExcalidrawElementSkeleton[]) =>
     convertToExcalidrawElements(skeleton);
 
-type ArrowBase = {
+type LinearElementBase = {
     x: number;
     y: number;
     points: Mutable<IPoint>[];
+    type: "line" | "arrow";
 };
-const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinearElement>) => {
+const createLinearElement = (
+    props: LinearElementBase,
+    callback?: UpdateCallback<ExcalidrawLinearElement>,
+    customElementType?: CustomElementType
+) => {
     const arrow: ExcalidrawElementSkeleton = {
-        type: "arrow",
+        type: props.type,
         x: props.x,
         y: props.y,
         points: props.points,
-        customData: CustomData.createDefault({ shadow: false, type: "arrow" }),
+        customData: CustomData.createDefault({
+            shadow: false,
+            type: customElementType ?? props.type,
+        }),
     };
 
     const createdElement = createElementFromSkeleton(arrow);
@@ -51,25 +61,27 @@ const createArrow = (props: ArrowBase, callback?: UpdateCallback<ExcalidrawLinea
 
 export type ElementType = "rectangle" | "ellipse" | "diamond";
 type ElementTypeAttribute = { type: ElementType };
-type ElementBase = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
+type BasePosition = { x: number; y: number };
+type BaseSize = { width: number; height: number };
+type ElementBase = BaseSize & BasePosition;
+
 type CreateElementProps = {
     base: ElementBase & ElementTypeAttribute;
     props?: Partial<ExcalidrawElementSkeleton>;
+    customElementType?: CustomElementType;
     callback?: UpdateCallback<ExcalidrawElement>;
 };
-const createElement = ({ base, props, callback }: CreateElementProps) => {
+const createElement = ({ base, props, callback, customElementType }: CreateElementProps) => {
     const element: ExcalidrawElementSkeleton = {
         height: base.height,
         width: base.width,
         x: base.x,
         y: base.y,
         type: base.type as any, // just type mismatch
-        customData: CustomData.createDefault({ shadow: false, type: base.type }),
+        customData: CustomData.createDefault({
+            shadow: false,
+            type: customElementType ?? base.type,
+        }),
         ...props,
     };
 
@@ -87,17 +99,23 @@ type CreateElementFromElementProps = {
     element: ExcalidrawElement;
     newValues?: Partial<ExcalidrawElement>;
 };
-const createElementFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
+const createElementsFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
     if (type === "codeblock") {
-        return createCodeBlock({
-            base: {
-                x: element.x,
-                y: element.y,
-                width: element.width,
-                height: element.height,
-            },
-            code: "",
-        });
+        return toArray(
+            createCodeBlock({
+                base: {
+                    x: element.x,
+                    y: element.y,
+                    width: element.width,
+                    height: element.height,
+                },
+                code: "",
+            })
+        );
+    }
+
+    if (type === "model") {
+        return createModelElement({ base: { x: element.x, y: element.y } });
     }
 
     const newElement: ExcalidrawElementSkeleton = {
@@ -107,7 +125,7 @@ const createElementFromElement = ({ element, newValues, type }: CreateElementFro
         type: ExcalidrawUtil.getElementTypeFromCustomType(type),
     };
 
-    return createElementFromSkeleton(newElement);
+    return toArray(createElementFromSkeleton(newElement));
 };
 
 type CreateCodeBlockElementProps = {
@@ -178,12 +196,182 @@ const createImage = ({
     return createdElement;
 };
 
+const createText = (
+    text: string,
+    base: ElementBase & { fontSize?: number },
+    callback?: UpdateCallback<ExcalidrawElement>,
+    customElementType?: CustomElementType
+) => {
+    const element = first(
+        convertToExcalidrawElements([
+            {
+                type: "text",
+                x: base.x,
+                y: base.y,
+                width: base.width,
+                height: base.height,
+                text: text,
+                fontSize: base.fontSize ?? 20,
+                customData: CustomData.createDefault({
+                    type: customElementType ?? "text",
+                    shadow: false,
+                }),
+            },
+        ])
+    );
+
+    if (!element) {
+        throw new Error("Something wrong when creating text");
+    }
+
+    if (callback) {
+        return UpdateElementUtil.updateElement(element as ExcalidrawElement, callback);
+    }
+
+    return element as ExcalidrawElement;
+};
+
+const TEXT_HEIGHT = 25;
+const ELEMENT_WIDTH = 256;
+
+type CreateModelElement = {
+    base: BasePosition;
+    props?: Partial<ExcalidrawElementSkeleton>;
+    callback?: UpdateCallback<ExcalidrawElementSkeleton>;
+};
+
+const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] => {
+    // A model element consists of:
+    // - a rectangle as a container
+    // - A text title at the top of the container
+    // - A devider line
+    // - An example text line
+    // - Another example text line
+
+    // they should all have the same groupId
+    // Only the rectangle should have a customData of type "model"
+
+    const customData = CustomData.createModel({
+        shadow: false,
+        currentHeight: 0,
+        textElementCount: 0,
+    });
+    const title = "User";
+    const exampleText = "name: string";
+    const exampleText2 = "age: number";
+
+    const groupId = ElementUtil.createElementId();
+
+    const SPACING = 10;
+    let currentY = base.y;
+
+    const container = createElement({
+        base: {
+            type: "rectangle",
+            y: currentY,
+            x: base.x,
+            height: 0, // will be updated later
+            width: ELEMENT_WIDTH,
+        },
+        props: {
+            customData,
+            backgroundColor: "#ffc9c9",
+        },
+        callback: element => {
+            element.groupIds = [groupId];
+            return element;
+        },
+    });
+
+    currentY += SPACING;
+
+    const titleElement = createText(
+        title,
+        {
+            x: base.x + SPACING,
+            y: currentY,
+            width: ELEMENT_WIDTH,
+            height: 35, // large title size
+            fontSize: 28,
+        },
+        element => {
+            element.groupIds = [groupId];
+            return element;
+        }
+    );
+
+    currentY += SPACING + TEXT_HEIGHT + SPACING;
+
+    const divider = createLinearElement(
+        {
+            type: "line",
+            x: base.x,
+            y: currentY,
+            points: [
+                [0, 0],
+                [ELEMENT_WIDTH, 0],
+            ],
+        },
+        element => {
+            element.groupIds = [groupId];
+            return element;
+        }
+    );
+
+    currentY += SPACING;
+
+    const exampleTextElement = createText(
+        exampleText,
+        {
+            x: base.x + SPACING,
+            y: currentY,
+            width: ELEMENT_WIDTH,
+            height: TEXT_HEIGHT,
+        },
+        element => {
+            element.groupIds = [groupId];
+            return element;
+        }
+    );
+
+    currentY += TEXT_HEIGHT + SPACING;
+
+    const exampleTextElement2 = createText(
+        exampleText2,
+        {
+            x: base.x + SPACING,
+            y: currentY,
+            width: ELEMENT_WIDTH,
+            height: TEXT_HEIGHT,
+        },
+        element => {
+            element.groupIds = [groupId];
+            return element;
+        }
+    );
+
+    currentY += TEXT_HEIGHT + SPACING;
+    const totalHeight = currentY - base.y;
+
+    UpdateElementUtil.mutateElement(container, element => {
+        element.height = totalHeight;
+        element.customData = CustomData.updateModel(element.customData, {
+            currentHeight: totalHeight,
+            textElementCount: 2,
+        });
+    });
+
+    return [container, titleElement, divider, exampleTextElement, exampleTextElement2];
+};
+
 export const ElementCreationUtil = {
-    createArrow,
+    createLinearElement,
     createElement,
     createElementFromSkeleton,
     createElementsFromSkeleton,
-    createElementFromElement,
+    createElementsFromElement,
     createCodeBlock,
     createImage,
+    createModelElement,
+    createText,
 };
