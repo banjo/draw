@@ -9,7 +9,8 @@ export type CustomElementType =
     | "line"
     | "codeblock"
     | "image"
-    | "model";
+    | "model"
+    | "model-child";
 
 type BaseCustomData = {
     /**

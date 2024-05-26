@@ -299,7 +299,8 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
         element => {
             element.groupIds = [groupId];
             return element;
-        }
+        },
+        "model-child"
     );
 
     currentY += SPACING + TEXT_HEIGHT + SPACING;
@@ -317,7 +318,8 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
         element => {
             element.groupIds = [groupId];
             return element;
-        }
+        },
+        "model-child"
     );
 
     currentY += SPACING;
@@ -333,7 +335,8 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
         element => {
             element.groupIds = [groupId];
             return element;
-        }
+        },
+        "model-child"
     );
 
     currentY += TEXT_HEIGHT + SPACING;
@@ -349,7 +352,8 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
         element => {
             element.groupIds = [groupId];
             return element;
-        }
+        },
+        "model-child"
     );
 
     currentY += TEXT_HEIGHT + SPACING;
@@ -372,7 +376,7 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
         return;
     }
 
-    const container = modelElements.find(CustomDataUtil.isModelElement);
+    const container = modelElements.find(CustomDataUtil.isModelContainerElement);
 
     if (!container) {
         toast.error("Cannot find container element");
@@ -406,7 +410,8 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
         element => {
             element.groupIds = [groupId];
             return element;
-        }
+        },
+        "model-child"
     );
 
     const updatedContainer = UpdateElementUtil.updateElement(container, element => {
@@ -418,9 +423,7 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
         return element;
     });
 
-    const finalElements = ElementUtil.mergeElements(modelElements, [updatedContainer, textElement]);
-
-    return finalElements;
+    return ElementUtil.mergeElements(modelElements, [updatedContainer, textElement]);
 };
 
 export const ElementCreationUtil = {

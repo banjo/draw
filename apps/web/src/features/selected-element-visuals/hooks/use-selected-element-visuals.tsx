@@ -3,26 +3,36 @@ import { OnChangeCallback } from "@/features/draw/draw";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
-import { ChangeElementDialog } from "@/features/selected-element-visuals/components/change-element-dialog";
+import { SmartCopyKeyDialog } from "@/features/selected-element-visuals/components/change-element-key-dialog";
 import { ExtendElementsContainer } from "@/features/selected-element-visuals/components/extend-elements-container";
 import { SelectElementDialog } from "@/features/selected-element-visuals/components/select-element-dialog";
-import { useChangeElementDialog } from "@/features/selected-element-visuals/hooks/use-change-element-dialog";
 import { useExtendElementsButtons } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { useSelectElementDialog } from "@/features/selected-element-visuals/hooks/use-select-element-dialog";
-import { useChangeElementStore } from "@/stores/use-change-element-store";
-import { first } from "@banjoanton/utils";
+import { useVisualElementStore } from "@/stores/use-visual-element-store";
+import { first, noop } from "@banjoanton/utils";
 import { ElementMeasurement } from "common";
+import { useChangeElementKeyDialog } from "./use-change-element-dialog";
+import { useSmartCopyKeyDialog } from "./use-smart-copy-key-dialog";
+import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
+import { ChangeElementKeyDialog } from "../components/smart-copy-key-dialog";
 
 const MIN_ELEMENT_VISUAL_SIZE = 40;
 
 export const useSelectedElementVisuals = () => {
     const { excalidrawApi } = useGlobal();
     const {
-        changeElementRef,
-        setShowChangeElementDialog,
-        showChangeElementDialog,
+        changeElementKeyRef,
+        showChangeElementKeyDialog,
+        setShowChangeElementKeyDialog,
         applyPosition: applyChangeElementPosition,
-    } = useChangeElementDialog();
+    } = useChangeElementKeyDialog();
+
+    const {
+        smartCopyKeyDialogRef,
+        showSmartCopyDialog,
+        setShowSmartCopyDialog,
+        applyPosition: applySmartCopyKeyPosition,
+    } = useSmartCopyKeyDialog();
 
     const {
         selectElementRef,
@@ -39,17 +49,30 @@ export const useSelectedElementVisuals = () => {
     } = useExtendElementsButtons();
 
     const hideAllElements = () => {
-        setShowChangeElementDialog(false);
+        setShowChangeElementKeyDialog(false);
         setShowSelectElementDialog(false);
         setShowExtendElements(false);
+        setShowSmartCopyDialog(false);
     };
 
-    const metaKeyIsDown = useChangeElementStore(s => s.metaKeyIsDown);
+    const metaKeyIsDown = useVisualElementStore(s => s.metaKeyIsDown);
 
     const handleSelectedElementVisuals: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
 
         const selected = ElementUtil.getSelectedElements(appState, elements);
+
+        if (CustomDataUtil.isModelElements(selected)) {
+            hideAllElements();
+            const container = selected.find(CustomDataUtil.isModelContainerElement);
+
+            if (container) {
+                setShowSmartCopyDialog(true);
+                applySmartCopyKeyPosition(container);
+            }
+
+            return;
+        }
 
         if (selected.length !== 1) {
             hideAllElements();
@@ -90,7 +113,7 @@ export const useSelectedElementVisuals = () => {
         }
 
         if (!showSelectElementDialog && !metaKeyIsDown) {
-            setShowChangeElementDialog(true);
+            setShowChangeElementKeyDialog(true);
         }
 
         applyChangeElementPosition(selectedElement);
@@ -104,12 +127,12 @@ export const useSelectedElementVisuals = () => {
         if (!excalidrawApi) return;
 
         setShowSelectElementDialog(true);
-        setShowChangeElementDialog(false);
+        setShowChangeElementKeyDialog(false);
     };
 
     const closeSelectElementDialog = () => {
         setShowSelectElementDialog(false);
-        setShowChangeElementDialog(false);
+        setShowChangeElementKeyDialog(false);
 
         DrawingUtil.focusCanvas();
     };
@@ -117,9 +140,9 @@ export const useSelectedElementVisuals = () => {
     const render = () => {
         return (
             <>
-                {showChangeElementDialog && (
-                    <ChangeElementDialog
-                        changeElementRef={changeElementRef}
+                {showChangeElementKeyDialog && (
+                    <ChangeElementKeyDialog
+                        changeElementKeyRef={changeElementKeyRef}
                         onClick={handleChangeElementDialogClick}
                     />
                 )}
@@ -129,6 +152,11 @@ export const useSelectedElementVisuals = () => {
                         closeSelectElementDialog={closeSelectElementDialog}
                     />
                 )}
+
+                {showSmartCopyDialog && (
+                    <SmartCopyKeyDialog keyRef={smartCopyKeyDialogRef} onClick={noop} />
+                )}
+
                 {showExtendElements && <ExtendElementsContainer refs={extendElementRefs} />}
             </>
         );

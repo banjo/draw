@@ -5,40 +5,40 @@ import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { ExcalidrawElement } from "common";
 import { useRef } from "react";
 
-export const useChangeElementKeyDialog = () => {
+export const useSmartCopyKeyDialog = () => {
     const { excalidrawApi } = useGlobal();
-    const changeElementKeyRef = useRef<HTMLDivElement>(null);
-    const setShowChangeElementKeyDialog = useVisualElementStore(s => s.setShowVisualElements);
-    const showChangeElementKeyDialogByGlobalState = useVisualElementStore(
-        s => s.showVisualElements
-    );
+    const smartCopyKeyDialogRef = useRef<HTMLDivElement>(null);
+    const setShowSmartCopyDialog = useVisualElementStore(s => s.setShowVisualElements);
+    const showSmartCopyKeyDialogByGlobalState = useVisualElementStore(s => s.showVisualElements);
 
     const { showChangeElementByTime } = useVisualElementTimer();
 
-    const showChangeElementKeyDialog =
-        showChangeElementKeyDialogByGlobalState && showChangeElementByTime;
+    const showSmartCopyDialog = showSmartCopyKeyDialogByGlobalState && showChangeElementByTime;
 
     const applyPosition = (selectedElement: ExcalidrawElement) => {
         if (!excalidrawApi) return;
 
         const appState = excalidrawApi.getAppState();
-        const { width } = ElementPositionUtil.getPositionFromElement(selectedElement);
+        const { width, height } = ElementPositionUtil.getPositionFromElement(selectedElement);
         const { x, y } = ElementPositionUtil.getElementWindowPosition(selectedElement, appState);
 
         // make sure the element is centered as well and count for zoom
-        const dialogWidth = changeElementKeyRef.current?.offsetWidth ?? 0;
+        const dialogWidth = smartCopyKeyDialogRef.current?.offsetWidth ?? 0;
         const dialogX = x + (width * appState.zoom.value) / 2 - dialogWidth / 2;
 
-        // place dialog above the element
-        const dialogY = y - 100;
+        // place dialog under the element
+        const dialogY = y + height + 50;
 
-        changeElementKeyRef.current?.setAttribute("style", `top: ${dialogY}px; left: ${dialogX}px`);
+        smartCopyKeyDialogRef.current?.setAttribute(
+            "style",
+            `top: ${dialogY}px; left: ${dialogX}px`
+        );
     };
 
     return {
-        changeElementKeyRef,
-        showChangeElementKeyDialog,
-        setShowChangeElementKeyDialog,
+        smartCopyKeyDialogRef,
+        showSmartCopyDialog,
+        setShowSmartCopyDialog,
         applyPosition,
     };
 };

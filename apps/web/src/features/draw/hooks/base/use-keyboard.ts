@@ -4,10 +4,11 @@ import {
     ElementExtensionShadow,
     ElementVisualUtils,
 } from "@/features/draw/utils/element-visual-utils";
-import { useChangeElementStore } from "@/stores/use-change-element-store";
+import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { logger } from "@/utils/logger";
 import { Callback, Maybe, includes } from "@banjoanton/utils";
 import { KeyboardEventHandler, useState } from "react";
+import { CustomDataUtil } from "../../utils/custom-data-util";
 
 type In = {
     handleChangeElementDialogClick: Callback;
@@ -19,10 +20,8 @@ export type ArrowKey = (typeof ARROW_KEYS)[number];
 export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const { excalidrawApi } = useGlobal();
     const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
-    const setShowChangeElementDialog = useChangeElementStore(
-        state => state.setShowChangeElementDialog
-    );
-    const setMetaKeyIsDown = useChangeElementStore(state => state.setMetaKeyIsDown);
+    const setShowVisualElements = useVisualElementStore(state => state.setShowVisualElements);
+    const setMetaKeyIsDown = useVisualElementStore(state => state.setMetaKeyIsDown);
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
         if (!excalidrawApi) return;
@@ -32,9 +31,10 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         logger.debug(excalidrawApi.getFiles());
 
         const state = excalidrawApi.getAppState();
+        const elements = excalidrawApi.getSceneElements();
 
         if (event.key === "Meta") {
-            setShowChangeElementDialog(false);
+            setShowVisualElements(false);
             setMetaKeyIsDown(true);
         }
 
@@ -49,6 +49,13 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         }
 
         if (event.metaKey && includes(ARROW_KEYS, event.key)) {
+            const selected = ElementUtil.getSelectedElements(state, elements);
+
+            if (CustomDataUtil.isModelElements(selected)) {
+                // do not allow extensions on model elements
+                return;
+            }
+
             const result = ElementVisualUtils.createElementExtensionShadow(
                 event.key,
                 excalidrawApi,
@@ -64,7 +71,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         if (!excalidrawApi) return;
 
         if (event.key === "Meta") {
-            setShowChangeElementDialog(true);
+            setShowVisualElements(true);
             setMetaKeyIsDown(false);
         }
 

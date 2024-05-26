@@ -29,6 +29,7 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     image: "rectangle", // wont happen
     text: "rectangle", // wont happen
     line: "rectangle", // wont happen
+    "model-child": "rectangle", // wont happen
     model: "rectangle",
     codeblock: "rectangle",
     diamond: "diamond",
