@@ -60,6 +60,13 @@ export const useSelectedElementVisuals = () => {
     const handleSelectedElementVisuals: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
 
+        const isDraggingElement = Boolean(appState.draggingElement);
+
+        if (isDraggingElement) {
+            hideAllElements();
+            return;
+        }
+
         const selected = ElementUtil.getSelectedElements(appState, elements);
 
         if (CustomDataUtil.isModelElements(selected)) {
