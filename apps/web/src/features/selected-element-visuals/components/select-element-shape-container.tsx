@@ -4,15 +4,7 @@ import { ElementVisualUtils } from "@/features/draw/utils/element-visual-utils";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
 import { Callback, first } from "@banjoanton/utils";
 import { CustomElementType } from "common";
-import {
-    Circle,
-    Code,
-    Diamond,
-    LucideIcon,
-    RectangleHorizontalIcon,
-    Table,
-    TableProperties,
-} from "lucide-react";
+import { Circle, Code, Diamond, LucideIcon, RectangleHorizontalIcon, Table2 } from "lucide-react";
 import { KeyboardEventHandler, useState } from "react";
 
 type Props = {
@@ -24,7 +16,7 @@ const shapes: { type: CustomElementType; icon: LucideIcon }[] = [
     { type: "ellipse", icon: Circle },
     { type: "diamond", icon: Diamond },
     { type: "codeblock", icon: Code },
-    { type: "model", icon: TableProperties },
+    { type: "model", icon: Table2 },
 ];
 
 export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props) => {
