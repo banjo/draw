@@ -106,7 +106,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     renderWhitespace: "none",
                     automaticLayout: true,
                     contextmenu: false,
-                    wordWrap: "off",
+                    wordWrap: "on",
                     fontSize: 14 * zoom,
                 }}
                 theme="vs-dark"
