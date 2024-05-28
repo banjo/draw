@@ -19,6 +19,8 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const { excalidrawApi } = useGlobal();
     const selectedLanguage = useCodeEditorStore(state => state.selectedLanguage);
     const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
+    const setFontSize = useCodeEditorStore(state => state.setFontSize);
+    const fontSize = useCodeEditorStore(state => state.fontSize);
     const editorRef = useRef<editor.ICodeEditor>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +43,10 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     useEffect(() => {
         if (customData.language && includes(CODE_EDITOR_LANGUAGES, customData.language)) {
             setSelectedLanguage(customData.language);
+        }
+
+        if (customData.fontSize) {
+            setFontSize(customData.fontSize);
         }
     }, []);
 
@@ -107,7 +113,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     automaticLayout: true,
                     contextmenu: false,
                     wordWrap: "on",
-                    fontSize: 14 * zoom,
+                    fontSize: fontSize * zoom,
                 }}
                 theme="vs-dark"
             />

@@ -141,6 +141,7 @@ const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElement
         code,
         shadow: false,
         language: DEFAULT_CODE_EDITOR_LANGUAGE,
+        fontSize: 14,
     });
 
     return createElement({

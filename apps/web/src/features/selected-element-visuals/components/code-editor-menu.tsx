@@ -5,6 +5,7 @@ import {
     CodeEditorLanguage,
 } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
+import { parseNumber } from "@banjoanton/utils";
 import { CustomData, ExcalidrawElement } from "common";
 import { createPortal } from "react-dom";
 
@@ -22,31 +23,60 @@ export const initCodeblockMenuElement = () => {
     );
 };
 
-const CodeEditorMenu = ({ element }: Props) => {
-    const selected = useCodeEditorStore(state => state.selectedLanguage);
-    const setSelected = useCodeEditorStore(state => state.setSelectedLanguage);
+const FONT_SIZES = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
-    const updateValue = (value: CodeEditorLanguage) => {
-        setSelected(value);
-        UpdateElementUtil.mutateElement(element, (element, helpers) => {
+const CodeEditorMenu = ({ element }: Props) => {
+    const selectedLanguage = useCodeEditorStore(state => state.selectedLanguage);
+    const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
+
+    const selectedFontSize = useCodeEditorStore(state => state.fontSize);
+    const setSelectedFontSize = useCodeEditorStore(state => state.setFontSize);
+
+    const updateLanguage = (language: CodeEditorLanguage) => {
+        setSelectedLanguage(language);
+        UpdateElementUtil.mutateElement(element, element => {
             element.customData = CustomData.updateCodeblock(element.customData, {
-                language: value,
+                language: language,
+            });
+        });
+    };
+
+    const updateFontSize = (value: string) => {
+        const fontSize = parseNumber(value);
+
+        if (!fontSize) return;
+
+        setSelectedFontSize(fontSize);
+        UpdateElementUtil.mutateElement(element, element => {
+            element.customData = CustomData.updateCodeblock(element.customData, {
+                fontSize: fontSize,
             });
         });
     };
 
     return (
-        <div
-            className={`absolute z-[3] pointer-events-auto h-full bg-[#ECECF4] rounded-lg flex items-center gap-4`}
-        >
+        <div className="flex gap-2 items-center absolute z-[3] pointer-events-auto h-full ">
+            <div className={`bg-[#ECECF4] rounded-lg flex items-center gap-4`}>
+                <select
+                    value={selectedLanguage}
+                    className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"
+                    onChange={e => updateLanguage(e.target.value as CodeEditorLanguage)}
+                >
+                    {CODE_EDITOR_LANGUAGES.map(language => (
+                        <option key={language} value={language}>
+                            {language}
+                        </option>
+                    ))}
+                </select>
+            </div>
             <select
-                value={selected}
+                value={selectedFontSize}
                 className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"
-                onChange={e => updateValue(e.target.value as CodeEditorLanguage)}
+                onChange={e => updateFontSize(e.target.value)}
             >
-                {CODE_EDITOR_LANGUAGES.map(language => (
-                    <option key={language} value={language}>
-                        {language}
+                {FONT_SIZES.map(fontSizes => (
+                    <option key={fontSizes} value={fontSizes}>
+                        {fontSizes}
                     </option>
                 ))}
             </select>

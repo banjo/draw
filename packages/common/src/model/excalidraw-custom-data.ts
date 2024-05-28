@@ -29,6 +29,7 @@ export type CustomDataCodeblock = BaseCustomData & {
     type: "codeblock";
     code: string;
     language: string;
+    fontSize: number;
 };
 
 export type CustomDataModel = BaseCustomData & {
@@ -46,6 +47,7 @@ type Props = {
 type CodeBlockProps = Props & {
     code: string;
     language: string;
+    fontSize: number;
 };
 
 type ModelProps = Props & {
@@ -63,6 +65,7 @@ const defaultCustomDataCodeblock: CustomDataCodeblock = {
     type: "codeblock",
     code: "",
     language: "javascript",
+    fontSize: 14,
 };
 
 const defaultCustomDataModel: CustomDataModel = {
