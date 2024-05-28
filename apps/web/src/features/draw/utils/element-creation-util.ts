@@ -409,7 +409,7 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
             height: TEXT_HEIGHT,
         },
         element => {
-            element.groupIds = [groupId];
+            element.groupIds = [...element.groupIds.filter(id => id !== groupId), groupId];
             return element;
         },
         "model-child"

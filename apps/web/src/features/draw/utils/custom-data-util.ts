@@ -1,5 +1,6 @@
 import { uniq } from "@banjoanton/utils";
 import { ExcalidrawElement } from "common";
+import { ElementUtil } from "./element-util";
 
 const isCodeBlockElement = (element: ExcalidrawElement) => {
     return element.customData?.type === "codeblock";
@@ -17,10 +18,11 @@ const isModelElements = (elements: ExcalidrawElement[]) => {
     const groupIds = elements.flatMap(e => e.groupIds);
 
     if (groupIds.length === 0) return false;
-    if (uniq(groupIds).length > 1) return false;
+
+    const groupId = ElementUtil.findCommonGroupId(elements);
+    if (!groupId) return false;
 
     const isOnlyModelElements = elements.every(isAnyModelElement);
-
     if (!isOnlyModelElements) return false;
 
     const container = elements.find(isModelContainerElement);
