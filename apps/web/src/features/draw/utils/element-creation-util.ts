@@ -391,7 +391,7 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
         return;
     }
 
-    const groupId = container.groupIds[0];
+    const groupId = ElementUtil.findCommonGroupId(modelElements);
 
     if (!groupId) {
         toast.error("Cannot find groupId");

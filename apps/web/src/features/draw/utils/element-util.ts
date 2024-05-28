@@ -180,6 +180,20 @@ const getShadowElements = (elements: ExcalidrawElements) => {
     return elements.filter(e => e.customData?.shadow === true);
 };
 
+const findCommonGroupId = (modelElements: ExcalidrawElement[]) => {
+    const allGroupIds = modelElements.map(element => element.groupIds).flat();
+    const groupIdCounts: Record<string, number> = {};
+    allGroupIds.forEach(groupId => {
+        if (!groupIdCounts[groupId]) {
+            groupIdCounts[groupId] = 0;
+        }
+        groupIdCounts[groupId] += 1;
+    });
+
+    const groupIds = Object.keys(groupIdCounts);
+    return groupIds.find(id => groupIdCounts[id] === modelElements.length);
+};
+
 export const ElementUtil = {
     removeDeletedElements,
     resetElement,
@@ -198,4 +212,5 @@ export const ElementUtil = {
     getShadowElements,
     getElementById,
     createNewLinearElementSelection,
+    findCommonGroupId,
 };
