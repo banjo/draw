@@ -194,6 +194,40 @@ const findCommonGroupId = (modelElements: ExcalidrawElement[]) => {
     return groupIds.find(id => groupIdCounts[id] === modelElements.length);
 };
 
+const mutateInsertAfter = (
+    elements: ExcalidrawElements,
+    element: ExcalidrawElement,
+    afterId: string
+) => {
+    const index = elements.findIndex(e => e.id === afterId);
+    elements.splice(index + 1, 0, element);
+};
+
+const insertAfter = (elements: ExcalidrawElements, element: ExcalidrawElement, afterId: string) => {
+    const newElements = [...elements];
+    mutateInsertAfter(newElements, element, afterId);
+    return newElements;
+};
+
+const mutateInsertBefore = (
+    elements: ExcalidrawElements,
+    element: ExcalidrawElement,
+    beforeId: string
+) => {
+    const index = elements.findIndex(e => e.id === beforeId);
+    elements.splice(index, 0, element);
+};
+
+const insertBefore = (
+    elements: ExcalidrawElements,
+    element: ExcalidrawElement,
+    beforeId: string
+) => {
+    const newElements = [...elements];
+    mutateInsertBefore(newElements, element, beforeId);
+    return newElements;
+};
+
 export const ElementUtil = {
     removeDeletedElements,
     resetElement,
@@ -213,4 +247,8 @@ export const ElementUtil = {
     getElementById,
     createNewLinearElementSelection,
     findCommonGroupId,
+    mutateInsertAfter,
+    insertAfter,
+    mutateInsertBefore,
+    insertBefore,
 };

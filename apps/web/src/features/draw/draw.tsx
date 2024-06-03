@@ -13,10 +13,14 @@ import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
-import { Maybe } from "@banjoanton/utils";
+import { Maybe, isEmpty, sum } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawApi, ExcalidrawElements } from "common";
+import { CustomData, ExcalidrawApi, ExcalidrawElements } from "common";
+import { CustomDataUtil } from "./utils/custom-data-util";
+import { UpdateElementUtil } from "./utils/update-element-util";
+import { SPACING, TEXT_HEIGHT } from "./utils/element-creation-util";
+import { useCleanup } from "./hooks/utils/use-cleanup";
 
 type DrawProps = {
     slug?: string;
@@ -72,6 +76,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const { onContextMenu } = useContextMenu();
 
     useHelpMenu();
+    const { cleanup } = useCleanup();
 
     const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
         if (!excalidrawApi) return;
@@ -79,6 +84,7 @@ export const Draw = ({ slug }: DrawProps) => {
         onDrawingChange(elements, appState);
         updateCodeBlockElements(elements, appState, files);
         handleSelectedElementVisuals(elements, appState, files);
+        cleanup(elements, appState, files);
     };
 
     return (

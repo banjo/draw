@@ -1,5 +1,5 @@
-import { uniq } from "@banjoanton/utils";
-import { ExcalidrawElement } from "common";
+import { includes, uniq } from "@banjoanton/utils";
+import { ExcalidrawElement, ModelType } from "common";
 import { ElementUtil } from "./element-util";
 
 const isCodeBlockElement = (element: ExcalidrawElement) => {
@@ -7,11 +7,17 @@ const isCodeBlockElement = (element: ExcalidrawElement) => {
 };
 
 const isAnyModelElement = (element: ExcalidrawElement) => {
-    return element.customData?.type === "model" || element.customData?.type === "model-child";
+    if (!element.customData) return false;
+    const modelElements: ModelType[] = ["model", "model-child", "model-line", "model-title"];
+    return includes(modelElements, element.customData?.type);
 };
 
 const isModelContainerElement = (element: ExcalidrawElement) => {
     return element.customData?.type === "model";
+};
+
+const isModelTextElement = (element: ExcalidrawElement) => {
+    return element.customData?.type === "model-child" && element.type === "text";
 };
 
 const isModelElements = (elements: ExcalidrawElement[]) => {
@@ -35,4 +41,5 @@ export const CustomDataUtil = {
     isModelElements,
     isModelContainerElement,
     isAnyModelElement,
+    isModelTextElement,
 };

@@ -30,6 +30,8 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     text: "rectangle", // wont happen
     line: "rectangle", // wont happen
     "model-child": "rectangle", // wont happen
+    "model-line": "rectangle", // wont happen
+    "model-title": "rectangle", // wont happen
     model: "rectangle",
     codeblock: "rectangle",
     diamond: "diamond",

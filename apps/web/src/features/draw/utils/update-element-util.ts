@@ -79,6 +79,8 @@ export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) =>
  */
 const updateElement = <T extends ExcalidrawElement>(element: T, callback: UpdateCallback<T>) => {
     return produce(element, draft => {
+        // @ts-ignore
+        draft.version++;
         return callback(draft, helpers);
     });
 };
@@ -94,6 +96,8 @@ const updateElements = <T extends ExcalidrawElement>(
 ) => {
     return elements.map(element => {
         return produce(element, draft => {
+            // @ts-ignore
+            draft.version++;
             return callback(draft, helpers);
         });
     });
@@ -107,6 +111,8 @@ export type MutateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) =>
  * @param callback - The callback to update the element
  */
 const mutateElement = <T extends ExcalidrawElement>(element: T, callback: MutateCallback<T>) => {
+    // @ts-ignore
+    element.version++;
     callback(element, helpers);
 };
 
@@ -120,6 +126,8 @@ const mutateElements = <T extends ExcalidrawElement>(
     callback: MutateCallback<T>
 ) => {
     elements.map(element => {
+        // @ts-ignore
+        element.version++;
         callback(element, helpers);
     });
 };

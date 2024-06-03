@@ -234,9 +234,9 @@ const createText = (
     return element as ExcalidrawElement;
 };
 
-const TEXT_HEIGHT = 25;
+export const TEXT_HEIGHT = 25;
 const ELEMENT_WIDTH = 256;
-const SPACING = 10;
+export const SPACING = 10;
 
 type CreateModelElement = {
     base: BasePosition;
@@ -255,16 +255,18 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
     // they should all have the same groupId
     // Only the rectangle should have a customData of type "model"
 
+    const groupId = ElementUtil.createElementId();
+
     const customData = CustomData.createModel({
         shadow: false,
         currentHeight: 0,
         textElementCount: 0,
+        groupId,
     });
+
     const title = "User";
     const exampleText = "name";
     const exampleText2 = "age";
-
-    const groupId = ElementUtil.createElementId();
 
     let currentY = base.y;
 
@@ -301,7 +303,7 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
             element.groupIds = [groupId];
             return element;
         },
-        "model-child"
+        "model-title"
     );
 
     currentY += SPACING + TEXT_HEIGHT + SPACING;
@@ -320,7 +322,7 @@ const createModelElement = ({ base }: CreateModelElement): ExcalidrawElement[] =
             element.groupIds = [groupId];
             return element;
         },
-        "model-child"
+        "model-line"
     );
 
     currentY += SPACING;
@@ -391,7 +393,7 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
         return;
     }
 
-    const groupId = ElementUtil.findCommonGroupId(modelElements);
+    const groupId = customData.groupId ?? ElementUtil.findCommonGroupId(modelElements);
 
     if (!groupId) {
         toast.error("Cannot find groupId");

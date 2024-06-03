@@ -1,5 +1,7 @@
 import { defaults, Maybe } from "@banjoanton/utils";
 
+export type ModelType = "model" | "model-child" | "model-line" | "model-title";
+
 export type CustomElementType =
     | "rectangle"
     | "ellipse"
@@ -9,8 +11,7 @@ export type CustomElementType =
     | "line"
     | "codeblock"
     | "image"
-    | "model"
-    | "model-child";
+    | ModelType;
 
 type BaseCustomData = {
     /**
@@ -36,6 +37,7 @@ export type CustomDataModel = BaseCustomData & {
     type: "model";
     currentHeight: number;
     textElementCount: number;
+    groupId: string;
 };
 
 export type CustomData = CustomDataDefault | CustomDataCodeblock | CustomDataModel;
@@ -53,6 +55,7 @@ type CodeBlockProps = Props & {
 type ModelProps = Props & {
     currentHeight: number;
     textElementCount: number;
+    groupId: string;
 };
 
 const defaultCustomData: CustomDataDefault = {
@@ -73,6 +76,7 @@ const defaultCustomDataModel: CustomDataModel = {
     type: "model",
     currentHeight: 0,
     textElementCount: 0,
+    groupId: "",
 };
 
 export const CustomData = {
@@ -81,13 +85,14 @@ export const CustomData = {
             return undefined;
         }
 
-        const { shadow, type, currentHeight, textElementCount } = data as CustomDataModel;
+        const { shadow, type, currentHeight, textElementCount, groupId } = data as CustomDataModel;
 
         if (
             typeof shadow !== "boolean" ||
             type !== "model" ||
             typeof currentHeight !== "number" ||
-            typeof textElementCount !== "number"
+            typeof textElementCount !== "number" ||
+            typeof groupId !== "string"
         ) {
             return undefined;
         }
@@ -97,18 +102,19 @@ export const CustomData = {
             type,
             currentHeight,
             textElementCount,
+            groupId,
         };
     },
     createDefault: (props: BaseCustomData): CustomDataDefault => ({
         ...props,
     }),
     createCodeblock: (props: CodeBlockProps): CustomDataCodeblock => ({
-        ...props,
         ...defaultCustomDataCodeblock,
+        ...props,
     }),
     createModel: (props: ModelProps): CustomDataModel => ({
-        ...props,
         ...defaultCustomDataModel,
+        ...props,
     }),
     updateDefault: (
         current: Maybe<CustomData>,
