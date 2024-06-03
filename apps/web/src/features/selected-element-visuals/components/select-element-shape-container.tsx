@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ElementVisualUtils } from "@/features/draw/utils/element-visual-utils";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
@@ -42,6 +43,7 @@ export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props)
     const handleSelectElement = (type: CustomElementType) => {
         if (!excalidrawApi) return;
         ElementVisualUtils.updateElementFromTypeSelection(excalidrawApi, type);
+        DrawingUtil.focusCanvas();
     };
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
