@@ -17,7 +17,7 @@ export const CODE_ELEMENT_CLASS = "code-element";
 
 export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const { excalidrawApi } = useGlobal();
-    const selectedLanguage = useCodeEditorStore(state => state.selectedLanguage);
+    const getSelectedLanguage = useCodeEditorStore(state => state.getSelectedLanguage);
     const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
     const setFontSize = useCodeEditorStore(state => state.setFontSize);
     const fontSize = useCodeEditorStore(state => state.fontSize);
@@ -41,8 +41,12 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const customData = element.customData as CustomDataCodeblock;
 
     useEffect(() => {
-        if (customData.language && includes(CODE_EDITOR_LANGUAGES, customData.language)) {
-            setSelectedLanguage(customData.language);
+        if (
+            customData.language &&
+            includes(CODE_EDITOR_LANGUAGES, customData.language) &&
+            element.id
+        ) {
+            setSelectedLanguage(element.id, customData.language);
         }
 
         if (customData.fontSize) {
@@ -90,8 +94,8 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
         >
             <Editor
                 className="p-2 bg-[#1e1e1e] cursor-move"
-                defaultLanguage={selectedLanguage.toLowerCase()}
-                language={selectedLanguage.toLowerCase()}
+                defaultLanguage={getSelectedLanguage(element.id).toLowerCase()}
+                language={getSelectedLanguage(element.id).toLowerCase()}
                 defaultValue={customData.code}
                 onChange={debouncedOnChange}
                 onMount={handleEditorDidMount}

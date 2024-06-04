@@ -26,14 +26,14 @@ export const initCodeblockMenuElement = () => {
 const FONT_SIZES = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
 const CodeEditorMenu = ({ element }: Props) => {
-    const selectedLanguage = useCodeEditorStore(state => state.selectedLanguage);
+    const getSelectedLanguage = useCodeEditorStore(state => state.getSelectedLanguage);
     const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
 
     const selectedFontSize = useCodeEditorStore(state => state.fontSize);
     const setSelectedFontSize = useCodeEditorStore(state => state.setFontSize);
 
     const updateLanguage = (language: CodeEditorLanguage) => {
-        setSelectedLanguage(language);
+        setSelectedLanguage(element.id, language);
         UpdateElementUtil.mutateElement(element, element => {
             element.customData = CustomData.updateCodeblock(element.customData, {
                 language: language,
@@ -58,7 +58,7 @@ const CodeEditorMenu = ({ element }: Props) => {
         <div className="flex gap-2 items-center absolute z-[3] pointer-events-auto h-full ">
             <div className={`bg-[#ECECF4] rounded-lg flex items-center gap-4`}>
                 <select
-                    value={selectedLanguage}
+                    value={getSelectedLanguage(element.id)}
                     className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"
                     onChange={e => updateLanguage(e.target.value as CodeEditorLanguage)}
                 >
