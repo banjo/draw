@@ -7,11 +7,12 @@ import { CodeBlockElement } from "@/features/selected-element-visuals/hooks/use-
 import { CODE_EDITOR_LANGUAGES } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { Maybe, debounce, includes } from "@banjoanton/utils";
-import { Editor, Monaco } from "@monaco-editor/react";
+import { Editor } from "@monaco-editor/react";
 import { CustomData, CustomDataCodeblock } from "common";
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
 import { useEffect, useRef } from "react";
 import "./code-editor.css";
+import { cn } from "@/lib/utils";
 
 export const CODE_ELEMENT_CLASS = "code-element";
 
@@ -24,13 +25,13 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const editorRef = useRef<editor.ICodeEditor>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const handleEditorDidMount = (editor: editor.ICodeEditor, monaco: Monaco) => {
+    const handleEditorDidMount = (editor: editor.ICodeEditor) => {
         // @ts-ignore
         editorRef.current = editor;
     };
 
     const onChange = async (value: Maybe<string>) => {
-        UpdateElementUtil.mutateElement(element, (element, helpers) => {
+        UpdateElementUtil.mutateElement(element, element => {
             element.customData = CustomData.updateCodeblock(element.customData, {
                 code: value,
             });
@@ -84,16 +85,20 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
 
     const zoom = excalidrawApi?.getAppState().zoom.value ?? 1;
 
+    const fontSizeWithZoom = fontSize * zoom;
+
     return (
         <div
-            className={`absolute z-[3] rounded-lg cursor-move overflow-hidden ${CODE_ELEMENT_CLASS} ${CUSTOM_ELEMENT_CLASS}`}
+            className={cn(
+                `absolute z-[3] rounded-lg cursor-move overflow-hidden ${CODE_ELEMENT_CLASS} ${CUSTOM_ELEMENT_CLASS}`
+            )}
             data-element-id={element.id}
             style={style}
             ref={containerRef}
             onKeyDown={handleKeyDown}
         >
             <Editor
-                className="p-2 bg-[#1e1e1e] cursor-move"
+                className="p-[2%] bg-[#1e1e1e] cursor-move"
                 defaultLanguage={getSelectedLanguage(element.id).toLowerCase()}
                 language={getSelectedLanguage(element.id).toLowerCase()}
                 defaultValue={customData.code}
@@ -117,7 +122,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     automaticLayout: true,
                     contextmenu: false,
                     wordWrap: "on",
-                    fontSize: fontSize * zoom,
+                    fontSize: fontSizeWithZoom,
                 }}
                 theme="vs-dark"
             />
