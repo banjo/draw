@@ -33,9 +33,22 @@ const prepare = async (excalidrawApi: ExcalidrawApi, selectedOnly: boolean) => {
     }
 
     const customElements = await Promise.all(
-        codeHtmlElements.map(async htmlElement =>
-            CustomElementImageData.fromHtmlElement(htmlElement, codeExcalidrawElements)
-        )
+        codeHtmlElements.map(async htmlElement => {
+            const textArea = htmlElement.querySelector("textarea");
+            if (textArea) {
+                textArea.style.display = "none";
+            }
+            const imageData = CustomElementImageData.fromHtmlElement(
+                htmlElement,
+                codeExcalidrawElements
+            );
+
+            if (textArea) {
+                textArea.style.display = "block";
+            }
+
+            return imageData;
+        })
     );
 
     const newImageElements = customElements.map(CustomElementImageData.toExcalidrawImageElement);
