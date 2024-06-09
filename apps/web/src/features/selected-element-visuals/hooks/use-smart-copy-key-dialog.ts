@@ -3,17 +3,25 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { useVisualElementTimer } from "@/features/selected-element-visuals/hooks/use-visual-element-timer";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { ExcalidrawElement } from "common";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const useSmartCopyKeyDialog = () => {
     const { excalidrawApi } = useGlobal();
     const smartCopyKeyDialogRef = useRef<HTMLDivElement>(null);
-    const setShowSmartCopyDialog = useVisualElementStore(s => s.setShowVisualElements);
-    const showSmartCopyKeyDialogByGlobalState = useVisualElementStore(s => s.showVisualElements);
+    const setShowVisualElements = useVisualElementStore(s => s.setShowVisualElements);
+    const showVisualElements = useVisualElementStore(s => s.showVisualElements);
 
-    const { showChangeElementByTime } = useVisualElementTimer();
+    const { showElementByTime } = useVisualElementTimer();
+    const [hasPosition, setHasPosition] = useState(false);
 
-    const showSmartCopyDialog = showSmartCopyKeyDialogByGlobalState && showChangeElementByTime;
+    const showSmartCopyDialog = showVisualElements && showElementByTime && hasPosition;
+
+    // reset position when dialog is hidden
+    useEffect(() => {
+        if (!showVisualElements || !showElementByTime) {
+            setHasPosition(false);
+        }
+    }, [showVisualElements, showElementByTime]);
 
     const applyPosition = (selectedElement: ExcalidrawElement) => {
         if (!excalidrawApi) return;
@@ -33,12 +41,14 @@ export const useSmartCopyKeyDialog = () => {
             "style",
             `top: ${dialogY}px; left: ${dialogX}px`
         );
+
+        setHasPosition(true);
     };
 
     return {
         smartCopyKeyDialogRef,
         showSmartCopyDialog,
-        setShowSmartCopyDialog,
+        setShowSmartCopyDialog: setShowVisualElements,
         applyPosition,
     };
 };

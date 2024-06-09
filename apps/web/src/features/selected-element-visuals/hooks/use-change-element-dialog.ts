@@ -3,20 +3,25 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { useVisualElementTimer } from "@/features/selected-element-visuals/hooks/use-visual-element-timer";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { ExcalidrawElement } from "common";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const useChangeElementKeyDialog = () => {
     const { excalidrawApi } = useGlobal();
     const changeElementKeyRef = useRef<HTMLDivElement>(null);
-    const setShowChangeElementKeyDialog = useVisualElementStore(s => s.setShowVisualElements);
-    const showChangeElementKeyDialogByGlobalState = useVisualElementStore(
-        s => s.showVisualElements
-    );
+    const setShowVisualElements = useVisualElementStore(s => s.setShowVisualElements);
+    const showVisualElements = useVisualElementStore(s => s.showVisualElements);
 
-    const { showChangeElementByTime } = useVisualElementTimer();
+    const { showElementByTime } = useVisualElementTimer();
+    const [hasPosition, setHasPosition] = useState(false);
 
-    const showChangeElementKeyDialog =
-        showChangeElementKeyDialogByGlobalState && showChangeElementByTime;
+    const showChangeElementKeyDialog = showVisualElements && showElementByTime && hasPosition;
+
+    // reset position when dialog is hidden
+    useEffect(() => {
+        if (!showVisualElements || !showElementByTime) {
+            setHasPosition(false);
+        }
+    }, [showVisualElements, showElementByTime]);
 
     const applyPosition = (selectedElement: ExcalidrawElement) => {
         if (!excalidrawApi) return;
@@ -33,12 +38,13 @@ export const useChangeElementKeyDialog = () => {
         const dialogY = y - 100;
 
         changeElementKeyRef.current?.setAttribute("style", `top: ${dialogY}px; left: ${dialogX}px`);
+        setHasPosition(true);
     };
 
     return {
         changeElementKeyRef,
         showChangeElementKeyDialog,
-        setShowChangeElementKeyDialog,
+        setShowChangeElementKeyDialog: setShowVisualElements,
         applyPosition,
     };
 };

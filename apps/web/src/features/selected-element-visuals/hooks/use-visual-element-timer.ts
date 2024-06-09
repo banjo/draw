@@ -21,5 +21,5 @@ export const useVisualElementTimer = () => {
         }
     }, [showVisualElement]);
 
-    return { showChangeElementByTime: showElementByTime };
+    return { showElementByTime };
 };
