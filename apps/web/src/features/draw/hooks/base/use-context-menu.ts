@@ -16,7 +16,9 @@ export const useContextMenu = () => {
 
             const hasSelection = ElementUtil.getSelectedElements(appState, elements);
 
-            NativeContextMenu.parse();
+            const didFindMenu = NativeContextMenu.parse();
+            if (!didFindMenu) return;
+
             NativeContextMenu.updateEntry({
                 dataTestId: "copyAsPng",
                 label: hasSelection

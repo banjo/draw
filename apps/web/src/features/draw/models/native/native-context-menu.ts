@@ -1,3 +1,5 @@
+import { logger } from "@/utils/logger";
+
 type UpdateEntryProps = {
     dataTestId: string;
     label: string;
@@ -15,8 +17,11 @@ class NativeContextMenuClass {
         this.element = document.querySelector<HTMLElement>(this.querySelector);
 
         if (!this.element) {
-            throw new Error(`Element with query selector ${this.querySelector} not found`);
+            logger.error(`Element with query selector ${this.querySelector} not found`);
+            return false;
         }
+
+        return true;
     }
 
     public focus() {
