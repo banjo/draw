@@ -7,6 +7,7 @@ import { elementsOverlappingBBox } from "@excalidraw/excalidraw";
 import { useEffect } from "react";
 import { ElementPositionUtil } from "../../utils/element-position-util";
 import { useHelpMenu } from "./use-help-menu";
+import { AddElementService } from "@/features/add-element/services/add-element-service";
 
 type Props = {
     slug: Maybe<string>;
@@ -40,6 +41,7 @@ export const useInit = ({ slug }: Props) => {
         };
 
         const init = () => {
+            AddElementService.init();
             removeShadows();
             initCodeblockMenuElement();
         };

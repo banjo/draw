@@ -9,6 +9,7 @@ import { logger } from "@/utils/logger";
 import { Callback, Maybe, includes } from "@banjoanton/utils";
 import { KeyboardEventHandler, useState } from "react";
 import { CustomDataUtil } from "../../utils/custom-data-util";
+import { NativeToolbarAddElementButton } from "../../models/native/native-toolbar-add-element-button";
 
 type In = {
     handleChangeElementDialogClick: Callback;
@@ -36,6 +37,12 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         if (event.key === "Meta") {
             setShowVisualElements(false);
             setMetaKeyIsDown(true);
+        }
+
+        if (event.key === NativeToolbarAddElementButton.getKeybinding()) {
+            NativeToolbarAddElementButton.parse();
+            NativeToolbarAddElementButton.select();
+            return;
         }
 
         // If one element selected, allow change element type

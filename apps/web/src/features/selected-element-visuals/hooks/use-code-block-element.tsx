@@ -1,7 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { OnChangeCallback } from "@/features/draw/draw";
 import { NativeAppMenuLeft } from "@/features/draw/models/native/native-app-menu-left";
-import { NativeMobileBottomToolbar } from "@/features/draw/models/native/native-mobile-bottom-toolbar";
+import { NativeToolbar } from "@/features/draw/models/native/native-toolbar";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
@@ -60,11 +60,11 @@ export const useCodeBlockElement = () => {
         if (selected) {
             setSelectedElement(selected);
             NativeAppMenuLeft.hide();
-            NativeMobileBottomToolbar.hideEditButton();
+            NativeToolbar.hideEditButton();
         } else {
             setSelectedElement(undefined);
             NativeAppMenuLeft.show();
-            NativeMobileBottomToolbar.showEditButton();
+            NativeToolbar.showEditButton();
         }
     };
 
