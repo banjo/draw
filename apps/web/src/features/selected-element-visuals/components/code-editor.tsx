@@ -32,7 +32,6 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
         });
     };
 
-    const debouncedOnChange = debounce(onChange, 500);
     const customData = element.customData as CustomDataCodeblock;
 
     useEffect(() => {
@@ -99,7 +98,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     language={selectedLanguage.toLowerCase()}
                     data-color-mode="dark"
                     padding={0}
-                    onChange={evn => debouncedOnChange(evn.target.value)}
+                    onChange={evn => onChange(evn.target.value)}
                     style={{
                         fontSize: fontSizeWithZoom,
                         fontFamily:
