@@ -21,7 +21,7 @@ const getFileName = (extension: string) => {
     return `banjodraw-${toIsoDateString(new Date())}.${extension}`;
 };
 
-const prepare = async (excalidrawApi: ExcalidrawApi, selectedOnly: boolean) => {
+const prepare = async (excalidrawApi: ExcalidrawApi) => {
     const codeHtmlElements = getCodeElements();
 
     const codeExcalidrawElements = excalidrawApi
@@ -34,6 +34,10 @@ const prepare = async (excalidrawApi: ExcalidrawApi, selectedOnly: boolean) => {
 
     const customElements = await Promise.all(
         codeHtmlElements.map(async htmlElement => {
+            // remove rounded border for code as it wont get rendered correctly
+            const currentRadius = htmlElement.style.borderRadius;
+            htmlElement.style.borderRadius = "0";
+
             const textArea = htmlElement.querySelector("textarea");
             if (textArea) {
                 textArea.style.display = "none";
@@ -42,6 +46,9 @@ const prepare = async (excalidrawApi: ExcalidrawApi, selectedOnly: boolean) => {
                 htmlElement,
                 codeExcalidrawElements
             );
+
+            // reset the element
+            htmlElement.style.borderRadius = currentRadius;
 
             if (textArea) {
                 textArea.style.display = "block";
@@ -57,12 +64,11 @@ const prepare = async (excalidrawApi: ExcalidrawApi, selectedOnly: boolean) => {
     const appState = excalidrawApi.getAppState();
     const selectedElements = ElementUtil.getSelectedElements(appState, currentElements);
 
-    const elementsToExport =
-        selectedOnly && !isEmpty(selectedElements) ? selectedElements : currentElements;
+    const elementsToExport = !isEmpty(selectedElements) ? selectedElements : currentElements;
 
     StateUtil.mutateState(appState, draft => {
         draft.exportWithDarkMode = false;
-        draft.exportBackground = true;
+        draft.exportBackground = false;
     });
 
     excalidrawApi.addFiles(customElements.map(e => e.binaryFileData));
@@ -81,7 +87,7 @@ export const useExport = () => {
     const exportPngToClipboard = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, true);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
 
         await exportToClipboard({
             // @ts-ignore - wrong with local types
@@ -96,7 +102,7 @@ export const useExport = () => {
     const exportSvgToClipboard = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, true);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
 
         await exportToClipboard({
             // @ts-ignore - wrong with local types
@@ -111,7 +117,7 @@ export const useExport = () => {
     const exportToPng = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, false);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
 
         const canvas = await exportToCanvas({
             // @ts-ignore - wrong with local types
@@ -128,7 +134,7 @@ export const useExport = () => {
     const exportToSvg = async () => {
         if (!excalidrawApi) return;
 
-        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, false);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi);
 
         const svg = await exportToSvgFunc({
             // @ts-ignore - wrong with local types
