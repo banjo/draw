@@ -25,7 +25,7 @@ export const useSelectElementDialog = () => {
         // place select element dialog under the element
         const selectWidth = selectElementRef.current?.offsetWidth ?? 0;
         const selectX = x + (width * appState.zoom.value) / 2 - selectWidth / 2;
-        const selectY = y + height + 20;
+        const selectY = y + height * appState.zoom.value + 20;
         selectElementRef.current?.setAttribute("style", `top: ${selectY}px; left: ${selectX}px`);
     };
 
