@@ -87,6 +87,11 @@ const prepareCollaborationChanges = ({
         return false;
     });
 
+    const orderHasChanged = !isEqual(
+        allNewElements.map(e => e.id),
+        allOldElements.map(e => e.id)
+    );
+
     const elementsToDelete = allOldElements
         .filter(oldElement => {
             const newElement = allNewElements.find(el => el.id === oldElement.id);
@@ -95,7 +100,7 @@ const prepareCollaborationChanges = ({
         })
         .map(element => ({ ...element, isDeleted: true }));
 
-    // TODO: do not send an update one the first render, when it has fetched the board and applies it to the scene
+    // TODO: do not send an update on the first render, when it has fetched the board and applies it to the scene
     const currentOrder = allNewElements.map(e => e.id);
     const combinedElements = [...updatedElements, ...elementsToDelete];
 
@@ -108,7 +113,7 @@ const prepareCollaborationChanges = ({
         }
     });
 
-    return { currentOrder, elementsToSave };
+    return { currentOrder: orderHasChanged ? currentOrder : undefined, elementsToSave };
 };
 
 const focusCanvas = () => {

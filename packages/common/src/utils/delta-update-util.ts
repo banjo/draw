@@ -47,24 +47,28 @@ const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Bo
         })
         .filter(isDefined);
 
-    const ordered = deltaUpdate.order
-        .map(id => {
-            const addedElement = added.find(e => e.id === id);
-            if (addedElement) {
-                return addedElement;
-            }
+    if (deltaUpdate.order) {
+        const ordered = deltaUpdate.order
+            .map(id => {
+                const addedElement = added.find(e => e.id === id);
+                if (addedElement) {
+                    return addedElement;
+                }
 
-            const updatedElement = updatedBoardElements.find(e => e.id === id);
-            if (updatedElement) {
-                return updatedElement;
-            }
+                const updatedElement = updatedBoardElements.find(e => e.id === id);
+                if (updatedElement) {
+                    return updatedElement;
+                }
 
-            logger.trace(`Element with id ${id} not found in delta update`);
-            return undefined;
-        })
-        .filter(isDefined);
+                logger.trace(`Element with id ${id} not found in delta update`);
+                return undefined;
+            })
+            .filter(isDefined);
 
-    return Board.from({ elements: ordered });
+        return Board.from({ elements: ordered });
+    }
+
+    return Board.from({ elements: updatedBoardElements });
 };
 
 export const DeltaUpdateUtil = {
