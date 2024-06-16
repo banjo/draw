@@ -36,10 +36,15 @@ const isModelElements = (elements: ExcalidrawElement[]) => {
     return Boolean(container);
 };
 
+const isShadowElement = (element: ExcalidrawElement) => {
+    return element.customData?.shadow === true;
+};
+
 export const CustomDataUtil = {
     isCodeBlockElement,
     isModelElements,
     isModelContainerElement,
     isAnyModelElement,
     isModelTextElement,
+    isShadowElement,
 };

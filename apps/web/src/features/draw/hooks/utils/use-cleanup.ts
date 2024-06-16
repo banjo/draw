@@ -40,10 +40,20 @@ const cleanupModel: OnChangeCallback = (elements, appState, files) => {
     });
 };
 
+const cleanupShadows: OnChangeCallback = (elements, appState, files) => {
+    const shadowElements = elements.filter(CustomDataUtil.isShadowElement);
+    if (isEmpty(shadowElements)) return;
+
+    UpdateElementUtil.mutateElements(shadowElements, draft => {
+        draft.isDeleted = true;
+    });
+};
+
 export const useCleanup = () => {
     const cleanup: OnChangeCallback = (...props) => {
         // Make model work with undo/redo
         cleanupModel(...props);
+        cleanupShadows(...props);
     };
 
     return { cleanup };
