@@ -50,7 +50,13 @@ export const createLogger = (name: string) => {
     }
 
     const serverVariables = Env.allServer();
-    return pino({ name, level: serverVariables.LOG_LEVEL ?? "info" }, sharedTransport);
+    return pino(
+        {
+            name,
+            level: serverVariables.LOG_LEVEL ?? "info",
+        },
+        sharedTransport
+    );
 };
 
 export { type Logger } from "pino";

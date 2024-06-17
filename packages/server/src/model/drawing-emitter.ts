@@ -71,10 +71,12 @@ export class DrawingEmitter extends EventEmitter {
                     const res = await DrawRepository.saveDrawingFromBoard(slug, board);
 
                     if (!res.success) {
-                        logger.error(`Error saving drawing: ${slug}`);
+                        logger.error(`Error saving drawing with ${slug} - ${res.message}`);
                     }
                 } else {
-                    logger.error(`Board not found for saving: ${slug}`);
+                    logger.error(
+                        `Board not found in memory while saving drawing with slug ${slug}`
+                    );
                 }
 
                 clearInterval(this.saveIntervalMap.get(slug));
@@ -96,7 +98,7 @@ export class DrawingEmitter extends EventEmitter {
             const drawingResult = await DrawRepository.getDrawingBySlug(slug);
 
             if (!drawingResult.success) {
-                logger.error(`Error getting drawing: ${slug}`);
+                logger.error(`Error getting drawing with slug ${slug} - ${drawingResult.message}`);
                 return;
             }
 

@@ -18,7 +18,7 @@ const getDrawingBySlug = async (slug: string) => {
         });
 
         if (!drawing) {
-            logger.error(`Drawing not found: ${slug}`);
+            logger.error(`Drawing with slug ${slug} not found`);
             return Result.error("Drawing not found", "NotFound");
         }
 
@@ -26,8 +26,8 @@ const getDrawingBySlug = async (slug: string) => {
             .map(id => {
                 const element = drawing.elements.find(e => e.elementId === id);
                 if (!element) {
-                    logger.error(`Element not found: ${id}`);
-                    return;
+                    logger.error(`Element with id ${id} not found`);
+                    return undefined;
                 }
 
                 return element;
@@ -38,7 +38,7 @@ const getDrawingBySlug = async (slug: string) => {
         logger.trace(`Drawing found: ${slug}`);
         return Result.ok(orderedElements);
     } catch (error) {
-        logger.error(`Error getting drawing: ${slug} - ${error}`);
+        logger.error(error, `Error getting drawing with slug ${slug}`);
         return Result.error("Error getting drawing", "InternalError");
     }
 };
@@ -62,7 +62,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
             });
 
             if (!deleteAll) {
-                logger.error(`Error deleting drawing elements: ${slug}`);
+                logger.error(`Error deleting drawing elements with slug ${slug}`);
                 return Result.error("Error deleting drawing elements", "InternalError");
             }
 
@@ -118,7 +118,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
 
         return Result.ok(createNewDrawing.id);
     } catch (error) {
-        logger.error(`Error saving drawing: ${slug} - ${error}`);
+        logger.error(error, `Error saving drawing: ${slug}`);
         return Result.error("Error saving drawing", "InternalError");
     }
 };
@@ -228,7 +228,7 @@ const saveDrawingFromDeltaUpdate = async (
 
         return Result.ok(createNewDrawing.id);
     } catch (error) {
-        logger.error(`Error saving drawing: ${slug} - ${error}`);
+        logger.error(error, `Error saving drawing: ${slug}`);
         return Result.error("Error saving drawing", "InternalError");
     }
 };
@@ -250,7 +250,7 @@ const saveImages = async (images: { data: string; id: string; mimeType: string }
 
         return Result.okEmpty();
     } catch (error) {
-        logger.error(`Error saving images: ${error}`);
+        logger.error(error, `Error saving images`);
         return Result.error("Error saving images", "InternalError");
     }
 };
@@ -272,7 +272,7 @@ const getImages = async (imageIds: string[]) => {
 
         return Result.ok(images);
     } catch (error) {
-        logger.error(`Error getting images: ${error}`);
+        logger.error(error, `Error getting images`);
         return Result.error("Error getting images", "InternalError");
     }
 };
@@ -321,7 +321,7 @@ const saveToCollection = async (slug: string, userId: number) => {
 
         return Result.okEmpty();
     } catch (error) {
-        logger.error(`Error saving drawing to user: ${slug} - ${error}`);
+        logger.error(error, `Error saving drawing to user: ${slug}`);
         return Result.error("Error saving drawing to user", "InternalError");
     }
 };
@@ -354,7 +354,7 @@ const getCollection = async (userId: number) => {
 
         return Result.ok(mapped);
     } catch (error) {
-        logger.error(`Error getting user collection: ${userId} - ${error}`);
+        logger.error(error, `Error getting user collection for user ${userId}`);
         return Result.error("Error getting user collection", "InternalError");
     }
 };
@@ -392,7 +392,7 @@ const deleteDrawingFromCollection = async (userId: number, slug: string) => {
 
         return Result.okEmpty();
     } catch (error) {
-        logger.error(`Error deleting drawing from user: ${slug} - ${error}`);
+        logger.error(error, `Error deleting drawing from user: ${slug}`);
         return Result.error("Error deleting drawing from user", "InternalError");
     }
 };
@@ -431,7 +431,7 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
 
         return Result.okEmpty();
     } catch (error) {
-        logger.error(`Error updating drawing name: ${slug} - ${error}`);
+        logger.error(error, `Error updating drawing name: ${slug}`);
         return Result.error("Error updating drawing name", "InternalError");
     }
 };

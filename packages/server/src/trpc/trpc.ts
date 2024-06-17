@@ -45,6 +45,11 @@ export const createTRPCContext = async ({
         expired,
     });
 
+    // TODO: TEST ERROR HANDLING
+    // const [, tjoerror] = await wrapAsync(async () => await auth.verifyIdToken(""));
+    // logger.error(tjoerror, "Error verifying empty token");
+    // return createResponse(undefined, true);
+
     const authHeader = req?.headers.authorization;
 
     if (isLocalDevelopment()) {
@@ -71,7 +76,7 @@ export const createTRPCContext = async ({
     const [decodedToken, err] = await wrapAsync(async () => await auth.verifyIdToken(idToken));
 
     if (err) {
-        logger.error(err);
+        logger.error(err, "Error verifying token for user");
         return createResponse(undefined, true);
     }
 
@@ -96,7 +101,7 @@ export const createTRPCContext = async ({
         });
 
         if (!user.success) {
-            logger.error("Could not create user");
+            logger.error(`Could not create user - ${user.message}`);
             return createResponse();
         }
 

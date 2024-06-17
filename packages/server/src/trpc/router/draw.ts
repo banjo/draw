@@ -15,7 +15,7 @@ export const drawRouter = createTRPCRouter({
         const drawing = await DrawRepository.getDrawingBySlug(slug);
 
         if (!drawing.success) {
-            logger.error(`Failed to get drawing: ${slug}`);
+            logger.error(`Failed to get drawing with slug ${slug} - ${drawing.message}`);
             throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: drawing.message });
         }
 
@@ -42,7 +42,7 @@ export const drawRouter = createTRPCRouter({
             );
 
             if (!drawingResult.success) {
-                logger.error(`Failed to save drawing: ${slug}`);
+                logger.error(`Failed to save drawing with slug ${slug} - ${drawingResult.message}`);
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: drawingResult.message,
@@ -60,14 +60,16 @@ export const drawRouter = createTRPCRouter({
             logger.trace(`Saving drawing to collection: ${slug}`);
 
             if (!userId) {
-                logger.error("Unauthorized");
+                logger.error("Unauthorized user");
                 throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
             const drawingResult = await DrawRepository.saveToCollection(slug, userId);
 
             if (!drawingResult.success) {
-                logger.error(`Failed to save drawing to collection: ${slug}`);
+                logger.error(
+                    `Failed to save drawing to collection with slug ${slug} - ${drawingResult.message}`
+                );
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: drawingResult.message,
@@ -109,7 +111,9 @@ export const drawRouter = createTRPCRouter({
             const collectionResult = await DrawRepository.deleteDrawingFromCollection(userId, slug);
 
             if (!collectionResult.success) {
-                logger.error(`Failed to delete drawing from collection: ${slug}`);
+                logger.error(
+                    `Failed to delete drawing from collection with slug ${slug} - ${collectionResult.message}`
+                );
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: collectionResult.message,
@@ -142,7 +146,9 @@ export const drawRouter = createTRPCRouter({
                     });
                 }
 
-                logger.error(`Failed to update drawing name: ${slug}`);
+                logger.error(
+                    `Failed to update drawing with slug ${slug} - ${drawingResult.message}`
+                );
                 throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
             }
 
