@@ -45,11 +45,6 @@ export const createTRPCContext = async ({
         expired,
     });
 
-    // TODO: TEST ERROR HANDLING
-    // const [, tjoerror] = await wrapAsync(async () => await auth.verifyIdToken(""));
-    // logger.error(tjoerror, "Error verifying empty token");
-    // return createResponse(undefined, true);
-
     const authHeader = req?.headers.authorization;
 
     if (isLocalDevelopment()) {
