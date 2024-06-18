@@ -1,9 +1,8 @@
-import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
-import { firebaseService } from "@/services/firebase-service";
+import { authService } from "@/services/auth-service";
 import { getHttpUrl, getWsUrl } from "@/utils/runtime";
 import { TokenUtil } from "@/utils/token";
-import { Maybe, toMilliseconds } from "@banjoanton/utils";
+import { toMilliseconds } from "@banjoanton/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TRPCClientError, createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { Cause } from "common";
@@ -18,7 +17,7 @@ const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }
                 // access to the original tRPC query operation object
                 // is accessible on both methods
                 tokenRefreshNeeded: () => {
-                    const token = firebaseService.getAuthState().token;
+                    const token = authService.getAuthState().token;
                     if (!token) return true;
 
                     const shouldRefresh = TokenUtil.needRefresh(
@@ -33,7 +32,7 @@ const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }
                     return false;
                 },
                 fetchAccessToken: async () => {
-                    await firebaseService.refreshToken();
+                    await authService.refreshToken();
                 },
             }),
             splitLink({
@@ -47,7 +46,7 @@ const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }
                         });
                     },
                     headers: async () => {
-                        const token = firebaseService.getAuthState().token;
+                        const token = authService.getAuthState().token;
                         if (token) {
                             return {
                                 authorization: `Bearer ${token}`,
@@ -80,7 +79,7 @@ export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
                                     error.data?.code === "UNAUTHORIZED" &&
                                     error.shape?.cause === Cause.EXPIRED_TOKEN
                                 ) {
-                                    firebaseService.refreshToken(); // not best solution, but it works
+                                    authService.refreshToken(); // not best solution, but it works
                                 }
                             }
 
@@ -94,7 +93,7 @@ export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
                                     error.data.code === "UNAUTHORIZED" &&
                                     error.shape?.cause === Cause.EXPIRED_TOKEN
                                 ) {
-                                    firebaseService.refreshToken(); // not best solution, but it works
+                                    authService.refreshToken(); // not best solution, but it works
                                 }
                             }
 

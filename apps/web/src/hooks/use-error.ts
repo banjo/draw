@@ -1,5 +1,4 @@
-import { useAuth } from "@/contexts/auth-context";
-import { firebaseService } from "@/services/firebase-service";
+import { authService } from "@/services/auth-service";
 import { toastError } from "@/utils/error";
 import { Maybe, attempt, defaults } from "@banjoanton/utils";
 import { TRPCClientError } from "@trpc/client";
@@ -28,7 +27,7 @@ export const useError = () => {
         if (error instanceof TRPCClientError) {
             const cause = Cause.fromClientError(error);
             if (cause === Cause.EXPIRED_TOKEN) {
-                await firebaseService.refreshToken();
+                await authService.refreshToken();
             }
 
             const message = attempt(() => causeLog[cause as Cause]);

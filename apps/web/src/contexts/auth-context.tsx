@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Loader } from "ui";
 import { User } from "firebase/auth";
-import { AuthState, firebaseService } from "@/services/firebase-service";
+import { AuthState, authService } from "@/services/auth-service";
 
 export type AuthContextType = {
     user: User | null;
@@ -28,7 +28,7 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const [authState, setAuthState] = useState<AuthState>(firebaseService.getAuthState());
+    const [authState, setAuthState] = useState<AuthState>(authService.getAuthState());
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -37,10 +37,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setIsLoading(false);
         };
 
-        firebaseService.addAuthStateListener(handleAuthStateChange);
+        authService.addAuthStateListener(handleAuthStateChange);
 
         return () => {
-            firebaseService.removeAuthStateListener(handleAuthStateChange);
+            authService.removeAuthStateListener(handleAuthStateChange);
         };
     }, []);
 

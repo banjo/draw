@@ -1,6 +1,5 @@
 import { auth } from "@/lib/firebase";
 import { isLocalDevelopment } from "@/utils/runtime";
-import { TokenWithExpiration } from "@/utils/token";
 import { Maybe, raise } from "@banjoanton/utils";
 import { Env } from "common";
 import {
@@ -10,14 +9,13 @@ import {
     signInWithPopup,
     signOut,
 } from "firebase/auth";
-import jwtDecode from "jwt-decode";
 
 export type AuthState = {
     user: User | null;
     token: string | undefined;
 };
 
-class FirebaseService {
+class AuthService {
     private user: User | null = null;
     private token: Maybe<string> = undefined;
     private listeners: Array<(state: AuthState) => void> = [];
@@ -110,4 +108,4 @@ class FirebaseService {
     }
 }
 
-export const firebaseService = new FirebaseService();
+export const authService = new AuthService();

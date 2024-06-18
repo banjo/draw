@@ -24,7 +24,7 @@ import { UpdateElementUtil } from "../../utils/update-element-util";
 import { useLocalIdStore } from "@/stores/use-local-id-store";
 import { BoardDeltaUpdate } from "common";
 import { useDeltaMutation } from "../collaboration/use-delta-mutation";
-import { firebaseService } from "@/services/firebase-service";
+import { authService } from "@/services/auth-service";
 
 type In = {
     slug: Maybe<string>;
@@ -46,7 +46,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const utils = trpc.useContext();
 
     const signOut = () => {
-        firebaseService.signOut();
+        authService.signOut();
     };
 
     const { exportToPng, exportToSvg } = useExport();
@@ -154,7 +154,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                     </MainMenu.Item>
                 ) : (
                     <MainMenu.Item
-                        onSelect={() => firebaseService.signInWithGoogle()}
+                        onSelect={() => authService.signInWithGoogle()}
                         icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
                     >
                         Sign in
