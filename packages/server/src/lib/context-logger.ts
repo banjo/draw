@@ -81,11 +81,12 @@ class ContextLogger implements ILogger {
 
         if (typeof errorOrMsg === "string") {
             this.logger.error({ ...namespace, ...args }, errorOrMsg);
-        } else {
-            const [msg, ...restArgs] = args;
-            invariant(typeof msg === "string", "Expected message to be a string");
-            this.logger.error({ error: errorOrMsg, ...namespace, ...restArgs }, msg);
+            return;
         }
+
+        const [msg, ...restArgs] = args;
+        invariant(typeof msg === "string", "Expected message to be a string");
+        this.logger.error({ error: errorOrMsg, ...namespace, ...restArgs }, msg);
     }
 
     public fatal(error: unknown, msg?: string, ...args: unknown[]): void;
@@ -95,11 +96,11 @@ class ContextLogger implements ILogger {
 
         if (typeof errorOrMsg === "string") {
             this.logger.fatal({ ...namespace, ...args }, errorOrMsg);
-        } else {
-            const [msg, ...restArgs] = args;
-            invariant(typeof msg === "string", "Expected message to be a string");
-            this.logger.fatal({ error: errorOrMsg, ...namespace, ...restArgs }, msg);
         }
+
+        const [msg, ...restArgs] = args;
+        invariant(typeof msg === "string", "Expected message to be a string");
+        this.logger.fatal({ error: errorOrMsg, ...namespace, ...restArgs }, msg);
     }
 }
 
