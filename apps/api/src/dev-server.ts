@@ -1,9 +1,10 @@
 import { closeWss, WS_PORT, wss } from "@app/lib/ws";
-import { createLogger, Env } from "common";
+import { Env } from "common";
 import "dotenv/config";
 import { app, PORT } from "./lib/http";
+import { createContextLogger } from "server";
 
-const logger = createLogger("DevServer");
+const logger = createContextLogger("dev-server");
 const isProd = Env.server().NODE_ENV === "production";
 
 app.listen(PORT, () => {
@@ -11,7 +12,7 @@ app.listen(PORT, () => {
 });
 
 app.on("error", error => {
-    logger.error(error);
+    logger.error(error, "HTTP Server error");
 });
 
 wss.on("connection", ws => {

@@ -1,10 +1,11 @@
 import { isDefined, Maybe, Result } from "@banjoanton/utils";
-import { Board, createLogger } from "common";
+import { Board } from "common";
 import { Prisma, prisma } from "db";
 import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
 import { UserRepository } from "./UserRepository";
+import { createContextLogger } from "../lib/context-logger";
 
-const logger = createLogger("DrawRepository");
+const logger = createContextLogger("draw-repository");
 
 const getDrawingBySlug = async (slug: string) => {
     try {

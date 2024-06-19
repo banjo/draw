@@ -5,15 +5,15 @@ import {
     BoardUpdateResponse,
     Collaborator,
     CollaboratorSchema,
-    createLogger,
     Slug,
 } from "common";
 import { z } from "zod";
+import { createContextLogger } from "../../lib/context-logger";
 import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
 import { DrawingEmitter } from "../../model/drawing-emitter";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
-const logger = createLogger("CollaborationRouter");
+const logger = createContextLogger("collaboration-router");
 
 const collaboratorsEmitter = new CollaboratorsEmitter();
 const drawingEmitter = new DrawingEmitter();
@@ -28,7 +28,6 @@ export const collaborationRouter = createTRPCRouter({
         )
         .mutation(async ({ input }) => {
             const { collaborator, slug } = input;
-            logger.silent(`Updating collaborator ${collaborator.name} to ${slug}`);
             collaboratorsEmitter.update(slug, collaborator);
         }),
     updateBoard: publicProcedure

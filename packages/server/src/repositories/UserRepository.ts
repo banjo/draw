@@ -1,8 +1,8 @@
 import { AsyncResultType, Result } from "@banjoanton/utils";
-import { createLogger } from "common";
 import { prisma, User } from "db";
+import { createContextLogger } from "../lib/context-logger";
 
-const logger = createLogger("UserRepository");
+const logger = createContextLogger("user-repository");
 
 const getIdByExternalId = async (externalId: string): AsyncResultType<number> => {
     try {

@@ -10,14 +10,16 @@ import { wrapAsync } from "@banjoanton/utils";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
-import { Cause, createLogger } from "common";
+import { Cause } from "common";
 import { auth } from "firebase-server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { getLocalDevelopmentId, isLocalDevelopment } from "../lib/runtime";
 import { UserRepository } from "../repositories/UserRepository";
+import { createContextLogger } from "../lib/context-logger";
+import { NodeContext } from "../lib/node-context";
 
-const logger = createLogger("auth");
+const logger = createContextLogger("auth-middleware");
 
 /**
  * 1. CONTEXT
@@ -38,11 +40,13 @@ export const createTRPCContext = async ({
     req,
     res,
 }: CreateExpressContextOptions | CreateWSSContextFnOptions) => {
+    const requestId = NodeContext.getRequestId();
     const createResponse = (userId?: number, expired = false) => ({
         req,
         res,
         userId,
         expired,
+        requestId,
     });
 
     const authHeader = req?.headers.authorization;
@@ -102,9 +106,11 @@ export const createTRPCContext = async ({
 
         logger.trace(`Created user with id: ${user.data.id}`);
 
+        NodeContext.setUserId(user.data.id);
         return createResponse(user.data.id);
     }
 
+    NodeContext.setUserId(userIdResponse.data);
     return createResponse(userIdResponse.data);
 };
 
@@ -143,6 +149,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
  */
 export const createTRPCRouter = t.router;
 
+export const publicProcedure = t.procedure;
 /**
  * Public (unauthed) procedure
  *
@@ -150,7 +157,6 @@ export const createTRPCRouter = t.router;
  * tRPC API. It does not guarantee that a user querying is authorized, but you
  * can still access user session data if they are logged in
  */
-export const publicProcedure = t.procedure;
 
 /**
  * Reusable middleware that enforces users are logged in before running the

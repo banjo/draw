@@ -1,11 +1,11 @@
 import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import { createLogger } from "common";
 import { z } from "zod";
 import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createContextLogger } from "../../lib/context-logger";
 
-const logger = createLogger("ImageRouter");
+const logger = createContextLogger("image-router");
 
 export const imageRouter = createTRPCRouter({
     getImages: publicProcedure

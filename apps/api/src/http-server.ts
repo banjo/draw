@@ -1,8 +1,9 @@
-import { createLogger, Env } from "common";
+import { Env } from "common";
 import "dotenv/config";
+import { createContextLogger } from "server";
 import { app, PORT } from "./lib/http";
 
-const logger = createLogger("HttpServer");
+const logger = createContextLogger("http-server");
 const isProd = Env.server().NODE_ENV === "production";
 
 app.listen(PORT, () => {
@@ -10,5 +11,5 @@ app.listen(PORT, () => {
 });
 
 app.on("error", error => {
-    logger.error(error);
+    logger.error(error, "HTTP Server error");
 });

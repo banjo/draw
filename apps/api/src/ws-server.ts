@@ -1,8 +1,8 @@
 import { closeWss, WS_PORT, wss } from "@app/lib/ws";
-import { createLogger } from "common";
 import "dotenv/config";
+import { createContextLogger } from "server";
 
-const logger = createLogger("WsServer");
+const logger = createContextLogger("ws-server");
 
 wss.on("connection", ws => {
     logger.trace(`➕ Connection (${wss.clients.size})`);

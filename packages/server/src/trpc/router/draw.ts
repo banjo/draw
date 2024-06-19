@@ -1,17 +1,18 @@
 import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import { Cause, createLogger } from "common";
+import { Cause } from "common";
 import { z } from "zod";
 import { ExcalidrawSimpleElementSchema } from "../../../../common/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { createContextLogger } from "../../lib/context-logger";
 
-const logger = createLogger("DrawRouter");
+const logger = createContextLogger("draw-router");
 
 export const drawRouter = createTRPCRouter({
     getDrawing: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {
         const { slug } = input;
-        logger.trace(`Getting drawing: ${slug}`);
+        logger.trace(`Getting drawing with slug ${slug}`);
         const drawing = await DrawRepository.getDrawingBySlug(slug);
 
         if (!drawing.success) {
@@ -32,7 +33,7 @@ export const drawRouter = createTRPCRouter({
         )
         .mutation(async ({ input }) => {
             const { slug, elements, order, userId } = input;
-            logger.trace(`Saving drawing: ${slug}`);
+            logger.trace(`Saving drawing with slug ${slug}`);
 
             const drawingResult = await DrawRepository.saveDrawingFromDeltaUpdate(
                 slug,
@@ -57,7 +58,7 @@ export const drawRouter = createTRPCRouter({
             const { slug } = input;
             const { userId } = ctx;
 
-            logger.trace(`Saving drawing to collection: ${slug}`);
+            logger.trace(`Saving drawing to collection with slug ${slug}`);
 
             if (!userId) {
                 logger.error("Unauthorized user");
@@ -86,11 +87,11 @@ export const drawRouter = createTRPCRouter({
             throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
-        logger.trace(`Getting collection for user: ${userId}`);
+        logger.trace(`Getting collection for user with id ${userId}`);
         const collection = await DrawRepository.getCollection(userId);
 
         if (!collection.success) {
-            logger.error(`Failed to get collection for user: ${userId}`);
+            logger.error(`Failed to get collection for user with ${userId}`);
             throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
         }
 
@@ -103,11 +104,11 @@ export const drawRouter = createTRPCRouter({
             const { userId } = ctx;
 
             if (!userId) {
-                logger.error("Unauthorized");
+                logger.error("No userId provided in TRPC context");
                 throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
-            logger.trace(`Deleting drawing from collection: ${slug}`);
+            logger.trace(`Deleting drawing with slug ${slug} from collection`);
             const collectionResult = await DrawRepository.deleteDrawingFromCollection(userId, slug);
 
             if (!collectionResult.success) {
@@ -129,11 +130,11 @@ export const drawRouter = createTRPCRouter({
             const { userId } = ctx;
 
             if (!userId) {
-                logger.error("Unauthorized");
+                logger.error("No userId provided in TRPC context");
                 throw new TRPCError({ code: "UNAUTHORIZED" });
             }
 
-            logger.trace(`Updating drawing name: ${slug}`);
+            logger.trace(`Updating drawing name for drawing with slug ${slug}`);
             const drawingResult = await DrawRepository.updateDrawingName(slug, name, userId);
 
             if (!drawingResult.success) {

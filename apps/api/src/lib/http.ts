@@ -1,14 +1,16 @@
 import { getClientUrl } from "@app/utils";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { Env } from "common";
+import { appRouter, createTRPCContext, NodeContext } from "server";
 import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import { appRouter, createTRPCContext } from "server";
 
 const app = express();
 const url = getClientUrl();
 const PORT = Number(Env.server().PORT) || 3003;
+
+app.use(NodeContext.setupContext);
 
 app.use(
     "/trpc",

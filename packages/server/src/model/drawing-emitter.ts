@@ -1,19 +1,12 @@
 import { toMilliseconds } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import {
-    Board,
-    BoardDeltaUpdate,
-    Cause,
-    createLogger,
-    DeltaUpdateUtil,
-    ElementStateUtil,
-    Slug,
-} from "common";
+import { Board, BoardDeltaUpdate, Cause, DeltaUpdateUtil, ElementStateUtil, Slug } from "common";
 import EventEmitter from "node:events";
 import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
 import { DrawRepository } from "../repositories/DrawRepository";
+import { createContextLogger } from "../lib/context-logger";
 
-const logger = createLogger("DrawingEmitter");
+const logger = createContextLogger("drawing-emitter");
 const SAVE_INTERVAL = toMilliseconds({ minutes: 1 });
 
 type UserId = string;

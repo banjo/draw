@@ -1,8 +1,8 @@
 import { isDefined, partition } from "@banjoanton/utils";
-import { createLogger } from "../lib/logger";
 import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
 import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
+import { createLogger } from "../lib/logger";
 
 type ApplyToBoardProps = {
     deltaUpdate: BoardDeltaUpdate;
@@ -10,7 +10,7 @@ type ApplyToBoardProps = {
     isOnClient: boolean;
 };
 
-const logger = createLogger("DeltaUpdateUtil");
+const logger = createLogger("delta-update-util");
 
 const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Board => {
     const elements = deltaUpdate.excalidrawElements;
