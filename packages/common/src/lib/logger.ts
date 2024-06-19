@@ -4,11 +4,11 @@ import { Env } from "../env";
 // * Pino import needs to be default to work in the browser
 // * This file cannot parse with Env.server() because this file is loaded before the .env file.
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let sharedTransport: any;
-
 export const LOG_LEVELS = ["trace", "debug", "info", "warn", "error", "fatal"] as const;
 export type LogLevel = (typeof LOG_LEVELS)[number];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let sharedTransport: any;
 
 export const createLogger = (name: string) => {
     if (isBrowser()) {
@@ -43,20 +43,25 @@ export const createLogger = (name: string) => {
     //     });
     // }
 
+    // use shared transports to avoid memory leaks
     if (!sharedTransport) {
         sharedTransport = pino.transport({
             targets,
         });
     }
 
-    const serverVariables = Env.allServer();
+    const env = Env.allServer();
+
+    const base = {
+        env: env.NODE_ENV,
+    };
+
     return pino(
         {
             name,
-            level: serverVariables.LOG_LEVEL ?? "info",
+            level: env.LOG_LEVEL ?? "info",
+            base,
         },
         sharedTransport
     );
 };
-
-export { type Logger } from "pino";

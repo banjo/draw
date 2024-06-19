@@ -1,15 +1,11 @@
-import { closeWss, WS_PORT, wss } from "@app/lib/ws";
-import { Env } from "common";
+import { closeWss, wss } from "@app/lib/ws";
 import "dotenv/config";
+import { createContextLogger, startupLog } from "server";
 import { app, PORT } from "./lib/http";
-import { createContextLogger } from "server";
 
 const logger = createContextLogger("dev-server");
-const isProd = Env.server().NODE_ENV === "production";
 
-app.listen(PORT, () => {
-    logger.info(`🚀 Server ready at port ${PORT} - Mode: ${isProd ? "production" : "development"}`);
-});
+app.listen(PORT);
 
 app.on("error", error => {
     logger.error(error, "HTTP Server error");
@@ -22,7 +18,7 @@ wss.on("connection", ws => {
     });
 });
 
-logger.info(`✅ WebSocket Server listening on at port ${WS_PORT}`);
+startupLog("Dev Server", logger);
 
 process.on("SIGTERM", () => {
     logger.info("SIGTERM");
