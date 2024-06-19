@@ -72,10 +72,10 @@ export const createTRPCContext = async ({
         return createResponse();
     }
 
-    const [decodedToken, err] = await wrapAsync(async () => await auth.verifyIdToken(idToken));
+    const [decodedToken, error] = await wrapAsync(async () => await auth.verifyIdToken(idToken));
 
-    if (err) {
-        logger.error(err, "Error verifying token for user");
+    if (error) {
+        logger.error({ error }, "Error verifying token for user");
         return createResponse(undefined, true);
     }
 

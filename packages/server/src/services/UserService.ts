@@ -12,12 +12,18 @@ type CreateUserProps = {
 
 const createUser = async (props: CreateUserProps) => {
     const { externalId, email } = props;
-    logger.info(`Creating user with externalId: ${externalId} and email: ${email}`);
+    logger.info(
+        { externalId, email },
+        `Creating user with externalId: ${externalId} and email: ${email}`
+    );
 
     const res = await UserRepository.createUser(props);
 
     if (!res.success) {
-        logger.error(`Could not create user with externalId: ${externalId} and email: ${email}`);
+        logger.error(
+            { externalId, email },
+            `Could not create user with externalId: ${externalId} and email: ${email}`
+        );
         return Result.error(
             `Could not create user with externalId: ${externalId} and email: ${email}`,
             "InternalError"

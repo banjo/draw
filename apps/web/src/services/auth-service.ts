@@ -1,4 +1,5 @@
 import { auth } from "@/lib/firebase";
+import { logger } from "@/utils/logger";
 import { isLocalDevelopment } from "@/utils/runtime";
 import { Maybe, raise } from "@banjoanton/utils";
 import { Env } from "common";
@@ -60,7 +61,7 @@ class AuthService {
             await this.refreshToken();
             this.notifyListeners();
         } catch (error) {
-            console.error(error);
+            logger.error({ error }, "Error signing in with Google");
         }
     }
 
@@ -71,7 +72,7 @@ class AuthService {
             this.token = undefined;
             this.notifyListeners();
         } catch (error) {
-            console.error(error);
+            logger.error({ error }, "Error signing out");
         }
     }
 
@@ -83,7 +84,7 @@ class AuthService {
             this.token = newToken;
             this.notifyListeners();
         } catch (error) {
-            console.error("Error refreshing token", error);
+            logger.error({ error }, "Error refreshing token");
         }
     }
 

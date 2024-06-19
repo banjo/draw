@@ -21,7 +21,7 @@ const getIdByExternalId = async (externalId: string): AsyncResultType<number> =>
         logger.trace(`User found with externalId: ${externalId}`);
         return Result.ok(user.id);
     } catch (error) {
-        logger.error(error, `Error getting user by externalId: ${externalId}`);
+        logger.error({ error, externalId }, `Error getting user by externalId: ${externalId}`);
         return Result.error("Error getting user", "InternalError");
     }
 };
@@ -44,7 +44,7 @@ const createUser = async ({ name, externalId, email }: CreateUserProps): AsyncRe
 
         return Result.ok(user);
     } catch (error) {
-        logger.error(error, `Error creating user: ${name}`);
+        logger.error({ error, name }, `Error creating user: ${name}`);
         return Result.error("Error creating user", "InternalError");
     }
 };

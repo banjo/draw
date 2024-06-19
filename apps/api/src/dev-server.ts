@@ -8,7 +8,7 @@ const logger = createContextLogger("dev-server");
 app.listen(PORT);
 
 app.on("error", error => {
-    logger.error(error, "HTTP Server error");
+    logger.error({ error }, "HTTP Server error");
 });
 
 wss.on("connection", ws => {
@@ -18,7 +18,7 @@ wss.on("connection", ws => {
     });
 });
 
-startupLog("Dev Server", logger);
+startupLog("Dev Server");
 
 process.on("SIGTERM", () => {
     logger.info("SIGTERM");
@@ -26,9 +26,9 @@ process.on("SIGTERM", () => {
 });
 
 process.on("unhandledRejection", error => {
-    logger.error(error, `Unhandled rejection`);
+    logger.error({ error }, `Unhandled rejection`);
 });
 
 process.on("uncaughtException", error => {
-    logger.error(error, `Uncaught exception`);
+    logger.error({ error }, `Uncaught exception`);
 });

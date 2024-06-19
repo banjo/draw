@@ -1,8 +1,9 @@
 import { closeWss, wss } from "@app/lib/ws";
+import { createLogger } from "common";
 import "dotenv/config";
-import { createContextLogger, startupLog } from "server";
+import { startupLog } from "server";
 
-const logger = createContextLogger("ws-server");
+const logger = createLogger("ws-server");
 
 wss.on("connection", ws => {
     logger.trace(`➕ Connection (${wss.clients.size})`);
@@ -11,7 +12,7 @@ wss.on("connection", ws => {
     });
 });
 
-startupLog("WebSocket Server", logger);
+startupLog("WebSocket Server");
 
 process.on("SIGTERM", () => {
     logger.info("SIGTERM");
@@ -19,9 +20,9 @@ process.on("SIGTERM", () => {
 });
 
 process.on("unhandledRejection", error => {
-    logger.error(error, `Unhandled rejection`);
+    logger.error({ error }, `Unhandled rejection`);
 });
 
 process.on("uncaughtException", error => {
-    logger.error(error, `Uncaught exception`);
+    logger.error({ error }, `Uncaught exception`);
 });

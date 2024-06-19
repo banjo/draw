@@ -5,9 +5,9 @@ import { app, PORT } from "./lib/http";
 const logger = createContextLogger("http-server");
 
 app.listen(PORT, () => {
-    startupLog("HTTP Server", logger);
+    startupLog("HTTP Server");
 });
 
 app.on("error", error => {
-    logger.error(error, "HTTP Server error");
+    logger.error({ error }, "HTTP Server error");
 });

@@ -1,26 +1,24 @@
 import pino from "pino";
 import { NodeContext } from "./node-context";
-import { createLogger, Env } from "common";
 import { invariant } from "@banjoanton/utils";
+import { createLogger, Env } from "common";
 
 const getNamespace = () => ({
     requestId: NodeContext.getRequestId(),
     userId: NodeContext.getUserId(),
 });
 
-type LogFn = (msg: string, ...args: unknown[]) => void;
+type LogFnWithString = (msg: string, ...args: unknown[]) => void;
+type LogFnWithObject = (obj: object, msg: string, ...args: unknown[]) => void;
+type LogFn = LogFnWithString & LogFnWithObject;
 
-type LogErrorWithErrorFn = (error: unknown, msg: string, ...args: unknown[]) => void;
-type LogErrorWithStringFn = (msg: string, ...args: unknown[]) => void;
-
-type LogErrorFn = LogErrorWithErrorFn & LogErrorWithStringFn;
 interface ILogger {
     trace: LogFn;
     debug: LogFn;
     info: LogFn;
     warn: LogFn;
-    error: LogErrorFn;
-    fatal: LogErrorFn;
+    error: LogFn;
+    fatal: LogFn;
 }
 
 class ContextLogger implements ILogger {
@@ -30,87 +28,71 @@ class ContextLogger implements ILogger {
         this.logger = createLogger(name);
     }
 
-    public trace(msg: string, ...args: unknown[]): void {
-        const namespace = getNamespace();
-        this.logger.trace(
-            {
-                ...namespace,
-                ...args,
-            },
-            msg
-        );
-    }
-
-    public debug(msg: string, ...args: unknown[]): void {
-        const namespace = getNamespace();
-        this.logger.debug(
-            {
-                ...namespace,
-                ...args,
-            },
-            msg
-        );
-    }
-
-    public info(msg: string, ...args: unknown[]): void {
-        const namespace = getNamespace();
-        this.logger.info(
-            {
-                ...namespace,
-                ...args,
-            },
-            msg
-        );
-    }
-
-    public warn(msg: string, ...args: unknown[]): void {
-        const namespace = getNamespace();
-        this.logger.warn(
-            {
-                ...namespace,
-                ...args,
-            },
-            msg
-        );
-    }
-
-    public error(error: unknown, msg?: string, ...args: unknown[]): void;
-    public error(msg: string, ...args: unknown[]): void;
-    public error(errorOrMsg: unknown | string, ...args: unknown[]): void {
+    handle(
+        level: pino.Level,
+        objOrMsg: object | string,
+        ...args: unknown[]
+        // eslint-disable-next-line max-params
+    ) {
         const namespace = getNamespace();
 
-        if (typeof errorOrMsg === "string") {
-            this.logger.error({ ...namespace, ...args }, errorOrMsg);
+        if (typeof objOrMsg === "string") {
+            this.logger[level]({ ...namespace, ...args }, objOrMsg);
             return;
         }
 
         const [msg, ...restArgs] = args;
         invariant(typeof msg === "string", "Expected message to be a string");
-        this.logger.error({ err: errorOrMsg, ...namespace, ...restArgs }, msg);
+        this.logger[level]({ ...objOrMsg, ...namespace, ...restArgs }, msg);
     }
 
-    public fatal(error: unknown, msg?: string, ...args: unknown[]): void;
+    public trace(obj: object, msg?: string, ...args: unknown[]): void;
+    public trace(msg: string, ...args: unknown[]): void;
+    public trace(objOrMsg: object | string, ...args: unknown[]): void {
+        this.handle("trace", objOrMsg, ...args);
+    }
+
+    public debug(obj: object, msg?: string, ...args: unknown[]): void;
+    public debug(msg: string, ...args: unknown[]): void;
+    public debug(objOrMsg: object | string, ...args: unknown[]): void {
+        this.handle("debug", objOrMsg, ...args);
+    }
+
+    public info(obj: object, msg?: string, ...args: unknown[]): void;
+    public info(msg: string, ...args: unknown[]): void;
+    public info(objOrMsg: object | string, ...args: unknown[]): void {
+        this.handle("info", objOrMsg, ...args);
+    }
+
+    public warn(obj: object, msg?: string, ...args: unknown[]): void;
+    public warn(msg: string, ...args: unknown[]): void;
+    public warn(objOrMsg: object | string, ...args: unknown[]): void {
+        this.handle("warn", objOrMsg, ...args);
+    }
+
+    public error(obj: object, msg?: string, ...args: unknown[]): void;
+    public error(msg: string, ...args: unknown[]): void;
+    public error(objOrMsg: object | string, ...args: unknown[]): void {
+        this.handle("error", objOrMsg, ...args);
+    }
+
+    public fatal(obj: object, msg?: string, ...args: unknown[]): void;
     public fatal(msg: string, ...args: unknown[]): void;
-    public fatal(errorOrMsg: unknown | string, ...args: unknown[]): void {
-        const namespace = getNamespace();
-
-        if (typeof errorOrMsg === "string") {
-            this.logger.fatal({ ...namespace, ...args }, errorOrMsg);
-        }
-
-        const [msg, ...restArgs] = args;
-        invariant(typeof msg === "string", "Expected message to be a string");
-        this.logger.fatal({ err: errorOrMsg, ...namespace, ...restArgs }, msg);
+    public fatal(objOrMsg: object | string, ...args: unknown[]): void {
+        this.handle("fatal", objOrMsg, ...args);
     }
 }
 
 export const createContextLogger = (name: string): ILogger => new ContextLogger(name);
 
-export const startupLog = (name: string, logger: ILogger) => {
+export const startupLog = (name: string) => {
+    const logger = createLogger("startup");
     const env = Env.server();
-    logger.info(`🚀 Starting up ${name}`);
-    logger.info(`🖥️ Environment: ${env.NODE_ENV}`);
-    logger.info(`📝 Log level: ${env.LOG_LEVEL}`);
-    logger.info(`🚪 Port: ${env.PORT}`);
-    logger.info(`🔗 Client URL: ${env.CLIENT_URL}`);
+    const message = `🚀 Starting up ${name}
+🖥️ Environment: ${env.NODE_ENV}
+📝 Log level: ${env.LOG_LEVEL}
+🚪 Port: ${env.PORT}
+🔗 Client URL: ${env.CLIENT_URL}`;
+
+    logger.info(message);
 };
