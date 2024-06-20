@@ -13,13 +13,10 @@ import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
-import { Maybe, isEmpty, sum } from "@banjoanton/utils";
+import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
-import { CustomData, ExcalidrawApi, ExcalidrawElements } from "common";
-import { CustomDataUtil } from "./utils/custom-data-util";
-import { UpdateElementUtil } from "./utils/update-element-util";
-import { SPACING, TEXT_HEIGHT } from "./utils/element-creation-util";
+import { ExcalidrawApi, ExcalidrawElements } from "common";
 import { useCleanup } from "./hooks/utils/use-cleanup";
 
 type DrawProps = {
@@ -34,7 +31,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const { elements, setElements } = useElementsState({ slug });
     const { setExcalidrawApi, excalidrawApi } = useGlobal();
 
-    useInit();
+    useInit({ slug });
 
     const { onLibraryChange, library } = useLibrary();
     const { onPointerUpdate, renderCollabButton, isCollaborating, onDrawingChange } =

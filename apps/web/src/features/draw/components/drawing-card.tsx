@@ -40,8 +40,8 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
             setLabelText(initialName);
             return;
         }
-        utils.draw.getCollection.invalidate();
 
+        utils.draw.getCollection.invalidate();
         toast.success("Drawing name updated");
     };
 

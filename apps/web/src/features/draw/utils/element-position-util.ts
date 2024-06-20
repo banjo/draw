@@ -13,6 +13,27 @@ import {
     ExcalidrawElements,
 } from "common";
 
+type CreateBoundsProps = {
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+};
+
+const createBounds = ({ endX, endY, startX, startY }: CreateBoundsProps): Bounds => {
+    return [startX, startY, endX, endY] as const;
+};
+
+const getActiveViewportBounds = (state: AppState): Bounds => {
+    const { width, height, scrollX, scrollY } = state;
+    return ElementPositionUtil.createBounds({
+        startX: 0 - scrollX,
+        startY: 0 - scrollY,
+        endX: width - scrollX,
+        endY: height - scrollY,
+    });
+};
+
 const getPositionFromBounds = (bounds: Bounds) => {
     const [startX, startY, endX, endY] = bounds;
 
@@ -223,4 +244,6 @@ export const ElementPositionUtil = {
     reverseStep,
     getElementWindowPosition,
     getScenePositionFromWindowPosition,
+    createBounds,
+    getActiveViewportBounds,
 };
