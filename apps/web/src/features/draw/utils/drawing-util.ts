@@ -2,6 +2,7 @@ import { ElementUtil } from "@/features/draw/utils/element-util";
 import { isEqual } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ElementMeasurement, ExcalidrawApi, ExcalidrawElements } from "common";
+import { CustomDataUtil } from "./custom-data-util";
 
 type ApplyLocalDrawingChangesProps = {
     newElements: ExcalidrawElements;
@@ -77,7 +78,9 @@ const prepareCollaborationChanges = ({ allNewElements, allOldElements }: ChangeR
 
     // TODO: do not send an update on the first render, when it has fetched the board and applies it to the scene
     const currentOrder = allNewElements.map(e => e.id);
-    const elementsToSave = [...updatedElements, ...elementsToDelete];
+    const elementsToSave = [...updatedElements, ...elementsToDelete].filter(
+        e => !CustomDataUtil.isShadowElement(e) // do not save shadow elements
+    );
 
     return { currentOrder: orderHasChanged ? currentOrder : undefined, elementsToSave };
 };
