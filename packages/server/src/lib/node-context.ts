@@ -1,20 +1,32 @@
-import { uuid } from "@banjoanton/utils";
-import { createNamespace } from "cls-hooked";
+import { Maybe, uuid } from "@banjoanton/utils";
+import { AsyncLocalStorage } from "node:async_hooks";
 
-const NAME = "request-context";
-const namespace = createNamespace(NAME);
+type StoreContext = {
+    requestId: Maybe<string>;
+    userId: Maybe<number>;
+};
+const store: StoreContext = {
+    requestId: undefined,
+    userId: undefined,
+};
 
-const REQUEST_ID_NAME = "requestId";
-const getRequestId = () => namespace.get(REQUEST_ID_NAME);
-const setRequestId = (requestId: string) => namespace.set(REQUEST_ID_NAME, requestId);
+const context = new AsyncLocalStorage<StoreContext>();
 
-const USER_ID_NAME = "userId";
-const getUserId = (): number => namespace.get(USER_ID_NAME);
-const setUserId = (userId: number) => namespace.set(USER_ID_NAME, userId);
+const setStoreValue = <K extends keyof StoreContext>(key: K, value: StoreContext[K]): void => {
+    const store = context.getStore();
+    if (!store) return;
+    store[key] = value;
+};
+
+const getRequestId = () => context.getStore()?.requestId;
+const setRequestId = (requestId: string) => setStoreValue("requestId", requestId);
+
+const getUserId = (): Maybe<number> => context.getStore()?.userId;
+const setUserId = (userId: number) => setStoreValue("userId", userId);
 
 // @ts-ignore
 const setupContext = (req, res, next) => {
-    namespace.run(() => {
+    context.run(store, () => {
         const requestId = uuid();
         setRequestId(requestId);
         next();
