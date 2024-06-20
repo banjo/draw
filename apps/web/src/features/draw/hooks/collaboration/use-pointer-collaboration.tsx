@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
 import { Maybe, isDefined } from "@banjoanton/utils";
 import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
-import { useDebounce } from "@uidotdev/usehooks";
+import { useThrottle } from "@uidotdev/usehooks";
 import { ExcalidrawApi } from "common";
 import { useEffect, useMemo, useState } from "react";
 import generateName from "sillyname";
@@ -28,6 +28,7 @@ const DEFAULT_MOUSE_POSITION: CollaboratorPointer = {
 const randomAvatar = (hash: string) => `https://robohash.org/${hash}.png`;
 
 const collaborators = new Map<string, Collaborator>();
+const MOUSE_THROTTLE_TIME = 30;
 
 export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) => {
     const { user } = useAuth();
@@ -86,7 +87,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
     const [isCollaborating, setIsCollaborating] = useState(false);
 
     const [mousePosition, setMousePosition] = useState(DEFAULT_MOUSE_POSITION);
-    const debouncedMousePosition = useDebounce(mousePosition, 5);
+    const debouncedMousePosition = useThrottle(mousePosition, MOUSE_THROTTLE_TIME);
 
     const onPointerUpdate = ({ pointer }: PointerUpdateData) => {
         if (!slug) return;
