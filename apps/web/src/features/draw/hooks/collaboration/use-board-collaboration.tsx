@@ -40,8 +40,6 @@ export const useBoardCollaboration = ({
     });
     const { pathname } = useLocation();
 
-    // remember previous elements with lock to be able to send to server when it changes
-    const [previousLockedElements, setPreviousLockedElements] = useState<string[]>([]);
     const { isLoading, setIsLoading } = useGlobalLoadingStore();
 
     useEffect(() => {
@@ -49,11 +47,6 @@ export const useBoardCollaboration = ({
         if (pathname === "/") return;
         setIsLoading(true, "Loading drawing...");
     }, [slug]);
-
-    useEffect(() => {
-        if (!excalidrawApi) return;
-        setPreviousLockedElements(ElementUtil.getLockedElementIds(excalidrawApi.getAppState()));
-    }, [slug, excalidrawApi]);
 
     trpc.collaboration.onBoardChange.useSubscription(
         { slug: slug ?? "", id: localId },
@@ -104,25 +97,17 @@ export const useBoardCollaboration = ({
     );
 
     const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
-        const changes = DrawingUtil.getChangesWithLockedElements({
+        const changes = DrawingUtil.getChanges({
             newElements: e,
             oldElements: elements,
             newState: state,
-            previousLockedElements: previousLockedElements,
         });
 
-        const {
-            allNewElements,
-            allOldElements,
-            elementsUpdated,
-            lockStateHasChanged,
-            currentLockedElements,
-        } = changes;
+        const { allNewElements, allOldElements, elementsUpdated } = changes;
 
-        if (!elementsUpdated && !lockStateHasChanged) return;
+        if (!elementsUpdated) return;
 
         setElements(allNewElements);
-        setPreviousLockedElements(currentLockedElements);
 
         // rest is only for collaboration
         if (!slug) return;
@@ -131,8 +116,6 @@ export const useBoardCollaboration = ({
         const { currentOrder, elementsToSave } = DrawingUtil.prepareCollaborationChanges({
             allNewElements,
             allOldElements,
-            currentLockedElements,
-            previousLockedElements,
         });
 
         const deltaBoardUpdate = BoardDeltaUpdate.from({
@@ -141,11 +124,7 @@ export const useBoardCollaboration = ({
             senderId: localId,
         });
 
-        if (lockStateHasChanged) {
-            mutateDeltaUpdateInstantly(deltaBoardUpdate);
-        } else {
-            mutateDeltaUpdateWithDebounce(deltaBoardUpdate);
-        }
+        mutateDeltaUpdateWithDebounce(deltaBoardUpdate);
     };
 
     return {

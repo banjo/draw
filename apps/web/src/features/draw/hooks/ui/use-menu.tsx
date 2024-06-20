@@ -124,24 +124,6 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
         window.location.href = "/";
     };
 
-    const resetBoardLockedState = () => {
-        if (!excalidrawApi) return;
-        const elements = excalidrawApi.getSceneElements();
-        const currentOrder = elements.map(e => e.id);
-
-        UpdateElementUtil.mutateElements(elements, draft => {
-            draft.locked = false;
-        });
-
-        const deltaBoardUpdate = BoardDeltaUpdate.from({
-            excalidrawElements: elements,
-            order: currentOrder,
-            senderId: localId,
-        });
-
-        mutateDeltaUpdateInstantly(deltaBoardUpdate);
-    };
-
     const renderMenu = () => {
         return (
             <MainMenu>
@@ -229,16 +211,6 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                 </MainMenu.Item>
 
                 <MainMenu.Separator />
-                {slug && (
-                    <>
-                        <MainMenu.Item
-                            onSelect={resetBoardLockedState}
-                            icon={<ResponsiveIcon Icon={FolderLock} />}
-                        >
-                            Reset locked state
-                        </MainMenu.Item>
-                    </>
-                )}
                 <MainMenu.DefaultItems.Help />
             </MainMenu>
         );
