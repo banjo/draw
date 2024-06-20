@@ -28,12 +28,7 @@ class ContextLogger implements ILogger {
         this.logger = createLogger(name);
     }
 
-    handle(
-        level: pino.Level,
-        objOrMsg: object | string,
-        ...args: unknown[]
-        // eslint-disable-next-line max-params
-    ) {
+    private handle(level: pino.Level, objOrMsg: object | string, ...args: unknown[]) {
         const namespace = getNamespace();
 
         if (typeof objOrMsg === "string") {
