@@ -3,8 +3,8 @@ import { TRPCError } from "@trpc/server";
 import { Board, BoardDeltaUpdate, Cause, DeltaUpdateUtil, ElementStateUtil, Slug } from "common";
 import EventEmitter from "node:events";
 import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
-import { DrawRepository } from "../repositories/DrawRepository";
 import { createContextLogger } from "../lib/context-logger";
+import { DrawRepository } from "../repositories/draw-repository";
 
 const logger = createContextLogger("drawing-emitter");
 const SAVE_INTERVAL = toMilliseconds({ minutes: 1 });

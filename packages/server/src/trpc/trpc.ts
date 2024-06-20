@@ -15,9 +15,9 @@ import { auth } from "firebase-server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { getLocalDevelopmentId, isLocalDevelopment } from "../lib/runtime";
-import { UserRepository } from "../repositories/UserRepository";
 import { createContextLogger } from "../lib/context-logger";
 import { NodeContext } from "../lib/node-context";
+import { UserRepository } from "../repositories/user-repository";
 
 const logger = createContextLogger("auth-middleware");
 

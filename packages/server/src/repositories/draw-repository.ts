@@ -1,9 +1,8 @@
 import { isDefined, Maybe, Result } from "@banjoanton/utils";
-import { Board } from "common";
+import { Board, ExcalidrawSimpleElement } from "common";
 import { Prisma, prisma } from "db";
-import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
-import { UserRepository } from "./UserRepository";
 import { createContextLogger } from "../lib/context-logger";
+import { UserRepository } from "./user-repository";
 
 const logger = createContextLogger("draw-repository");
 
@@ -322,7 +321,7 @@ const saveToCollection = async (slug: string, userId: number) => {
 
         return Result.okEmpty();
     } catch (error) {
-        logger.error({ error }, `Error saving drawing to user: ${slug}`);
+        logger.error({ error, slug, userId }, `Error saving drawing to user`);
         return Result.error("Error saving drawing to user", "InternalError");
     }
 };

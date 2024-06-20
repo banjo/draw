@@ -1,9 +1,9 @@
 import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { createContextLogger } from "../../lib/context-logger";
+import { DrawRepository } from "../../repositories/draw-repository";
 
 const logger = createContextLogger("image-router");
 

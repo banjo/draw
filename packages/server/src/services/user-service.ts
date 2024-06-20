@@ -1,6 +1,6 @@
 import { Result } from "@banjoanton/utils";
-import { UserRepository } from "../repositories/UserRepository";
 import { createContextLogger } from "../lib/context-logger";
+import { UserRepository } from "../repositories/user-repository";
 
 const logger = createContextLogger("UserService");
 
@@ -12,10 +12,7 @@ type CreateUserProps = {
 
 const createUser = async (props: CreateUserProps) => {
     const { externalId, email } = props;
-    logger.info(
-        { externalId, email },
-        `Creating user with externalId: ${externalId} and email: ${email}`
-    );
+    logger.info({ externalId, email }, "Creating user");
 
     const res = await UserRepository.createUser(props);
 
@@ -30,7 +27,7 @@ const createUser = async (props: CreateUserProps) => {
         );
     }
 
-    logger.info(`Created user with externalId: ${externalId} and email: ${email}`);
+    logger.info({ externalId, email }, "Created user");
 
     return Result.ok(res.data);
 };

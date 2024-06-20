@@ -1,11 +1,10 @@
 import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import { Cause } from "common";
+import { Cause, ExcalidrawSimpleElementSchema } from "common";
 import { z } from "zod";
-import { ExcalidrawSimpleElementSchema } from "../../../../common/src/model/excalidraw-simple-element";
-import { DrawRepository } from "../../repositories/DrawRepository";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { createContextLogger } from "../../lib/context-logger";
+import { DrawRepository } from "../../repositories/draw-repository";
 
 const logger = createContextLogger("draw-router");
 
