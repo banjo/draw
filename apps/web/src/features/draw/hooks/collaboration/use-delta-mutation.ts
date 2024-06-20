@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Maybe, isEqual } from "@banjoanton/utils";
-import { useDebounce } from "@uidotdev/usehooks";
+import { useThrottle } from "@uidotdev/usehooks";
 import { BoardDeltaUpdate } from "common";
 import { useCallback, useEffect, useState } from "react";
 
@@ -8,7 +8,7 @@ type In = {
     slug: Maybe<string>;
 };
 
-const DEBOUNCE_TIME = 3;
+const THROTTLE_TIME = 30;
 
 export const useDeltaMutation = ({ slug }: In) => {
     const updateBoardMutation = trpc.collaboration.updateBoard.useMutation();
@@ -16,7 +16,7 @@ export const useDeltaMutation = ({ slug }: In) => {
     const [deltaUpdate, setDeltaUpdate] = useState<BoardDeltaUpdate>(() =>
         BoardDeltaUpdate.empty()
     );
-    const debouncedDeltaUpdate = useDebounce(deltaUpdate, DEBOUNCE_TIME);
+    const debouncedDeltaUpdate = useThrottle(deltaUpdate, THROTTLE_TIME);
 
     const mutateDeltaUpdateWithDebounce = useCallback(
         (update: BoardDeltaUpdate) => {
