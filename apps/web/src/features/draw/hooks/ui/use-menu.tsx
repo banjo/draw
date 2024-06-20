@@ -210,6 +210,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                     Export as SVG
                 </MainMenu.Item>
 
+                <MainMenu.DefaultItems.Export />
                 <MainMenu.Separator />
                 <MainMenu.DefaultItems.Help />
             </MainMenu>
