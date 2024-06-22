@@ -7,8 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createWSClient, httpBatchLink, splitLink, TRPCClientError, wsLink } from "@trpc/client";
 import { Cause } from "common";
 import { FC, PropsWithChildren, useState } from "react";
-import superjson from "superjson";
 import { tokenRefreshLink } from "trpc-token-refresh-link";
+import superjson from "superjson";
 
 const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }) =>
     trpc.createClient({
@@ -55,15 +55,16 @@ const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }
 
                         return {};
                     },
+                    transformer: superjson,
                 }),
                 true: wsLink({
+                    transformer: superjson,
                     client: createWSClient({
                         url: wsUrl,
                     }),
                 }),
             }),
         ],
-        transformer: superjson,
     });
 
 export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {

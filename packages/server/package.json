@@ -17,8 +17,8 @@
         "tsconfig": "workspace:*"
     },
     "dependencies": {
-        "@trpc/client": "^10.45.2",
-        "@trpc/server": "^10.45.2",
+        "@trpc/client": "11.0.0-rc.417",
+        "@trpc/server": "11.0.0-rc.417",
         "change-case": "^4.1.2",
         "firebase-admin": "^11.11.1",
         "pino": "^8.21.0",

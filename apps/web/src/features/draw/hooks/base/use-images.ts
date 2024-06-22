@@ -68,12 +68,11 @@ export const useImages = ({ elements }: In) => {
 
         const files = excalidrawApi.getFiles();
         const images = Object.values(files).filter(file => file.mimeType.startsWith("image/"));
-        const imagesReferencedOnCanvas = images.filter(
-            image =>
-                elements?.some(element => {
-                    if (!ExcalidrawUtil.isImageElement(element)) return false;
-                    return element.fileId === image.id && element.isDeleted !== true;
-                })
+        const imagesReferencedOnCanvas = images.filter(image =>
+            elements?.some(element => {
+                if (!ExcalidrawUtil.isImageElement(element)) return false;
+                return element.fileId === image.id && element.isDeleted !== true;
+            })
         );
 
         const notUploadedImages = imagesReferencedOnCanvas.filter(

@@ -36,7 +36,7 @@
     },
     "dependencies": {
         "@excalidraw/excalidraw": "^0.17.6",
-        "@trpc/server": "^10.45.2",
+        "@trpc/server": "11.0.0-rc.417",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
         "express": "^4.19.2",
