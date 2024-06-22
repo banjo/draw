@@ -9,14 +9,14 @@
         "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
-        "@banjoanton/utils": "^0.1.80",
-        "@types/node": "^20.6.2",
+        "@banjoanton/utils": "^0.1.84",
+        "@types/node": "^20.14.8",
         "common": "workspace:*",
         "tsconfig": "workspace:*"
     },
     "dependencies": {
-        "dotenv": "^16.3.1",
-        "firebase-admin": "^11.10.1",
+        "dotenv": "^16.4.5",
+        "firebase-admin": "^11.11.1",
         "tsconfig": "workspace:*"
     }
 }

@@ -23,11 +23,11 @@
         "seed": "esno src/seed.ts"
     },
     "dependencies": {
-        "@prisma/client": "^5.3.1"
+        "@prisma/client": "^5.15.1"
     },
     "devDependencies": {
-        "@types/node": "^20.6.2",
-        "prisma": "^5.3.1",
+        "@types/node": "^20.14.8",
+        "prisma": "^5.15.1",
         "tsconfig": "workspace:*"
     }
 }
