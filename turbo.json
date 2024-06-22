@@ -1,51 +1,44 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": [
-        "^db:generate"
-      ],
-      "env": [
-        "DATABASE_URL",
-        "FIREBASE_TYPE",
-        "FIREBASE_PROJECT_ID",
-        "FIREBASE_PRIVATE_KEY_ID",
-        "FIREBASE_PRIVATE_KEY",
-        "FIREBASE_CLIENT_EMAIL",
-        "FIREBASE_CLIENT_ID",
-        "FIREBASE_AUTH_URI",
-        "FIREBASE_TOKEN_URI",
-        "FIREBASE_AUTH_PROVIDER_X509_CERT_URL",
-        "FIREBASE_CLIENT_X509_CERT_URL",
-        "FIREBASE_UNIVERSE_DOMAIN",
-        "VITE_FIREBASE_API_KEY",
-        "VITE_FIREBASE_AUTH_DOMAIN",
-        "VITE_FIREBASE_PROJECT_ID",
-        "VITE_FIREBASE_STORAGE_BUCKET",
-        "VITE_FIREBASE_MESSAGING_SENDER_ID",
-        "VITE_FIREBASE_APP_ID",
-        "VITE_FIREBASE_MEASUREMENT_ID"
-      ],
-      "outputs": [
-        "dist",
-        ".vercel/**"
-      ]
-    },
-    "lint": {},
-    "dev": {
-      "dependsOn": [
-        "^db:generate"
-      ],
-      "cache": false
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:push": {
-      "cache": false
-    },
-    "typecheck": {
-      "cache": false
+    "$schema": "https://turbo.build/schema.json",
+    "tasks": {
+        "build": {
+            "dependsOn": ["^db:generate"],
+            "env": [
+                "DATABASE_URL",
+                "FIREBASE_TYPE",
+                "FIREBASE_PROJECT_ID",
+                "FIREBASE_PRIVATE_KEY_ID",
+                "FIREBASE_PRIVATE_KEY",
+                "FIREBASE_CLIENT_EMAIL",
+                "FIREBASE_CLIENT_ID",
+                "FIREBASE_AUTH_URI",
+                "FIREBASE_TOKEN_URI",
+                "FIREBASE_AUTH_PROVIDER_X509_CERT_URL",
+                "FIREBASE_CLIENT_X509_CERT_URL",
+                "FIREBASE_UNIVERSE_DOMAIN",
+                "VITE_FIREBASE_API_KEY",
+                "VITE_FIREBASE_AUTH_DOMAIN",
+                "VITE_FIREBASE_PROJECT_ID",
+                "VITE_FIREBASE_STORAGE_BUCKET",
+                "VITE_FIREBASE_MESSAGING_SENDER_ID",
+                "VITE_FIREBASE_APP_ID",
+                "VITE_FIREBASE_MEASUREMENT_ID"
+            ],
+            "outputs": ["dist", ".vercel/**"]
+        },
+        "lint": {},
+        "dev": {
+            "dependsOn": ["^db:generate"],
+            "cache": false
+        },
+        "db:generate": {
+            "cache": false
+        },
+        "db:push": {
+            "cache": false
+        },
+        "typecheck": {
+            "cache": false
+        }
     }
-  }
 }
