@@ -1,11 +1,5 @@
 {
     "root": true,
     "extends": ["@banjoanton/eslint-config"],
-    "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "unicorn/prefer-query-selector": "warn",
-        "unicorn/no-array-for-each": "off",
-        "unicorn/prefer-modern-dom-apis": "warn",
-        "max-params": "warn"
-    }
+    "rules": {}
 }
