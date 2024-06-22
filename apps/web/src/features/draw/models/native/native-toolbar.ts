@@ -17,7 +17,7 @@ class NativeToolbarClass {
         this.element = document.querySelector<HTMLDivElement>(this.querySelector);
 
         if (!this.element) {
-            logger.error(`Element with query selector ${this.querySelector} not found`);
+            logger.trace(`Element with query selector ${this.querySelector} not found`);
         }
     }
 
@@ -62,7 +62,7 @@ class NativeToolbarClass {
             return;
         }
 
-        stack.insertBefore(button, existingButton);
+        existingButton.before(button);
     }
 
     public buttonExists(id: string) {
@@ -77,7 +77,6 @@ class NativeToolbarClass {
     public onResize(callback: () => void, debounceTime = 0) {
         this.parse();
         if (!this.element) {
-            logger.error("Element is not defined");
             return;
         }
         const debounced = debounce(callback, debounceTime);

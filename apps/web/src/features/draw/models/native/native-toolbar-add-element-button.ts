@@ -12,7 +12,7 @@ const createPlusIcon = () => {
     container.innerHTML = PLUS_SVG;
     const svg = container.firstChild;
     if (!(svg instanceof SVGElement)) {
-        throw new Error("Expected SVGElement");
+        throw new TypeError("Expected SVGElement");
     }
     return svg;
 };
