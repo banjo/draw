@@ -6,6 +6,7 @@ import { createLogger, Env } from "common";
 const getNamespace = () => ({
     requestId: NodeContext.getRequestId(),
     userId: NodeContext.getUserId(),
+    isWS: NodeContext.getIsWS(),
 });
 
 type LogFnWithString = (msg: string, ...args: unknown[]) => void;
