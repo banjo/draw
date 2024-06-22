@@ -54,9 +54,9 @@ export const useImages = ({ elements }: In) => {
         if (images.length === 0) return;
 
         const currentImages = excalidrawApi.getFiles();
-        const alreadyFetchedImages = Object.values(currentImages).map(image => image.id);
+        const alreadyFetchedImages = new Set(Object.values(currentImages).map(image => image.id));
 
-        const imagesToFetch = images.filter(image => !alreadyFetchedImages.includes(image.fileId!));
+        const imagesToFetch = images.filter(image => !alreadyFetchedImages.has(image.fileId!));
         if (imagesToFetch.length === 0) return;
 
         fetchImages(imagesToFetch.map(image => image.fileId!));
@@ -80,7 +80,7 @@ export const useImages = ({ elements }: In) => {
             image => !uploadedImages.includes(image.id)
         );
 
-        if (!notUploadedImages.length) return;
+        if (notUploadedImages.length === 0) return;
 
         const saveImages = async () => {
             const [res, error] = await wrapAsync(

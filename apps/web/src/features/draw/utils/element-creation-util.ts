@@ -96,40 +96,6 @@ const createElement = ({ base, props, callback, customElementType }: CreateEleme
     return createdElement;
 };
 
-type CreateElementFromElementProps = {
-    type: CustomElementType;
-    element: ExcalidrawElement;
-    newValues?: Partial<ExcalidrawElement>;
-};
-const createElementsFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
-    if (type === "codeblock") {
-        return toArray(
-            createCodeBlock({
-                base: {
-                    x: element.x,
-                    y: element.y,
-                    width: element.width,
-                    height: element.height,
-                },
-                code: "",
-            })
-        );
-    }
-
-    if (type === "model") {
-        return createModelElement({ base: { x: element.x, y: element.y } });
-    }
-
-    const newElement: ExcalidrawElementSkeleton = {
-        ...element,
-        ...newValues,
-        customData: CustomData.updateDefault(element.customData, { type }),
-        type: ExcalidrawUtil.getElementTypeFromCustomType(type),
-    };
-
-    return toArray(createElementFromSkeleton(newElement));
-};
-
 type CreateCodeBlockElementProps = {
     base: ElementBase;
     code: string;
@@ -213,7 +179,7 @@ const createText = (
                 y: base.y,
                 width: base.width,
                 height: base.height,
-                text: text,
+                text,
                 fontSize: base.fontSize ?? 20,
                 customData: CustomData.createDefault({
                     type: customElementType ?? "text",
@@ -429,6 +395,39 @@ const appendTextToModelElement = (modelElements: ExcalidrawElement[], text: stri
     return ElementUtil.mergeElements(modelElements, [updatedContainer, textElement]);
 };
 
+type CreateElementFromElementProps = {
+    type: CustomElementType;
+    element: ExcalidrawElement;
+    newValues?: Partial<ExcalidrawElement>;
+};
+const createElementsFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
+    if (type === "codeblock") {
+        return toArray(
+            createCodeBlock({
+                base: {
+                    x: element.x,
+                    y: element.y,
+                    width: element.width,
+                    height: element.height,
+                },
+                code: "",
+            })
+        );
+    }
+
+    if (type === "model") {
+        return createModelElement({ base: { x: element.x, y: element.y } });
+    }
+
+    const newElement: ExcalidrawElementSkeleton = {
+        ...element,
+        ...newValues,
+        customData: CustomData.updateDefault(element.customData, { type }),
+        type: ExcalidrawUtil.getElementTypeFromCustomType(type),
+    };
+
+    return toArray(createElementFromSkeleton(newElement));
+};
 export const ElementCreationUtil = {
     createLinearElement,
     createElement,

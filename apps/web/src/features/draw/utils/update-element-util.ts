@@ -11,14 +11,14 @@ type BoundElement = {
 };
 
 const addBoundElements = (element: Mutable<ExcalidrawElement>, boundElements: BoundElement[]) => {
-    if (!element.boundElements) {
-        element.boundElements = boundElements;
-    } else {
+    if (element.boundElements) {
         boundElements.forEach(boundElement => {
             if (!element.boundElements) return;
             // @ts-ignore
             element.boundElements.push(boundElement);
         });
+    } else {
+        element.boundElements = boundElements;
     }
 };
 
@@ -48,7 +48,7 @@ const addArrowBindings = (element: Mutable<ExcalidrawLinearElement>, options?: B
         element.startBinding = {
             elementId: startId,
             focus: 0.2,
-            gap: gap,
+            gap,
         };
     }
 
@@ -56,7 +56,7 @@ const addArrowBindings = (element: Mutable<ExcalidrawLinearElement>, options?: B
         element.endBinding = {
             elementId: endId,
             focus: 0.2,
-            gap: gap,
+            gap,
         };
     }
 };
@@ -77,13 +77,12 @@ export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) =>
  * @param element - The element to update
  * @param callback - The callback to update the element
  */
-const updateElement = <T extends ExcalidrawElement>(element: T, callback: UpdateCallback<T>) => {
-    return produce(element, draft => {
+const updateElement = <T extends ExcalidrawElement>(element: T, callback: UpdateCallback<T>) =>
+    produce(element, draft => {
         // @ts-ignore
         draft.version++;
         return callback(draft, helpers);
     });
-};
 
 /**
  * Update an array of elements with a callback, returning a new array new elements with same IDs.
@@ -93,15 +92,14 @@ const updateElement = <T extends ExcalidrawElement>(element: T, callback: Update
 const updateElements = <T extends ExcalidrawElement>(
     elements: T[] | readonly T[],
     callback: UpdateCallback<T>
-) => {
-    return elements.map(element => {
-        return produce(element, draft => {
+) =>
+    elements.map(element =>
+        produce(element, draft => {
             // @ts-ignore
             draft.version++;
             return callback(draft, helpers);
-        });
-    });
-};
+        })
+    );
 
 export type MutateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => void;
 
@@ -145,7 +143,7 @@ const mutateReverseStep = (direction: ArrowKey, element: ExcalidrawElement) => {
         1
     );
 
-    UpdateElementUtil.mutateElement(element, (draft, helpers) => {
+    mutateElement(element, (draft, helpers) => {
         draft.x = newSourcePosition.x;
         draft.y = newSourcePosition.y;
     });

@@ -1,6 +1,6 @@
 import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-utils";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { Maybe, isDefined, produce, randomString } from "@banjoanton/utils";
+import { isDefined, Maybe, produce, randomString } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElement, ExcalidrawElements, ExcalidrawLinearElement } from "common";
 
@@ -23,21 +23,17 @@ const getLockedElementIds = (state: AppState) => {
     return editingElementsId;
 };
 
-const getElementById = (elements: ExcalidrawElements, id: Maybe<string>) => {
-    return elements.find(element => element.id === id);
-};
+const getElementById = (elements: ExcalidrawElements, id: Maybe<string>) =>
+    elements.find(element => element.id === id);
 
-const getElementsByIds = (elements: ExcalidrawElements, ids: string[]) => {
-    return ids.map(id => elements.find(element => element.id === id)).filter(isDefined);
-};
+const getElementsByIds = (elements: ExcalidrawElements, ids: string[]) =>
+    ids.map(id => elements.find(element => element.id === id)).filter(isDefined);
 
-const removeDeletedElements = (elements: ExcalidrawElements) => {
-    return elements.filter(element => !element.isDeleted);
-};
+const removeDeletedElements = (elements: ExcalidrawElements) =>
+    elements.filter(element => !element.isDeleted);
 
-const removeElements = (elements: ExcalidrawElements, ids: string[]) => {
-    return elements.filter(element => !ids.includes(element.id));
-};
+const removeElements = (elements: ExcalidrawElements, ids: string[]) =>
+    elements.filter(element => !ids.includes(element.id));
 
 const idDictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
 const createElementId = () => randomString(21, idDictionary);
@@ -86,7 +82,7 @@ const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppS
 
 const createNewElementSelection = (renderedElements: ExcalidrawElements, state: AppState) => {
     const ids = renderedElements.map(element => element.id);
-    const groups = renderedElements.map(element => element.groupIds).flat();
+    const groups = renderedElements.flatMap(element => element.groupIds);
 
     const updatedState = produce(state, draft => {
         // @ts-ignore
@@ -156,7 +152,7 @@ const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElem
     });
 
     const missedNewElements = newElements.filter(
-        newElement => !elements.find(element => element.id === newElement.id)
+        newElement => !elements.some(element => element.id === newElement.id)
     );
 
     return [...mergedElements, ...missedNewElements];
@@ -168,20 +164,16 @@ const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElem
 const removeShadowElementsById = (
     elements: ExcalidrawElements,
     shadowElements: ElementExtensionShadow
-) => {
-    return ElementUtil.removeElements(elements, [shadowElements.arrowId, shadowElements.elementId]);
-};
+) => removeElements(elements, [shadowElements.arrowId, shadowElements.elementId]);
 
-const removeShadowElementsByType = (elements: ExcalidrawElements) => {
-    return elements.filter(e => e.customData?.shadow !== true);
-};
+const removeShadowElementsByType = (elements: ExcalidrawElements) =>
+    elements.filter(e => e.customData?.shadow !== true);
 
-const getShadowElements = (elements: ExcalidrawElements) => {
-    return elements.filter(e => e.customData?.shadow === true);
-};
+const getShadowElements = (elements: ExcalidrawElements) =>
+    elements.filter(e => e.customData?.shadow === true);
 
 const findCommonGroupId = (modelElements: ExcalidrawElement[]) => {
-    const allGroupIds = modelElements.map(element => element.groupIds).flat();
+    const allGroupIds = modelElements.flatMap(element => element.groupIds);
     const groupIdCounts: Record<string, number> = {};
     allGroupIds.forEach(groupId => {
         if (!groupIdCounts[groupId]) {

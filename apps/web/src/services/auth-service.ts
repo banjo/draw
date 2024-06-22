@@ -5,10 +5,10 @@ import { Maybe, raise } from "@banjoanton/utils";
 import { Env } from "common";
 import {
     GoogleAuthProvider,
-    User,
     onAuthStateChanged,
     signInWithPopup,
     signOut,
+    User,
 } from "firebase/auth";
 
 export type AuthState = {

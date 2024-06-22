@@ -20,13 +20,12 @@ type CreateBoundsProps = {
     endY: number;
 };
 
-const createBounds = ({ endX, endY, startX, startY }: CreateBoundsProps): Bounds => {
-    return [startX, startY, endX, endY] as const;
-};
+const createBounds = ({ endX, endY, startX, startY }: CreateBoundsProps): Bounds =>
+    [startX, startY, endX, endY] as const;
 
 const getActiveViewportBounds = (state: AppState): Bounds => {
     const { width, height, scrollX, scrollY } = state;
-    return ElementPositionUtil.createBounds({
+    return createBounds({
         startX: 0 - scrollX,
         startY: 0 - scrollY,
         endX: width - scrollX,
@@ -64,9 +63,7 @@ const getPositionFromElement = (element: ExcalidrawElement) => {
 export type ElementPosition = ReturnType<typeof getPositionFromElement>;
 
 const getPositionFromElements = (elements: ExcalidrawElements) => {
-    const elementPositions = elements.map(element => {
-        return getPositionFromElement(element);
-    });
+    const elementPositions = elements.map(element => getPositionFromElement(element));
 
     const groupBounds = ExcalidrawUtil.getCommonBounds(elements);
     const groupPositions = getPositionFromBounds(groupBounds);
@@ -150,9 +147,8 @@ const arrowMap: Record<ArrowKey, GetArrowOptionsCallback> = {
     }),
 };
 
-const getArrowOptionsFromSourceElement = (direction: ArrowKey, element: ExcalidrawElement) => {
-    return arrowMap[direction](element);
-};
+const getArrowOptionsFromSourceElement = (direction: ArrowKey, element: ExcalidrawElement) =>
+    arrowMap[direction](element);
 
 type AddedElementOptionsCallback = (
     arrowOptions: ArrowOptions,
@@ -182,9 +178,7 @@ const getAddedElementOptions = (
     direction: ArrowKey,
     arrowOptions: ArrowOptions,
     elementPosition: ElementMeasurement
-) => {
-    return addedElementOptionsMap[direction](arrowOptions, elementPosition);
-};
+) => addedElementOptionsMap[direction](arrowOptions, elementPosition);
 
 type ReverseStepHandler = (position: ElementBasicPosition, step?: number) => ElementBasicPosition;
 type ReverseStepMap = Record<ArrowKey, ReverseStepHandler>;
@@ -197,15 +191,14 @@ const reverseStepMap: ReverseStepMap = {
     ArrowDown: ({ x, y }, step = DEFAULT_STEP) => ({ x, y: y - step }),
 };
 
-const reverseStep = (direction: ArrowKey, position: ElementBasicPosition, step?: number) => {
-    return reverseStepMap[direction](position, step);
-};
+const reverseStep = (direction: ArrowKey, position: ElementBasicPosition, step?: number) =>
+    reverseStepMap[direction](position, step);
 
 /**
  * Get position in the Window scope from an element.
  */
 const getElementWindowPosition = (element: ExcalidrawElement, state: AppState) => {
-    const position = ElementPositionUtil.getPositionFromElement(element);
+    const position = getPositionFromElement(element);
 
     // Canvas position of the element
     const x = position.positions.startX;

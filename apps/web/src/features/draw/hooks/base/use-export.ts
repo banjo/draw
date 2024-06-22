@@ -13,13 +13,10 @@ import {
 } from "@excalidraw/excalidraw";
 import { ExcalidrawApi } from "common";
 
-const getCodeElements = (): HTMLElement[] => {
-    return [...document.querySelectorAll(`.${CODE_ELEMENT_CLASS}`)] as HTMLElement[];
-};
+const getCodeElements = (): HTMLElement[] =>
+    [...document.querySelectorAll(`.${CODE_ELEMENT_CLASS}`)] as HTMLElement[];
 
-const getFileName = (extension: string) => {
-    return `banjodraw-${toIsoDateString(new Date())}.${extension}`;
-};
+const getFileName = (extension: string) => `banjodraw-${toIsoDateString(new Date())}.${extension}`;
 
 const prepare = async (excalidrawApi: ExcalidrawApi) => {
     const codeHtmlElements = getCodeElements();
@@ -64,7 +61,7 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
     const appState = excalidrawApi.getAppState();
     const selectedElements = ElementUtil.getSelectedElements(appState, currentElements);
 
-    const elementsToExport = !isEmpty(selectedElements) ? selectedElements : currentElements;
+    const elementsToExport = isEmpty(selectedElements) ? currentElements : selectedElements;
 
     StateUtil.mutateState(appState, draft => {
         draft.exportWithDarkMode = false;
@@ -76,7 +73,7 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
     return {
         elements: [...elementsToExport, ...newImageElements],
         files: excalidrawApi.getFiles(),
-        appState: appState,
+        appState,
         exportPadding: 5,
     };
 };

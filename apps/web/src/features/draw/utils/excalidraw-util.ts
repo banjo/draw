@@ -11,9 +11,8 @@ import {
     ExcalidrawTextElement,
 } from "common";
 
-const getCommonBounds = (elements: ExcalidrawElements) => {
-    return getCommonBoundsOriginal(elements as readonly ExcalidrawElementOriginal[]);
-};
+const getCommonBounds = (elements: ExcalidrawElements) =>
+    getCommonBoundsOriginal(elements as readonly ExcalidrawElementOriginal[]);
 
 const isLinearElement = (element: Maybe<ExcalidrawElement>): element is ExcalidrawLinearElement =>
     element?.type === "arrow" || element?.type === "line";
@@ -39,9 +38,8 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     rectangle: "rectangle",
 };
 
-const getElementTypeFromCustomType = (type: CustomElementType): ElementType => {
-    return elementToCustomElementType[type];
-};
+const getElementTypeFromCustomType = (type: CustomElementType): ElementType =>
+    elementToCustomElementType[type];
 
 const parentSelector = ".layer-ui__wrapper";
 const createCustomNativeElement = (
@@ -62,7 +60,7 @@ const createCustomNativeElement = (
     if (position === "first") {
         referenceNode = parent.firstChild;
     } else if (position === "last") {
-        parent.appendChild(customElement);
+        parent.append(customElement);
         return;
     } else if (typeof position === "number") {
         referenceNode = parent.childNodes[position] || null;
@@ -71,10 +69,11 @@ const createCustomNativeElement = (
     }
 
     // Insert the new element before the reference node
-    if (referenceNode !== null) {
-        parent.insertBefore(customElement, referenceNode);
+    if (referenceNode === null) {
+        parent.append(customElement);
     } else {
-        parent.appendChild(customElement);
+        // @ts-ignore
+        referenceNode.before(customElement);
     }
 };
 

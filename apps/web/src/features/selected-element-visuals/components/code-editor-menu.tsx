@@ -36,7 +36,7 @@ const CodeEditorMenu = ({ element }: Props) => {
         setSelectedLanguage(element.id, language);
         UpdateElementUtil.mutateElement(element, element => {
             element.customData = CustomData.updateCodeblock(element.customData, {
-                language: language,
+                language,
             });
         });
     };
@@ -49,7 +49,7 @@ const CodeEditorMenu = ({ element }: Props) => {
         setSelectedFontSize(fontSize);
         UpdateElementUtil.mutateElement(element, element => {
             element.customData = CustomData.updateCodeblock(element.customData, {
-                fontSize: fontSize,
+                fontSize,
             });
         });
     };

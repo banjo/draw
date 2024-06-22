@@ -62,7 +62,7 @@ class NativeContextMenuClass {
                 onClick(event);
                 this.removeMenu();
             };
-            button.onclick = customOnClick;
+            button.addEventListener("click", customOnClick);
         }
     }
 }

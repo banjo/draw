@@ -6,7 +6,7 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { Maybe, clone, first, last, produce, uniq } from "@banjoanton/utils";
+import { clone, first, Maybe, produce } from "@banjoanton/utils";
 import {
     CustomData,
     CustomElementType,
@@ -196,8 +196,8 @@ const createElementExtensionShadow = (
         base: {
             height: measurements.height,
             width: measurements.width,
-            x: x,
-            y: y,
+            x,
+            y,
             type: "rectangle",
         },
         props: {

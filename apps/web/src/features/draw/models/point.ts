@@ -9,4 +9,4 @@ export const Point = {
     from,
 };
 
-export type { IPoint };
+export { type Point as IPoint } from "@excalidraw/excalidraw/types/types";

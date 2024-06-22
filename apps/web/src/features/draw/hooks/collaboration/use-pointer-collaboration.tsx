@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
-import { Maybe, isDefined } from "@banjoanton/utils";
+import { isDefined, Maybe } from "@banjoanton/utils";
 import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
 import { useThrottle } from "@uidotdev/usehooks";
 import { ExcalidrawApi } from "common";
@@ -34,6 +34,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
     const { user } = useAuth();
     const displayName = useMemo(() => user?.displayName ?? generateName(), [user]);
     const avatarUrl = useMemo(() => user?.photoURL ?? randomAvatar(localId), [user]);
+    const [isCollaborating, setIsCollaborating] = useState(false);
 
     trpc.collaboration.onCollaboratorChange.useSubscription(
         { slug: slug ?? "", id: localId },
@@ -84,7 +85,6 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
     );
 
     const updateCollaborator = trpc.collaboration.updateCollaborator.useMutation();
-    const [isCollaborating, setIsCollaborating] = useState(false);
 
     const [mousePosition, setMousePosition] = useState(DEFAULT_MOUSE_POSITION);
     const debouncedMousePosition = useThrottle(mousePosition, MOUSE_THROTTLE_TIME);

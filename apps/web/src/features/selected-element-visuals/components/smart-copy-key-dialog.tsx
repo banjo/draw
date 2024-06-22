@@ -7,10 +7,8 @@ type Props = PropsWithChildren<{
     onClick: Callback;
 }>;
 
-export const ChangeElementKeyDialog = ({ changeElementKeyRef, onClick }: Props) => {
-    return (
-        <div className="flex flex-row gap-2 items-center absolute z-[3]" ref={changeElementKeyRef}>
-            <KeyboardButton onClick={onClick}>Tab</KeyboardButton>
-        </div>
-    );
-};
+export const ChangeElementKeyDialog = ({ changeElementKeyRef, onClick }: Props) => (
+    <div className="flex flex-row gap-2 items-center absolute z-[3]" ref={changeElementKeyRef}>
+        <KeyboardButton onClick={onClick}>Tab</KeyboardButton>
+    </div>
+);

@@ -1,8 +1,8 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { Maybe, debounce, wrapAsync } from "@banjoanton/utils";
-import { ExcalidrawElement, ExcalidrawElements } from "common";
+import { debounce, Maybe, wrapAsync } from "@banjoanton/utils";
+import { ExcalidrawElements } from "common";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -42,7 +42,7 @@ export const useDrawing = ({ slug }: In) => {
                         await utils.client.draw.saveDrawing.mutate({
                             elements: e as any,
                             slug: currentSlug,
-                            order: order,
+                            order,
                             userId,
                         })
                 );
@@ -75,13 +75,6 @@ export const useDrawing = ({ slug }: In) => {
             ),
         [saveDrawing, slug]
     );
-
-    // update isFirstRun on slug change
-    useEffect(() => {
-        firstRun.current = true;
-    }, [slug]);
-
-    const firstRun = useRef(true);
 
     return {
         saveDrawing,
