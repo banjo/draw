@@ -1,6 +1,6 @@
 import { Env } from "common";
 import { Lucia } from "lucia";
-import { prisma } from "db";
+import { OauthAccount, prisma } from "db";
 import { PrismaAdapter } from "@lucia-auth/adapter-prisma";
 
 const adapter = new PrismaAdapter(prisma.session, prisma.user);
@@ -13,15 +13,12 @@ export const lucia = new Lucia(adapter, {
         },
     },
     getUserAttributes: attributes => ({
-        githubId: attributes.github_id,
-        githubUsername: attributes.github_username,
+        provider: attributes.provider,
+        providerUserId: attributes.providerUserId,
     }),
 });
 
-type DatabaseUserAttributes = {
-    github_id: number;
-    github_username: string;
-};
+type DatabaseUserAttributes = Pick<OauthAccount, "provider" | "providerUserId">;
 
 declare module "lucia" {
     interface Register {

@@ -2,7 +2,6 @@ import { isDefined, Maybe, Result } from "@banjoanton/utils";
 import { Board, ExcalidrawSimpleElement } from "common";
 import { Prisma, prisma } from "db";
 import { createContextLogger } from "../lib/context-logger";
-import { UserRepository } from "./user-repository";
 
 const logger = createContextLogger("draw-repository");
 

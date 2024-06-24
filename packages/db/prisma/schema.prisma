@@ -8,18 +8,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// USER AND AUTH
 model User {
-  id              Int       @id @default(autoincrement())
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  email           String    @unique
+  id              Int            @id @default(autoincrement())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  email           String         @unique
   name            String?
-  externalId      String    @unique
-  drawings        Drawing[] @relation("OwnerDrawings")
-  collection      Drawing[] @relation("Collection")
+  drawings        Drawing[]      @relation("OwnerDrawings")
+  collection      Drawing[]      @relation("Collection")
   sessions        Session[]
-  github_id       Int       @unique
-  github_username String
+  OauthAccount    OauthAccount[]
 }
 
 model Session {
@@ -29,6 +28,17 @@ model Session {
   user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
+model OauthAccount {
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  userId         Int
+  provider       String // github, google, etc
+  providerUserId String // id from the provider
+  @@id([provider, providerUserId]) // composite primary key
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+// APPLICATION
 enum Access {
   public
   private

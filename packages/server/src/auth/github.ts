@@ -6,15 +6,17 @@ import { parseCookies, serializeCookie } from "oslo/cookie";
 import { z } from "zod";
 import { createContextLogger } from "../lib/context-logger";
 import { lucia } from "../lib/lucia";
+import { AuthRepository } from "../repositories/auth-repository";
 
 const logger = createContextLogger("github-auth-provider");
 
 const GithubUser = z.object({
     id: z.number(),
     login: z.string(),
+    email: z.string(),
+    avatar_url: z.string(),
+    name: z.string(),
 });
-
-type GitHubUser = z.infer<typeof GithubUser>;
 
 const COOKIE_NAME = "github_oauth_state";
 const env = Env.server();
@@ -45,6 +47,7 @@ const handleExpressLogin = async (req: Request, res: Response) => {
 
 const handleExpressCallback = async (req: Request, res: Response) => {
     // TODO: handle try catch
+    // TODO: handle multi account linking
     const code = req.query.code?.toString() ?? null;
     const state = req.query.state?.toString() ?? null;
     const storedState = parseCookies(req.headers.cookie ?? "").get(COOKIE_NAME) ?? null;
@@ -66,41 +69,47 @@ const handleExpressCallback = async (req: Request, res: Response) => {
     const githubUserData = await githubUserResponse.json();
     const githubUser = GithubUser.parse(githubUserData);
 
-    const existingUser = await prisma?.user.findFirst({
-        where: {
-            github_id: githubUser.id,
-        },
-    });
+    const oauthAccountResult = await AuthRepository.getOauthByProvider(
+        "GITHUB",
+        githubUser.id.toString()
+    );
+
+    if (!oauthAccountResult.success) {
+        logger.error({ message: oauthAccountResult.message }, "Failed to get oauth account");
+        return res.status(500).json({ error: "Failed to get oauth account" }).end();
+    }
 
     const redirectUrl = env.CLIENT_URL;
     logger.trace({ redirectUrl }, "Setting redirect url");
+    const existingUser = oauthAccountResult.data;
 
     if (existingUser) {
-        logger.trace("User exists");
-        const session = await lucia.createSession(existingUser.id, {});
+        logger.trace(
+            { provider: existingUser.provider, providerUserId: existingUser.providerUserId },
+            "User exists"
+        );
+        const session = await lucia.createSession(Number(existingUser.providerUserId), {}); // TODO:: better check for number
         const sessionCookie = lucia.createSessionCookie(session.id);
         return res.appendHeader("Set-Cookie", sessionCookie.serialize()).redirect(redirectUrl);
     }
 
     logger.trace("Creating user");
-    const user = await prisma?.user.create({
-        data: {
-            email: "anton.odman@gmail.com", // TODO: update
-            github_id: githubUser.id,
-            github_username: githubUser.login,
-            externalId: "random",
-        },
+    const userResponse = await AuthRepository.createOauthUser({
+        email: githubUser.email,
+        name: githubUser.name,
+        provider: "GITHUB",
+        providerUserId: githubUser.id.toString(),
     });
 
-    if (!user) {
-        logger.error({ githubId: githubUser.id }, "Failed to create user");
+    if (!userResponse.success) {
+        logger.error({ message: userResponse.message }, "Failed to create user");
         return res.status(500).json({ error: "Failed to create user" }).end();
     }
 
-    const session = await lucia.createSession(user.id, {});
+    const session = await lucia.createSession(userResponse.data.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
 
-    logger.trace({ redirectUrl }, "Redirecting");
+    logger.trace({ redirectUrl }, "Redirecting after creating oauth user");
     return res.appendHeader("Set-Cookie", sessionCookie.serialize()).redirect(redirectUrl);
 };
 
