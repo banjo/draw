@@ -8,7 +8,7 @@ import { Sidebar } from "@excalidraw/excalidraw";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { BrushIcon } from "lucide-react";
 import { useState } from "react";
-import { ResponsiveIcon, cn } from "ui";
+import { cn, ResponsiveIcon } from "ui";
 
 type In = {
     slug: Maybe<string>;
@@ -20,10 +20,10 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
     const { excalidrawApi } = useGlobal();
     const [docked, setDocked] = useLocalStorage(KEY_DOCKED_STATE, false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { user } = useAuth();
+    const { isAuthenticated } = useAuth();
 
     const { data, isLoading } = trpc.draw.getCollection.useQuery(undefined, {
-        enabled: !!user,
+        enabled: isAuthenticated,
     });
 
     const { isScrollable, scrollContainerRef } = useIsScrollable<HTMLDivElement>({
@@ -33,7 +33,7 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
     const toggleSidebar = () => excalidrawApi?.toggleSidebar({ name: "user" });
 
     const renderSidebar = () => {
-        if (!user) return null;
+        if (!isAuthenticated) return null;
 
         return (
             <Sidebar
@@ -76,7 +76,7 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
     };
 
     const renderSidebarButton = () => {
-        if (!user) return null;
+        if (!isAuthenticated) return null;
 
         return (
             <button className="sidebar-trigger" onClick={() => toggleSidebar()}>

@@ -17,7 +17,6 @@ export type SaveDrawing = (
 ) => Promise<Maybe<string>>;
 
 export const useDrawing = ({ slug }: In) => {
-    const { userId } = useAuth();
     const { handleError } = useError();
 
     const utils = trpc.useContext();
@@ -43,7 +42,6 @@ export const useDrawing = ({ slug }: In) => {
                             elements: e as any,
                             slug: currentSlug,
                             order,
-                            userId,
                         })
                 );
 
@@ -57,7 +55,7 @@ export const useDrawing = ({ slug }: In) => {
 
                 return currentSlug;
             },
-        [slug, userId]
+        [slug]
     );
 
     const debouncedSaveDrawing: (

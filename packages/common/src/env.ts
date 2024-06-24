@@ -37,6 +37,8 @@ const ServerEnvSchema = z.object({
     WS_PORT: z.string(),
     LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
     DEVELOPMENT_UID: z.string().optional(),
+    GITHUB_CLIENT_ID: z.string(),
+    GITHUB_CLIENT_SECRET: z.string(),
     // AXIOM_DATASET: z.string(),
     // AXIOM_TOKEN: z.string(),
 });

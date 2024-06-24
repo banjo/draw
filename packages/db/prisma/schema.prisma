@@ -5,18 +5,28 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  email      String   @unique
-  name       String?
-  externalId String   @unique
-  drawings   Drawing[] @relation("OwnerDrawings")
-  collection Drawing[] @relation("Collection")
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  email           String    @unique
+  name            String?
+  externalId      String    @unique
+  drawings        Drawing[] @relation("OwnerDrawings")
+  collection      Drawing[] @relation("Collection")
+  sessions        Session[]
+  github_id       Int       @unique
+  github_username String
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 enum Access {
@@ -26,16 +36,16 @@ enum Access {
 }
 
 model Drawing {
-  id        Int      @id @default(autoincrement())
-  slug      String   @unique @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int              @id @default(autoincrement())
+  slug      String           @unique @default(uuid())
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
   name      String?
-  data      Json[]    
-  owner     User?     @relation("OwnerDrawings", fields: [ownerId], references: [id]) 
+  data      Json[]
+  owner     User?            @relation("OwnerDrawings", fields: [ownerId], references: [id])
   ownerId   Int?
-  users     User[]    @relation("Collection")
-  access    Access   @default(public)
+  users     User[]           @relation("Collection")
+  access    Access           @default(public)
   order     String[]
   elements  DrawingElement[]
 }

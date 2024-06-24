@@ -13,28 +13,29 @@ import superjson from "superjson";
 const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }) =>
     trpc.createClient({
         links: [
-            tokenRefreshLink({
-                // access to the original tRPC query operation object
-                // is accessible on both methods
-                tokenRefreshNeeded: () => {
-                    const token = authService.getAuthState().token;
-                    if (!token) return true;
-
-                    const shouldRefresh = TokenUtil.needRefresh(
-                        token,
-                        toMilliseconds({ minutes: 1 })
-                    );
-
-                    if (shouldRefresh) {
-                        return true;
-                    }
-
-                    return false;
-                },
-                fetchAccessToken: async () => {
-                    await authService.refreshToken();
-                },
-            }),
+            // TODO:: fix everything in this file
+            // tokenRefreshLink({
+            //     // access to the original tRPC query operation object
+            //     // is accessible on both methods
+            //     tokenRefreshNeeded: () => {
+            //         const token = authService.getAuthState().token;
+            //         if (!token) return true;
+            //
+            //         const shouldRefresh = TokenUtil.needRefresh(
+            //             token,
+            //             toMilliseconds({ minutes: 1 })
+            //         );
+            //
+            //         if (shouldRefresh) {
+            //             return true;
+            //         }
+            //
+            //         return false;
+            //     },
+            //     fetchAccessToken: async () => {
+            //         await authService.refreshToken();
+            //     },
+            // }),
             splitLink({
                 condition: op => op.type === "subscription" || op.path.includes("collaboration"),
                 false: httpBatchLink({
@@ -45,16 +46,16 @@ const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }
                             credentials: "include",
                         });
                     },
-                    headers: async () => {
-                        const token = authService.getAuthState().token;
-                        if (token) {
-                            return {
-                                authorization: `Bearer ${token}`,
-                            };
-                        }
-
-                        return {};
-                    },
+                    // headers: async () => {
+                    //     const token = authService.getAuthState().token;
+                    //     if (token) {
+                    //         return {
+                    //             authorization: `Bearer ${token}`,
+                    //         };
+                    //     }
+                    //
+                    //     return {};
+                    // },
                     transformer: superjson,
                 }),
                 true: wsLink({
@@ -72,32 +73,32 @@ export const TrpcProvider: FC<PropsWithChildren> = ({ children }) => {
         () =>
             new QueryClient({
                 defaultOptions: {
-                    queries: {
-                        retry(failureCount, error) {
-                            if (
-                                error instanceof TRPCClientError &&
-                                error.data?.code === "UNAUTHORIZED" &&
-                                error.shape?.cause === Cause.EXPIRED_TOKEN
-                            ) {
-                                authService.refreshToken(); // not best solution, but it works
-                            }
-
-                            return failureCount < 3;
-                        },
-                    },
-                    mutations: {
-                        retry(failureCount, error) {
-                            if (
-                                error instanceof TRPCClientError &&
-                                error.data.code === "UNAUTHORIZED" &&
-                                error.shape?.cause === Cause.EXPIRED_TOKEN
-                            ) {
-                                authService.refreshToken(); // not best solution, but it works
-                            }
-
-                            return failureCount < 3;
-                        },
-                    },
+                    // queries: {
+                    //     retry(failureCount, error) {
+                    //         if (
+                    //             error instanceof TRPCClientError &&
+                    //             error.data?.code === "UNAUTHORIZED" &&
+                    //             error.shape?.cause === Cause.EXPIRED_TOKEN
+                    //         ) {
+                    //             authService.refreshToken(); // not best solution, but it works
+                    //         }
+                    //
+                    //         return failureCount < 3;
+                    //     },
+                    // },
+                    // mutations: {
+                    //     retry(failureCount, error) {
+                    //         if (
+                    //             error instanceof TRPCClientError &&
+                    //             error.data.code === "UNAUTHORIZED" &&
+                    //             error.shape?.cause === Cause.EXPIRED_TOKEN
+                    //         ) {
+                    //             authService.refreshToken(); // not best solution, but it works
+                    //         }
+                    //
+                    //         return failureCount < 3;
+                    //     },
+                    // },
                 },
             })
     );

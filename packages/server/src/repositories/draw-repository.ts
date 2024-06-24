@@ -127,8 +127,7 @@ const saveDrawingFromDeltaUpdate = async (
     slug: string,
     elements: ExcalidrawSimpleElement[],
     order: string[],
-    userId?: string
-    // eslint-disable-next-line max-params
+    userId?: number
 ) => {
     try {
         const drawingExists = await prisma.drawing.findUnique({
@@ -184,16 +183,7 @@ const saveDrawingFromDeltaUpdate = async (
             return Result.ok(drawingExists.id);
         }
 
-        let ownerId: Maybe<number>;
-        if (userId) {
-            const userIdResult = await UserRepository.getIdByExternalId(userId);
-
-            if (!userIdResult.success) {
-                return Result.error("Error getting user", "InternalError");
-            }
-
-            ownerId = userIdResult.data;
-        }
+        const ownerId: Maybe<number> = userId;
 
         const createNewDrawing = await prisma.drawing.create({
             data: {

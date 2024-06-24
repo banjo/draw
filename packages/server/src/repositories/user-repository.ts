@@ -26,30 +26,31 @@ const getIdByExternalId = async (externalId: string): AsyncResultType<number> =>
     }
 };
 
-type CreateUserProps = {
-    externalId: string;
-    email: string;
-    name: string;
-};
-const createUser = async ({ name, externalId, email }: CreateUserProps): AsyncResultType<User> => {
-    try {
-        logger.info(`Creating user: ${name}`);
-        const user = await prisma.user.create({
-            data: {
-                externalId,
-                email,
-                name,
-            },
-        });
-
-        return Result.ok(user);
-    } catch (error) {
-        logger.error({ error, name }, `Error creating user: ${name}`);
-        return Result.error("Error creating user", "InternalError");
-    }
-};
+// TODO:: update with new logic
+// type CreateUserProps = {
+//     externalId: string;
+//     email: string;
+//     name: string;
+// };
+// const createUser = async ({ name, externalId, email }: CreateUserProps): AsyncResultType<User> => {
+//     try {
+//         logger.info(`Creating user: ${name}`);
+//         const user = await prisma.user.create({
+//             data: {
+//                 externalId,
+//                 email,
+//                 name,
+//             },
+//         });
+//
+//         return Result.ok(user);
+//     } catch (error) {
+//         logger.error({ error, name }, `Error creating user: ${name}`);
+//         return Result.error("Error creating user", "InternalError");
+//     }
+// };
 
 export const UserRepository = {
     getIdByExternalId,
-    createUser,
+    // createUser,
 };

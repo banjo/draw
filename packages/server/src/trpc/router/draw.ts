@@ -27,18 +27,17 @@ export const drawRouter = createTRPCRouter({
                 slug: z.string(),
                 elements: ExcalidrawSimpleElementSchema.array(),
                 order: z.string().array(),
-                userId: z.string().optional(),
             })
         )
-        .mutation(async ({ input }) => {
-            const { slug, elements, order, userId } = input;
+        .mutation(async ({ input, ctx }) => {
+            const { slug, elements, order } = input;
             logger.trace({ slug }, `Saving drawing`);
 
             const drawingResult = await DrawRepository.saveDrawingFromDeltaUpdate(
                 slug,
                 elements,
                 order,
-                userId
+                ctx.userId
             );
 
             if (!drawingResult.success) {

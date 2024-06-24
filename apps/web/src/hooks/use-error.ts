@@ -1,6 +1,6 @@
 import { authService } from "@/services/auth-service";
 import { toastError } from "@/utils/error";
-import { Maybe, attempt, defaults } from "@banjoanton/utils";
+import { attempt, defaults, Maybe } from "@banjoanton/utils";
 import { TRPCClientError } from "@trpc/client";
 import { Cause } from "common";
 import { toast as internalToast } from "react-hot-toast";
@@ -27,7 +27,7 @@ export const useError = () => {
         if (error instanceof TRPCClientError) {
             const cause = Cause.fromClientError(error);
             if (cause === Cause.EXPIRED_TOKEN) {
-                await authService.refreshToken();
+                // TODO: handle expired token?? is this necessary?
             }
 
             const message = attempt(() => causeLog[cause as Cause]);

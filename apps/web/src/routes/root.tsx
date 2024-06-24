@@ -64,7 +64,7 @@ import { DrawContainer } from "@/features/draw/draw-container";
 import ErrorPage from "@/routes/error-page";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
-const createAppRouter = (isAuthenticated: boolean) =>
+const createAppRouter = () =>
     createBrowserRouter([
         {
             path: "/",
@@ -87,9 +87,7 @@ const createAppRouter = (isAuthenticated: boolean) =>
     ]);
 
 export function Root() {
-    const { userId } = useAuth();
-    const isAuthenticated = !!userId;
-    const appRouter = createAppRouter(isAuthenticated);
+    const appRouter = createAppRouter();
 
     return <RouterProvider router={appRouter} />;
 }

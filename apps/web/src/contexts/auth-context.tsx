@@ -1,27 +1,21 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Loader } from "ui";
 import { User } from "firebase/auth";
-import { AuthState, authService } from "@/services/auth-service";
+import { authService, AuthState } from "@/services/auth-service";
 
 export type AuthContextType = {
-    user: User | null;
-    userId: string | undefined;
     isLoading: boolean;
-    token: string | undefined;
+    isAuthenticated: boolean;
 };
 
 const emptyContext: AuthContextType = {
-    userId: undefined,
     isLoading: false,
-    user: null,
-    token: undefined,
+    isAuthenticated: false,
 };
 
 const AuthContext = createContext<AuthContextType>(emptyContext);
 
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 type AuthProviderProps = {
     children: React.ReactNode;
@@ -38,16 +32,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         };
 
         authService.addAuthStateListener(handleAuthStateChange);
-
+        authService.checkIfUserIsAuthenticated();
         return () => {
             authService.removeAuthStateListener(handleAuthStateChange);
         };
     }, []);
 
     const contextValue: AuthContextType = {
-        user: authState.user,
-        userId: authState.user?.uid,
-        token: authState.token,
+        isAuthenticated: authState.isAuthenticated,
         isLoading,
     };
 
