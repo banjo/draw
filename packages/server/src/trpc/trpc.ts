@@ -6,7 +6,7 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
-import { uuid, wrapAsync } from "@banjoanton/utils";
+import { attempt, uuid, wrapAsync } from "@banjoanton/utils";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
@@ -38,17 +38,7 @@ export const createTRPCContext = async ({
         return createResponse(getLocalDevelopmentId());
     }
 
-    if (!authHeader) {
-        logger.trace("No auth header");
-        return createResponse();
-    }
-
-    if (!authHeader?.startsWith("Bearer ")) {
-        logger.trace("No bearer token");
-        return createResponse();
-    }
-
-    const idToken = authHeader.split("Bearer ")[1];
+    const idToken = attempt(() => authHeader?.split("Bearer ")[1]);
 
     if (!idToken) {
         logger.trace("No id token");

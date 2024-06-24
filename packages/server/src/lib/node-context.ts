@@ -1,5 +1,4 @@
 import { Maybe, uuid } from "@banjoanton/utils";
-import { MiddlewareResult } from "@trpc/server/dist/unstable-core-do-not-import";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 type StoreContext = {
