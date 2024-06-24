@@ -44,6 +44,7 @@ app.get("/auth", (req, res) => {
     }
 
     logger.trace("User is authenticated");
+    // TODO:: send user info
     return res.json({ ok: true });
 });
 

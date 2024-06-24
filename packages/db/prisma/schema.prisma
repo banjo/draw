@@ -15,6 +15,7 @@ model User {
   updatedAt       DateTime       @updatedAt
   email           String         @unique
   name            String?
+  avatarUrl       String?
   drawings        Drawing[]      @relation("OwnerDrawings")
   collection      Drawing[]      @relation("Collection")
   sessions        Session[]
@@ -36,6 +37,8 @@ model OauthAccount {
   providerUserId String // id from the provider
   @@id([provider, providerUserId]) // composite primary key
   user           User     @relation(fields: [userId], references: [id])
+  avatarUrl      String?
+  name           String?
 }
 
 // APPLICATION

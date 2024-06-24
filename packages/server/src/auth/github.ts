@@ -67,6 +67,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
         },
     });
     const githubUserData = await githubUserResponse.json();
+    console.log({ githubUserData });
     const githubUser = GithubUser.parse(githubUserData);
 
     const oauthAccountResult = await AuthRepository.getOauthByProvider(
@@ -99,6 +100,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
         name: githubUser.name,
         provider: "GITHUB",
         providerUserId: githubUser.id.toString(),
+        avatarUrl: githubUser.avatar_url,
     });
 
     if (!userResponse.success) {

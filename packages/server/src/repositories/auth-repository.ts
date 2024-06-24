@@ -10,10 +10,11 @@ type CreateOauthUserProps = {
     providerUserId: string;
     email: string;
     name?: string;
+    avatarUrl?: string;
 };
 
 const createOauthUser = async (props: CreateOauthUserProps) => {
-    const { provider, providerUserId, email, name } = props;
+    const { provider, providerUserId, email, name, avatarUrl } = props;
     logger.info({ provider, providerUserId, email }, "Creating oauth user");
 
     const [user, error] = await wrapAsync(async () =>
@@ -21,10 +22,13 @@ const createOauthUser = async (props: CreateOauthUserProps) => {
             data: {
                 email,
                 name,
+                avatarUrl,
                 OauthAccount: {
                     create: {
                         provider,
                         providerUserId,
+                        avatarUrl,
+                        name,
                     },
                 },
             },
