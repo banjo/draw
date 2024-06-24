@@ -6,7 +6,7 @@
  * tl;dr - this is where all the tRPC server stuff is created and plugged in.
  * The pieces you will need to use are documented accordingly near the end
  */
-import { wrapAsync } from "@banjoanton/utils";
+import { uuid, wrapAsync } from "@banjoanton/utils";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
@@ -14,39 +14,22 @@ import { Cause } from "common";
 import { auth } from "firebase-server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { getLocalDevelopmentId, isLocalDevelopment } from "../lib/runtime";
 import { createContextLogger } from "../lib/context-logger";
 import { NodeContext } from "../lib/node-context";
+import { getLocalDevelopmentId, isLocalDevelopment } from "../lib/runtime";
 import { UserRepository } from "../repositories/user-repository";
 
 const logger = createContextLogger("auth-middleware");
 
-/**
- * 1. CONTEXT
- *
- * This section defines the "contexts" that are available in the backend API
- *
- * These allow you to access things like the database, the session, etc, when
- * processing a request
- *
- */
-
-/**
- * This is the actual context you'll use in your router. It will be used to
- * process every request that goes through your tRPC endpoint
- * @link https://trpc.io/docs/context
- */
 export const createTRPCContext = async ({
     req,
     res,
 }: CreateExpressContextOptions | CreateWSSContextFnOptions) => {
-    const requestId = NodeContext.getRequestId();
     const createResponse = (userId?: number, expired = false) => ({
         req,
         res,
         userId,
         expired,
-        requestId,
     });
 
     const authHeader = req?.headers.authorization;
@@ -104,22 +87,16 @@ export const createTRPCContext = async ({
             return createResponse();
         }
 
-        logger.trace(`Created user with id: ${user.data.id}`);
-
         NodeContext.setUserId(user.data.id);
+        logger.info({ id: user.data.id }, "Successfully created user");
         return createResponse(user.data.id);
     }
 
     NodeContext.setUserId(userIdResponse.data);
+    logger.trace({ userId: userIdResponse.data }, "Successfully authenticated user");
     return createResponse(userIdResponse.data);
 };
 
-/**
- * 2. INITIALIZATION
- *
- * This is where the trpc api is initialized, connecting the context and
- * transformer
- */
 const t = initTRPC.context<typeof createTRPCContext>().create({
     transformer: superjson,
     errorFormatter({ shape, error }) {
@@ -136,34 +113,32 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
     },
 });
 
-/**
- * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
- *
- * These are the pieces you use to build your tRPC API. You should import these
- * a lot in the /src/server/api/routers folder
- */
-
-/**
- * This is how you create new routers and subrouters in your tRPC API
- * @see https://trpc.io/docs/router
- */
 export const createTRPCRouter = t.router;
 
-export const publicProcedure = t.procedure;
-/**
- * Public (unauthed) procedure
- *
- * This is the base piece you use to build new queries and mutations on your
- * tRPC API. It does not guarantee that a user querying is authorized, but you
- * can still access user session data if they are logged in
- */
+const contextMiddleware = t.middleware(({ type, next, path, ctx }) => {
+    const contextExists = NodeContext.exists();
 
-/**
- * Reusable middleware that enforces users are logged in before running the
- * procedure
- */
+    // Context already exists in HTTP request from Express
+    if (contextExists) {
+        return next();
+    }
+
+    return NodeContext.context.run(NodeContext.store, async () => {
+        const isWS = type === "subscription" || path.includes("collaboration");
+        NodeContext.setIsWS(isWS);
+        NodeContext.setRequestId(uuid());
+
+        if (ctx.userId) {
+            NodeContext.setUserId(ctx.userId);
+        }
+
+        return await next();
+    });
+});
+
 const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
     if (ctx.expired) {
+        logger.error("Token expired");
         throw new TRPCError({
             code: "UNAUTHORIZED",
             cause: Cause.EXPIRED_TOKEN,
@@ -172,8 +147,10 @@ const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
     }
 
     if (!ctx.userId) {
+        logger.error("No user id in context");
         throw new TRPCError({ code: "UNAUTHORIZED" });
     }
+
     return next({
         ctx: {
             // infers the `session` as non-nullable
@@ -182,13 +159,7 @@ const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {
     });
 });
 
-/**
- * Protected (authed) procedure
- *
- * If you want a query or mutation to ONLY be accessible to logged in users, use
- * this. It verifies the session is valid and guarantees ctx.session.user is not
- * null
- *
- * @see https://trpc.io/docs/procedures
- */
-export const protectedProcedure = t.procedure.use(enforceUserIsAuthenticated);
+export const publicProcedure = t.procedure.use(contextMiddleware);
+export const protectedProcedure = t.procedure
+    .use(enforceUserIsAuthenticated)
+    .use(contextMiddleware);
