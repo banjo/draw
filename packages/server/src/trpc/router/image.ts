@@ -17,7 +17,7 @@ export const imageRouter = createTRPCRouter({
         .query(async ({ input }) => {
             const { imageIds } = input;
 
-            logger.info(`Getting images: ${imageIds.join(", ")}`);
+            logger.trace(`Getting images: ${imageIds.join(", ")}`);
 
             const images = await DrawRepository.getImages(imageIds);
 
@@ -62,6 +62,7 @@ export const imageRouter = createTRPCRouter({
                 throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: image.message });
             }
 
+            logger.info(`Successfully saved images: ${newImages.map(file => file.id).join(", ")}`);
             return Result.okEmpty();
         }),
 });

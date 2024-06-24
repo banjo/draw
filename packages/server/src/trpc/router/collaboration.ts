@@ -39,7 +39,7 @@ export const collaborationRouter = createTRPCRouter({
         )
         .mutation(async ({ input }) => {
             const { deltaBoardUpdate, slug } = input;
-            logger.trace(`Updating board to ${slug}`);
+            logger.trace({ slug }, "Updating board");
             await drawingEmitter.update(slug, deltaBoardUpdate);
         }),
     onCollaboratorChange: publicProcedure
