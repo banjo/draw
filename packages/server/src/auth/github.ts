@@ -33,6 +33,16 @@ const generateUrlAndState = async () => {
     };
 };
 
+const getGithubUser = async (accessToken: string) => {
+    const githubUserResponse = await fetch("https://api.github.com/user", {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+    const githubUserData = await githubUserResponse.json();
+    return GithubUser.parse(githubUserData);
+};
+
 const handleExpressLogin = async (req: Request, res: Response) => {
     const { url, state } = await generateUrlAndState();
     const cookie = serializeCookie(COOKIE_NAME, state, {
@@ -48,7 +58,6 @@ const handleExpressLogin = async (req: Request, res: Response) => {
 
 const handleExpressCallback = async (req: Request, res: Response) => {
     // TODO: handle try catch
-    // TODO: handle multi account linking
     const code = req.query.code?.toString() ?? null;
     const state = req.query.state?.toString() ?? null;
     const storedState = parseCookies(req.headers.cookie ?? "").get(COOKIE_NAME) ?? null;
@@ -61,39 +70,74 @@ const handleExpressCallback = async (req: Request, res: Response) => {
     const tokens = await github.validateAuthorizationCode(code);
 
     logger.trace("Fetching user data");
-    const githubUserResponse = await fetch("https://api.github.com/user", {
-        headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-        },
-    });
-    const githubUserData = await githubUserResponse.json();
-    const githubUser = GithubUser.parse(githubUserData);
+    const githubUser = await getGithubUser(tokens.accessToken);
 
-    const oauthAccountResult = await AuthRepository.getOauthByProvider(
-        OauthProvider.GITHUB,
-        githubUser.id.toString()
-    );
+    const userResult = await AuthRepository.getUserByEmail(githubUser.email);
 
-    if (!oauthAccountResult.success) {
-        logger.error({ message: oauthAccountResult.message }, "Failed to get oauth account");
-        return HttpResponse.internalServerError({ res, message: "Failed to get oauth account" });
+    if (!userResult.success) {
+        logger.error({ message: userResult.message }, "Failed to get user by email");
+        return HttpResponse.internalServerError({ res, message: "Failed to get user by email" });
     }
 
+    const existingUser = userResult.data;
     const redirectUrl = env.CLIENT_URL;
     logger.trace({ redirectUrl }, "Setting redirect url");
-    const existingOauth = oauthAccountResult.data;
 
-    if (existingOauth) {
-        logger.trace(
-            { provider: existingOauth.provider, providerUserId: existingOauth.providerUserId },
-            "User exists"
+    if (existingUser) {
+        logger.trace("User exists in database");
+
+        const currentOauthAccountResult = await AuthRepository.getOauthByProvider(
+            OauthProvider.GITHUB,
+            githubUser.id.toString()
         );
-        const session = await lucia.createSession(Number(existingOauth.userId), {}); // TODO:: better check for number
+
+        if (!currentOauthAccountResult.success) {
+            logger.error(
+                { message: currentOauthAccountResult.message, provider: OauthProvider.GITHUB },
+                "Failed to get oauth account"
+            );
+            return HttpResponse.internalServerError({
+                res,
+                message: "Failed to get oauth account",
+            });
+        }
+
+        if (currentOauthAccountResult.data) {
+            logger.trace("Oauth account already exists");
+
+            const session = await lucia.createSession(Number(existingUser.id), {}); // TODO:: better check for number
+            const sessionCookie = lucia.createSessionCookie(session.id);
+            return HttpResponse.redirect({
+                res,
+                url: redirectUrl,
+                cookie: sessionCookie.serialize(),
+            });
+        }
+
+        const addOauthResult = await AuthRepository.addOauthAccount(Number(existingUser.id), {
+            provider: OauthProvider.GITHUB,
+            providerUserId: githubUser.id.toString(),
+            avatarUrl: githubUser.avatar_url,
+            name: githubUser.name,
+        });
+
+        if (!addOauthResult.success) {
+            logger.error(
+                { message: addOauthResult.message, provider: OauthProvider.GITHUB },
+                "Failed to add oauth account"
+            );
+            return HttpResponse.internalServerError({
+                res,
+                message: "Failed to add oauth account",
+            });
+        }
+
+        const session = await lucia.createSession(Number(existingUser.id), {}); // TODO:: better check for number
         const sessionCookie = lucia.createSessionCookie(session.id);
         return HttpResponse.redirect({ res, url: redirectUrl, cookie: sessionCookie.serialize() });
     }
 
-    logger.trace("Creating user");
+    logger.trace({ provider: OauthProvider.GITHUB }, "Creating user from oauth data");
     const userResponse = await AuthRepository.createOauthUser({
         email: githubUser.email,
         name: githubUser.name,

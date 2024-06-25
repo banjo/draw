@@ -69,7 +69,61 @@ const getOauthByProvider = async (provider: OauthProvider, providerUserId: strin
     return Result.ok(oauth);
 };
 
+const getUserByEmail = async (email: string) => {
+    logger.trace({ email }, "Getting user by email");
+
+    const [user, error] = await wrapAsync(async () =>
+        prisma.user.findFirst({
+            where: {
+                email,
+            },
+        })
+    );
+
+    if (error) {
+        logger.error({ error, email }, "Error getting user by email");
+        return Result.error("Error getting user by email", "InternalError");
+    }
+
+    if (user) {
+        logger.trace({ email }, "Successfully got user by email");
+    } else {
+        logger.trace({ email }, "No user found by email");
+    }
+
+    return Result.ok(user);
+};
+
+const addOauthAccount = async (
+    userId: number,
+    { provider, avatarUrl, providerUserId, name }: Omit<CreateOauthUserProps, "email">
+) => {
+    logger.info({ provider, providerUserId }, "Adding oauth account");
+
+    const [oauth, error] = await wrapAsync(async () =>
+        prisma.oauthAccount.create({
+            data: {
+                provider,
+                providerUserId,
+                name,
+                avatarUrl,
+                userId,
+            },
+        })
+    );
+
+    if (error) {
+        logger.error({ error, provider, providerUserId }, "Error adding oauth account");
+        return Result.error("Error adding oauth account", "InternalError");
+    }
+
+    logger.info({ provider, providerUserId }, "Successfully added oauth account");
+    return Result.ok(oauth);
+};
+
 export const AuthRepository = {
     createOauthUser,
     getOauthByProvider,
+    getUserByEmail,
+    addOauthAccount,
 };
