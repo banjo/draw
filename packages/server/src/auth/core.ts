@@ -230,7 +230,7 @@ type CreateOauthCoreProviderProps = {
     provider: OAuth2Provider;
     oauthProvider: OauthProvider;
     cookieName: string;
-    fetchUser: (accessToken: string) => Promise<any>;
+    fetchUser: (accessToken: string) => Promise<OauthUserInfo>;
 };
 const createOauthProvider = ({
     provider,
