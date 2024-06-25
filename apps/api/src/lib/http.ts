@@ -9,6 +9,7 @@ import {
     createTRPCContext,
     GithubAuthProvider,
     NodeContext,
+    OauthCoreProvider,
 } from "server";
 
 const app = express();
@@ -24,7 +25,7 @@ const corsSettings: CorsOptions = {
 
 app.use(cors(corsSettings));
 app.use(NodeContext.setupExpressContext);
-app.use(GithubAuthProvider.handleExpressMiddleware);
+app.use(OauthCoreProvider.middleware);
 
 app.use(
     "/trpc",
@@ -35,17 +36,9 @@ app.use(
     })
 );
 
-app.get("/login/github/callback", GithubAuthProvider.handleExpressCallback);
-app.get("/login/github", GithubAuthProvider.handleExpressLogin);
-app.get("/logout", GithubAuthProvider.handleExpressSignOut);
-app.get("/auth", (req, res) => {
-    if (!res.locals.user && !res.locals.session) {
-        return res.status(401).json({ error: "Not authenticated" });
-    }
-
-    logger.trace("User is authenticated");
-    // TODO:: send user info
-    return res.json({ ok: true });
-});
+app.get("/login/github/callback", GithubAuthProvider.callback);
+app.get("/login/github", GithubAuthProvider.login);
+app.get("/logout", OauthCoreProvider.logout);
+app.get("/auth", OauthCoreProvider.authCheck);
 
 export { app, PORT };
