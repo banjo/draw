@@ -9,13 +9,8 @@
 -- DropIndex
 DROP INDEX "User_externalId_key";
 
--- DropIndex
-DROP INDEX "User_github_id_key";
-
 -- AlterTable
-ALTER TABLE "User" DROP COLUMN "externalId",
-DROP COLUMN "github_id",
-DROP COLUMN "github_username";
+ALTER TABLE "User" DROP COLUMN "externalId";
 
 -- CreateTable
 CREATE TABLE "OauthAccount" (

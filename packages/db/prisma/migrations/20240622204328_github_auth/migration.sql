@@ -6,9 +6,10 @@
   - Added the required column `github_username` to the `User` table without a default value. This is not possible if the table is not empty.
 
 */
+-- MANUALLY DISABLED AS IT IS NOT USED ANYMORE
 -- AlterTable
-ALTER TABLE "User" ADD COLUMN     "github_id" INTEGER NOT NULL,
-ADD COLUMN     "github_username" TEXT NOT NULL;
+-- ALTER TABLE "User" ADD COLUMN     "github_id" INTEGER NOT NULL,
+-- ADD COLUMN     "github_username" TEXT NOT NULL;
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_github_id_key" ON "User"("github_id");
+-- CREATE UNIQUE INDEX "User_github_id_key" ON "User"("github_id");
