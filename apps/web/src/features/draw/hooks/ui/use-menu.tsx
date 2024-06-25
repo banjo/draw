@@ -9,18 +9,20 @@ import { useLocalIdStore } from "@/stores/use-local-id-store";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
+import { Env } from "common";
 import { BrushIcon, CopyIcon, FileDown, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Icons, ResponsiveIcon } from "ui";
-import { useDeltaMutation } from "../collaboration/use-delta-mutation";
 
 type In = {
     slug: Maybe<string>;
     saveDrawing: SaveDrawing;
     toggleSidebar: () => void;
 };
+
+const env = Env.client();
 
 export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const { excalidrawApi } = useGlobal();
@@ -120,7 +122,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
             ) : (
                 <MainMenu.Item
                     onSelect={() => {
-                        window.location.href = "http://localhost:3003/login/github";
+                        window.location.href = `${env.VITE_API_URL}/login/github`;
                     }}
                     icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
                 >
