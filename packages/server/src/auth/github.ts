@@ -7,6 +7,7 @@ import { z } from "zod";
 import { createContextLogger } from "../lib/context-logger";
 import { lucia } from "../lib/lucia";
 import { AuthRepository } from "../repositories/auth-repository";
+import { OauthProvider } from "./providers";
 
 const logger = createContextLogger("github-auth-provider");
 
@@ -71,7 +72,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
     const githubUser = GithubUser.parse(githubUserData);
 
     const oauthAccountResult = await AuthRepository.getOauthByProvider(
-        "GITHUB",
+        OauthProvider.GITHUB,
         githubUser.id.toString()
     );
 
@@ -98,7 +99,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
     const userResponse = await AuthRepository.createOauthUser({
         email: githubUser.email,
         name: githubUser.name,
-        provider: "GITHUB",
+        provider: OauthProvider.GITHUB,
         providerUserId: githubUser.id.toString(),
         avatarUrl: githubUser.avatar_url,
     });
