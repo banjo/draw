@@ -68,7 +68,6 @@ const handleExpressCallback = async (req: Request, res: Response) => {
         },
     });
     const githubUserData = await githubUserResponse.json();
-    console.log({ githubUserData });
     const githubUser = GithubUser.parse(githubUserData);
 
     const oauthAccountResult = await AuthRepository.getOauthByProvider(
@@ -83,14 +82,14 @@ const handleExpressCallback = async (req: Request, res: Response) => {
 
     const redirectUrl = env.CLIENT_URL;
     logger.trace({ redirectUrl }, "Setting redirect url");
-    const existingUser = oauthAccountResult.data;
+    const existingOauth = oauthAccountResult.data;
 
-    if (existingUser) {
+    if (existingOauth) {
         logger.trace(
-            { provider: existingUser.provider, providerUserId: existingUser.providerUserId },
+            { provider: existingOauth.provider, providerUserId: existingOauth.providerUserId },
             "User exists"
         );
-        const session = await lucia.createSession(Number(existingUser.providerUserId), {}); // TODO:: better check for number
+        const session = await lucia.createSession(Number(existingOauth.userId), {}); // TODO:: better check for number
         const sessionCookie = lucia.createSessionCookie(session.id);
         return res.appendHeader("Set-Cookie", sessionCookie.serialize()).redirect(redirectUrl);
     }
