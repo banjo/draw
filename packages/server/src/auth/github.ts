@@ -8,6 +8,7 @@ import { createContextLogger } from "../lib/context-logger";
 import { lucia } from "../lib/lucia";
 import { AuthRepository } from "../repositories/auth-repository";
 import { OauthProvider } from "./providers";
+import { HttpResponse } from "../model/http-response";
 
 const logger = createContextLogger("github-auth-provider");
 
@@ -34,16 +35,15 @@ const generateUrlAndState = async () => {
 
 const handleExpressLogin = async (req: Request, res: Response) => {
     const { url, state } = await generateUrlAndState();
-    res.appendHeader(
-        "Set-Cookie",
-        serializeCookie(COOKIE_NAME, state, {
-            path: "/",
-            secure: env.NODE_ENV === "production",
-            httpOnly: true,
-            maxAge: 60 * 10,
-            sameSite: "lax",
-        })
-    ).redirect(url.toString());
+    const cookie = serializeCookie(COOKIE_NAME, state, {
+        path: "/",
+        secure: env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 60 * 10,
+        sameSite: "lax",
+    });
+
+    return HttpResponse.redirect({ res, url: url.toString(), cookie });
 };
 
 const handleExpressCallback = async (req: Request, res: Response) => {
@@ -54,8 +54,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
     const storedState = parseCookies(req.headers.cookie ?? "").get(COOKIE_NAME) ?? null;
 
     if (!code || !state || !storedState || state !== storedState) {
-        res.status(400).json({ error: "Invalid state" }).end();
-        return;
+        return HttpResponse.unauthorized({ res, message: "Invalid state" });
     }
 
     logger.trace("Validating authorization code");
@@ -77,7 +76,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
 
     if (!oauthAccountResult.success) {
         logger.error({ message: oauthAccountResult.message }, "Failed to get oauth account");
-        return res.status(500).json({ error: "Failed to get oauth account" }).end();
+        return HttpResponse.internalServerError({ res, message: "Failed to get oauth account" });
     }
 
     const redirectUrl = env.CLIENT_URL;
@@ -91,7 +90,7 @@ const handleExpressCallback = async (req: Request, res: Response) => {
         );
         const session = await lucia.createSession(Number(existingOauth.userId), {}); // TODO:: better check for number
         const sessionCookie = lucia.createSessionCookie(session.id);
-        return res.appendHeader("Set-Cookie", sessionCookie.serialize()).redirect(redirectUrl);
+        return HttpResponse.redirect({ res, url: redirectUrl, cookie: sessionCookie.serialize() });
     }
 
     logger.trace("Creating user");
@@ -105,14 +104,14 @@ const handleExpressCallback = async (req: Request, res: Response) => {
 
     if (!userResponse.success) {
         logger.error({ message: userResponse.message }, "Failed to create user");
-        return res.status(500).json({ error: "Failed to create user" }).end();
+        return HttpResponse.internalServerError({ res, message: "Failed to create user" });
     }
 
     const session = await lucia.createSession(userResponse.data.id, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
 
     logger.trace({ redirectUrl }, "Redirecting after creating oauth user");
-    return res.appendHeader("Set-Cookie", sessionCookie.serialize()).redirect(redirectUrl);
+    return HttpResponse.redirect({ res, url: redirectUrl, cookie: sessionCookie.serialize() });
 };
 
 const handleExpressMiddleware: RequestHandler = async (req, res, next) => {
@@ -152,7 +151,10 @@ const handleExpressSignOut = async (req: Request, res: Response) => {
     await lucia.invalidateSession(res.locals.session.id);
 
     logger.trace("Signing out user");
-    return res.setHeader("Set-Cookie", lucia.createBlankSessionCookie().serialize()).end();
+    return HttpResponse.success({
+        res,
+        cookie: lucia.createBlankSessionCookie().serialize(),
+    });
 };
 
 export const GithubAuthProvider = {

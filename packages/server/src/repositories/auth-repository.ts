@@ -48,7 +48,7 @@ const createOauthUser = async (props: CreateOauthUserProps) => {
 const getOauthByProvider = async (provider: OauthProvider, providerUserId: string) => {
     logger.trace({ provider, providerUserId }, "Getting user by oauth provider");
 
-    const [user, error] = await wrapAsync(async () =>
+    const [oauth, error] = await wrapAsync(async () =>
         prisma.oauthAccount.findFirst({
             where: {
                 provider,
@@ -62,11 +62,11 @@ const getOauthByProvider = async (provider: OauthProvider, providerUserId: strin
         return Result.error("Error getting user by oauth provider", "InternalError");
     }
 
-    if (user) {
+    if (oauth) {
         logger.trace({ provider, providerUserId }, "Successfully got user by oauth provider");
     }
 
-    return Result.ok(user);
+    return Result.ok(oauth);
 };
 
 export const AuthRepository = {
