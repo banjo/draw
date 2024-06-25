@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Loader } from "ui";
-import { User } from "firebase/auth";
 import { authService, AuthState } from "@/services/auth-service";
 
 export type AuthContextType = {

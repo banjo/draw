@@ -29,7 +29,6 @@ const allServer = () => {
 
 const ServerEnvSchema = z.object({
     DATABASE_URL: z.string(),
-    FIREBASE_ADMIN_KEY: z.string(),
     CLIENT_URL: z.string().url(),
     NODE_ENV: z.enum(["development", "production"]),
     LOCAL_DEVELOPMENT: z.enum(["true", "false"]).optional(),
