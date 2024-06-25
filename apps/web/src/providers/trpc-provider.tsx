@@ -1,13 +1,8 @@
 import { trpc } from "@/lib/trpc";
-import { authService } from "@/services/auth-service";
 import { getHttpUrl, getWsUrl } from "@/utils/runtime";
-import { TokenUtil } from "@/utils/token";
-import { toMilliseconds } from "@banjoanton/utils";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createWSClient, httpBatchLink, splitLink, TRPCClientError, wsLink } from "@trpc/client";
-import { Cause } from "common";
+import { createWSClient, httpBatchLink, splitLink, wsLink } from "@trpc/client";
 import { FC, PropsWithChildren, useState } from "react";
-import { tokenRefreshLink } from "trpc-token-refresh-link";
 import superjson from "superjson";
 
 const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }) =>

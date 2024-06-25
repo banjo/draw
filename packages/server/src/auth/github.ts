@@ -8,12 +8,11 @@ const env = Env.server();
 export const github = new GitHub(env.GITHUB_CLIENT_ID, env.GITHUB_CLIENT_SECRET);
 
 const getGithubUser = async (accessToken: string) => {
-    const githubUserResponse = await fetch("https://api.github.com/user", {
+    const githubUserData = await fetch("https://api.github.com/user", {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
-    });
-    const githubUserData = await githubUserResponse.json();
+    }).then(data => data.json());
     return OauthUserInfo.parse(githubUserData); // TODO: safe parse somehow?
 };
 
