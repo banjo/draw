@@ -8,7 +8,7 @@ export type AuthState = AuthInfo & {
     isAuthenticated: boolean;
 };
 
-export const emtpyAuthState: AuthState = {
+export const emptyAuthState: AuthState = {
     isAuthenticated: false,
     email: "",
 };
@@ -18,7 +18,7 @@ class AuthService {
     private listeners: Array<(state: AuthState) => void> = [];
 
     constructor() {
-        this.authState = emtpyAuthState;
+        this.authState = emptyAuthState;
         this.setupDevelopment();
     }
 
@@ -52,7 +52,7 @@ class AuthService {
                 ...response.data,
             };
         } else {
-            this.authState = emtpyAuthState;
+            this.authState = emptyAuthState;
         }
 
         this.notifyListeners();
@@ -67,7 +67,7 @@ class AuthService {
         fetch(signOutUrl, {
             credentials: "include",
         });
-        this.authState = emtpyAuthState;
+        this.authState = emptyAuthState;
         this.notifyListeners();
     }
 

@@ -31,9 +31,7 @@ const collaborators = new Map<string, Collaborator>();
 const MOUSE_THROTTLE_TIME = 30;
 
 export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) => {
-    const {
-        authState: { name, avatarUrl },
-    } = useAuth();
+    const { name, avatarUrl } = useAuth();
 
     const displayName = useMemo(() => name ?? generateName(), []);
     const avatar = useMemo(() => avatarUrl ?? randomAvatar(localId), []);

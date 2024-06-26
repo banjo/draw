@@ -1,15 +1,14 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Loader } from "ui";
-import { authService, AuthState, emtpyAuthState } from "@/services/auth-service";
+import { authService, AuthState, emptyAuthState } from "@/services/auth-service";
 
-export type AuthContextType = {
+export type AuthContextType = AuthState & {
     isLoading: boolean;
-    authState: AuthState;
 };
 
 const emptyContext: AuthContextType = {
     isLoading: false,
-    authState: emtpyAuthState,
+    ...emptyAuthState,
 };
 
 const AuthContext = createContext<AuthContextType>(emptyContext);
@@ -21,7 +20,7 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const [authState, setAuthState] = useState<AuthState>(authService.getAuthState());
+    const [authState, setAuthState] = useState<AuthState>(() => authService.getAuthState());
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -39,8 +38,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, []);
 
     const contextValue: AuthContextType = {
-        authState,
         isLoading,
+        ...authState,
     };
 
     return (
