@@ -1,24 +1,33 @@
 import { isLocalDevelopment } from "@/utils/runtime";
-import { Env } from "common";
+import { attemptAsync } from "@banjoanton/utils";
+import { AuthInfo, CoreResponse, Env } from "common";
 
 const env = Env.client();
 
-export type AuthState = {
+export type AuthState = AuthInfo & {
     isAuthenticated: boolean;
 };
 
+export const emtpyAuthState: AuthState = {
+    isAuthenticated: false,
+    email: "",
+};
+
 class AuthService {
-    private isAuthenticated = false;
+    private authState: AuthState;
     private listeners: Array<(state: AuthState) => void> = [];
 
     constructor() {
-        this.isAuthenticated = false;
+        this.authState = emtpyAuthState;
         this.setupDevelopment();
     }
 
     private setupDevelopment() {
         if (isLocalDevelopment()) {
-            this.isAuthenticated = true;
+            this.authState = {
+                isAuthenticated: true,
+                email: "local@local.com",
+            };
             this.notifyListeners();
         }
     }
@@ -30,20 +39,26 @@ class AuthService {
 
         const authUrl = `${env.VITE_API_URL}/auth`;
 
-        const response = await fetch(authUrl, {
-            credentials: "include", // Send cookies
-        });
+        const response = await attemptAsync<CoreResponse<AuthInfo>>(
+            async () =>
+                await fetch(authUrl, {
+                    credentials: "include",
+                }).then(res => res.json())
+        );
 
-        if (response.ok) {
-            this.isAuthenticated = true;
+        if (response?.success) {
+            this.authState = {
+                isAuthenticated: true,
+                ...response.data,
+            };
         } else {
-            this.isAuthenticated = false;
+            this.authState = emtpyAuthState;
         }
 
         this.notifyListeners();
     }
 
-    public async signInWithGithub() {
+    public signInWithGithub() {
         window.location.href = `${env.VITE_API_URL}/login/github`;
     }
 
@@ -52,14 +67,12 @@ class AuthService {
         fetch(signOutUrl, {
             credentials: "include",
         });
-        this.isAuthenticated = false;
+        this.authState = emtpyAuthState;
         this.notifyListeners();
     }
 
     public getAuthState(): AuthState {
-        return {
-            isAuthenticated: this.isAuthenticated,
-        };
+        return this.authState;
     }
 
     public addAuthStateListener(listener: (state: AuthState) => void) {

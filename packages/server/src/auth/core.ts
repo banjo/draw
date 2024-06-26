@@ -1,5 +1,5 @@
 import { generateState, OAuth2Provider } from "arctic";
-import { Env } from "common";
+import { AuthInfo, Env } from "common";
 import { Request, RequestHandler, Response } from "express";
 import { parseCookies, serializeCookie } from "oslo/cookie";
 import { createContextLogger } from "../lib/context-logger";
@@ -217,13 +217,20 @@ const middleware: RequestHandler = async (req, res, next) => {
 };
 
 const authCheck = (req: Request, res: Response) => {
-    if (!res.locals.user && !res.locals.session) {
+    const user = res.locals.user;
+    const session = res.locals.session;
+    if (!user || !session) {
         return HttpResponse.unauthorized({ res, message: "Not authenticated" });
     }
 
+    const data: AuthInfo = {
+        email: user.email,
+        avatarUrl: user.avatarUrl ?? undefined,
+        name: user.name ?? undefined,
+    };
+
     logger.trace("User is authenticated");
-    // TODO:: send user info to client
-    return HttpResponse.success({ res });
+    return HttpResponse.success({ res, data });
 };
 
 type CreateOauthCoreProviderProps = {

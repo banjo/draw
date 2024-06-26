@@ -31,8 +31,12 @@ const collaborators = new Map<string, Collaborator>();
 const MOUSE_THROTTLE_TIME = 30;
 
 export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) => {
-    const displayName = useMemo(() => generateName(), []); // TODO: use real name
-    const avatarUrl = useMemo(() => randomAvatar(localId), []); // TODO: use real avatar
+    const {
+        authState: { name, avatarUrl },
+    } = useAuth();
+
+    const displayName = useMemo(() => name ?? generateName(), []);
+    const avatar = useMemo(() => avatarUrl ?? randomAvatar(localId), []);
     const [isCollaborating, setIsCollaborating] = useState(false);
 
     trpc.collaboration.onCollaboratorChange.useSubscription(
@@ -97,7 +101,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
         if (!slug) return;
         updateCollaborator.mutate({
             collaborator: {
-                avatarUrl,
+                avatarUrl: avatar,
                 id: localId,
                 name: displayName,
                 x: debouncedMousePosition.x,

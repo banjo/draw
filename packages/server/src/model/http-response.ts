@@ -1,38 +1,10 @@
 import { Response as IResponse } from "express";
-
-type MetaData = Record<string, unknown>;
-
-type SuccessResponseModel<T> = {
-    success: true;
-    data: T;
-    meta?: MetaData;
-};
-
-type ErrorResponseModel = {
-    success: false;
-    message: string;
-    errorCode?: number;
-    meta?: MetaData;
-};
-
-export type ExpressResponseModel<T> = SuccessResponseModel<T> | ErrorResponseModel;
-
-const createSuccessData = <T>(data: T, meta?: MetaData): SuccessResponseModel<T> => ({
-    success: true,
-    data,
-    meta,
-});
-
-const createErrorResponse = (message: string, errorCode?: number): ErrorResponseModel => ({
-    success: false,
-    message,
-    errorCode,
-});
+import { CoreResponse, CoreResponseError, CoreResponseMetadata, CoreResponseSuccess } from "common";
 
 type BaseProps = {
     res: IResponse;
     cookie?: string;
-    meta?: MetaData;
+    meta?: CoreResponseMetadata;
 };
 
 type SuccessProps<T> = BaseProps & {
@@ -44,7 +16,7 @@ const success = <T>({
     data,
     cookie,
     meta,
-}: SuccessProps<T>): IResponse<SuccessResponseModel<T>> => {
+}: SuccessProps<T>): IResponse<CoreResponseSuccess<T>> => {
     if (cookie) {
         res.setHeader("Set-Cookie", cookie);
     }
@@ -53,7 +25,7 @@ const success = <T>({
         return res.status(200).end();
     }
 
-    return res.status(200).json(createSuccessData(data, meta));
+    return res.status(200).json(CoreResponse.success(data, meta));
 };
 
 type ErrorProps = BaseProps & {
@@ -68,12 +40,12 @@ const error = ({
     status = 500,
     cookie,
     errorCode,
-}: ErrorProps): IResponse<ErrorResponseModel> => {
+}: ErrorProps): IResponse<CoreResponseError> => {
     if (cookie) {
         res.setHeader("Set-Cookie", cookie);
     }
 
-    return res.status(status).json(createErrorResponse(message, errorCode));
+    return res.status(status).json(CoreResponse.error(message, errorCode));
 };
 
 const badRequest = ({
@@ -81,7 +53,7 @@ const badRequest = ({
     message,
     cookie,
     errorCode,
-}: ErrorProps): IResponse<ErrorResponseModel> =>
+}: ErrorProps): IResponse<CoreResponseError> =>
     error({ res, message, status: 400, cookie, errorCode });
 
 const unauthorized = ({
@@ -89,7 +61,7 @@ const unauthorized = ({
     message,
     cookie,
     errorCode,
-}: ErrorProps): IResponse<ErrorResponseModel> =>
+}: ErrorProps): IResponse<CoreResponseError> =>
     error({ res, message, status: 401, cookie, errorCode });
 
 const internalServerError = ({
@@ -97,18 +69,13 @@ const internalServerError = ({
     message,
     cookie,
     errorCode,
-}: ErrorProps): IResponse<ErrorResponseModel> =>
+}: ErrorProps): IResponse<CoreResponseError> =>
     error({ res, message, status: 500, cookie, errorCode });
 
-const notFound = ({ res, message, cookie, errorCode }: ErrorProps): IResponse<ErrorResponseModel> =>
+const notFound = ({ res, message, cookie, errorCode }: ErrorProps): IResponse<CoreResponseError> =>
     error({ res, message, status: 404, cookie, errorCode });
 
-const forbidden = ({
-    res,
-    message,
-    cookie,
-    errorCode,
-}: ErrorProps): IResponse<ErrorResponseModel> =>
+const forbidden = ({ res, message, cookie, errorCode }: ErrorProps): IResponse<CoreResponseError> =>
     error({ res, message, status: 403, cookie, errorCode });
 
 type RedirectProps = {

@@ -122,7 +122,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
             ) : (
                 <MainMenu.Item
                     onSelect={() => {
-                        window.location.href = `${env.VITE_API_URL}/login/github`;
+                        authService.signInWithGithub();
                     }}
                     icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
                 >
