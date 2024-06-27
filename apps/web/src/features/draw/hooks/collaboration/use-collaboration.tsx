@@ -1,12 +1,10 @@
 import { useGlobal } from "@/contexts/global-context";
 import { useBoardCollaboration } from "@/features/draw/hooks/collaboration/use-board-collaboration";
 import { usePointerCollaboration } from "@/features/draw/hooks/collaboration/use-pointer-collaboration";
-import { useLocalIdStore } from "@/stores/use-local-id-store";
-import { noop, uuid } from "@banjoanton/utils";
+import { noop } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { ExcalidrawElements } from "common";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 type In = {
     slug?: string;
@@ -14,41 +12,31 @@ type In = {
     elements: ExcalidrawElements;
 };
 
-const ID_KEY = "banjo-collab-id";
-
 export const useCollaboration = ({ slug, setElements, elements }: In) => {
     const { excalidrawApi } = useGlobal();
-    const [localId] = useLocalStorage(ID_KEY, uuid());
-
-    const { setLocalId } = useLocalIdStore();
-
-    useEffect(() => {
-        setLocalId(localId);
-    }, []);
 
     const { isCollaborating, onPointerUpdate } = usePointerCollaboration({
         slug,
         excalidrawApi,
-        localId,
     });
 
     // TODO: show error and navigate to / if it does not work (turn off api and try to start)
     const { onDrawingChange } = useBoardCollaboration({
         elements,
         excalidrawApi,
-        localId,
         setElements,
         slug,
     });
 
-    const renderCollabButton = useCallback(() => {
-        return (
+    const renderCollabButton = useCallback(
+        () => (
             <LiveCollaborationTrigger
                 isCollaborating={isCollaborating && Boolean(slug)}
                 onSelect={noop}
             />
-        );
-    }, [isCollaborating, excalidrawApi]);
+        ),
+        [isCollaborating, excalidrawApi]
+    );
 
     return {
         isCollaborating,

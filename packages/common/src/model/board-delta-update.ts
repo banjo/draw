@@ -4,7 +4,7 @@ import { ExcalidrawSimpleElementSchema } from "./excalidraw-simple-element";
 export const BoardDeltaUpdateSchema = z.object({
     excalidrawElements: ExcalidrawSimpleElementSchema.array(),
     order: z.string().array().optional(),
-    senderId: z.string().uuid(),
+    clientId: z.string().uuid(),
 });
 
 export type BoardDeltaUpdate = z.infer<typeof BoardDeltaUpdateSchema>;
@@ -12,7 +12,7 @@ export type BoardDeltaUpdate = z.infer<typeof BoardDeltaUpdateSchema>;
 const empty = (): BoardDeltaUpdate => ({
     excalidrawElements: [],
     order: undefined,
-    senderId: "",
+    clientId: "",
 });
 
 const from = (boardDeltaUpdate: BoardDeltaUpdate): BoardDeltaUpdate => boardDeltaUpdate;

@@ -15,7 +15,7 @@ export class CollaboratorsEmitter extends EventEmitter {
 
     update(slug: Slug, collaborator: Collaborator) {
         const collaborators = this.collaboratorsMap.get(slug) ?? [];
-        const index = collaborators.findIndex(c => c.id === collaborator.id);
+        const index = collaborators.findIndex(c => c.clientId === collaborator.clientId);
         if (index === -1) {
             collaborators.push(collaborator);
         } else {
@@ -25,13 +25,13 @@ export class CollaboratorsEmitter extends EventEmitter {
         this.emit("update", slug, collaborator);
     }
 
-    remove(slug: Slug, id: string) {
+    remove(slug: Slug, clientId: string) {
         const collaborators = this.collaboratorsMap.get(slug) ?? [];
-        const index = collaborators.findIndex(c => c.id === id);
+        const index = collaborators.findIndex(c => c.clientId === clientId);
         if (index !== -1) {
             collaborators.splice(index, 1);
             this.collaboratorsMap.set(slug, collaborators);
-            this.emit("remove", slug, id);
+            this.emit("remove", slug, clientId);
         }
 
         if (collaborators.length === 0) {

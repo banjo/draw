@@ -5,7 +5,8 @@ export const CollaboratorSchema = z.object({
     y: z.number(),
     name: z.string(),
     avatarUrl: z.string(),
-    id: z.string(),
+    clientId: z.string(),
+    userId: z.string(),
 });
 
 export type Collaborator = z.infer<typeof CollaboratorSchema>;

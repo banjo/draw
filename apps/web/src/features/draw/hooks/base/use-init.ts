@@ -2,17 +2,20 @@ import { useGlobal } from "@/contexts/global-context";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { initCodeblockMenuElement } from "@/features/selected-element-visuals/components/code-editor-menu";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
-import { Maybe, isEmpty } from "@banjoanton/utils";
+import { isEmpty, Maybe } from "@banjoanton/utils";
 import { elementsOverlappingBBox } from "@excalidraw/excalidraw";
-import { Bounds } from "@excalidraw/excalidraw/types/element/bounds";
 import { useEffect } from "react";
 import { ElementPositionUtil } from "../../utils/element-position-util";
+import { useInitClientId } from "./use-init-client-id";
+import { useHelpMenu } from "./use-help-menu";
 
 type Props = {
     slug: Maybe<string>;
 };
 
 export const useInit = ({ slug }: Props) => {
+    useInitClientId();
+    useHelpMenu();
     const { excalidrawApi } = useGlobal();
     const isLoading = useGlobalLoadingStore(state => state.isLoading);
 

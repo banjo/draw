@@ -3,8 +3,9 @@ import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
+import { useClientIdStore } from "@/stores/use-client-id-store";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
-import { Maybe, isDefined } from "@banjoanton/utils";
+import { isDefined, Maybe } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import {
     Board,
@@ -23,19 +24,13 @@ type In = {
     excalidrawApi: Maybe<ExcalidrawApi>;
     setElements: (elements: ExcalidrawElements) => void;
     elements: ExcalidrawElements;
-    localId: string;
 };
 
-export const useBoardCollaboration = ({
-    slug,
-    excalidrawApi,
-    setElements,
-    elements,
-    localId,
-}: In) => {
+export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elements }: In) => {
+    const clientId = useClientIdStore(s => s.clientId);
     const navigate = useNavigate();
     const { handleError } = useError();
-    const { mutateDeltaUpdateInstantly, mutateDeltaUpdateWithDebounce } = useDeltaMutation({
+    const { mutateDeltaUpdateWithDebounce } = useDeltaMutation({
         slug,
     });
     const { pathname } = useLocation();
@@ -48,53 +43,51 @@ export const useBoardCollaboration = ({
         setIsLoading(true, "Loading drawing...");
     }, [slug]);
 
-    trpc.collaboration.onBoardChange.useSubscription(
-        { slug: slug ?? "", id: localId },
-        {
-            enabled: isDefined(slug),
-            onData: update => {
-                if (!slug || !excalidrawApi) return;
+    const input = { slug: slug ?? "" };
+    trpc.collaboration.onBoardChange.useSubscription(input, {
+        enabled: isDefined(slug) && isDefined(clientId),
+        onData: update => {
+            if (!slug || !excalidrawApi || !clientId) return;
 
-                if (BoardUpdateResponse.isFullBoard(update)) {
-                    const elements = ExcalidrawSimpleElement.toExcalidrawElements(
-                        update.board.elements
-                    );
-
-                    excalidrawApi.updateScene({
-                        elements,
-                    });
-
-                    const cloned = structuredClone(elements);
-                    setElements(cloned);
-                    setIsLoading(false);
-                    return;
-                }
-
-                if (update.delta.senderId === localId) return;
-
-                const simpleElements = ExcalidrawSimpleElement.fromMany(elements);
-                const currentBoard = Board.from({ elements: simpleElements });
-
-                const updatedBoard = DeltaUpdateUtil.applyToBoard({
-                    deltaUpdate: update.delta,
-                    board: currentBoard,
-                    isOnClient: true,
-                });
-                const updatedElements = ExcalidrawSimpleElement.toExcalidrawElements(
-                    updatedBoard.elements
+            if (BoardUpdateResponse.isFullBoard(update)) {
+                const elements = ExcalidrawSimpleElement.toExcalidrawElements(
+                    update.board.elements
                 );
 
-                setElements(structuredClone(updatedElements));
                 excalidrawApi.updateScene({
-                    elements: updatedElements,
+                    elements,
                 });
-            },
-            onError: error => {
-                handleError(error, { toast: true });
-                navigate("/");
-            },
-        }
-    );
+
+                const cloned = structuredClone(elements);
+                setElements(cloned);
+                setIsLoading(false);
+                return;
+            }
+
+            if (update.delta.clientId === clientId) return;
+
+            const simpleElements = ExcalidrawSimpleElement.fromMany(elements);
+            const currentBoard = Board.from({ elements: simpleElements });
+
+            const updatedBoard = DeltaUpdateUtil.applyToBoard({
+                deltaUpdate: update.delta,
+                board: currentBoard,
+                isOnClient: true,
+            });
+            const updatedElements = ExcalidrawSimpleElement.toExcalidrawElements(
+                updatedBoard.elements
+            );
+
+            setElements(structuredClone(updatedElements));
+            excalidrawApi.updateScene({
+                elements: updatedElements,
+            });
+        },
+        onError: error => {
+            handleError(error, { toast: true });
+            navigate("/");
+        },
+    });
 
     const onDrawingChange = async (e: ExcalidrawElements, state: AppState) => {
         const changes = DrawingUtil.getChanges({
@@ -111,6 +104,7 @@ export const useBoardCollaboration = ({
 
         // rest is only for collaboration
         if (!slug) return;
+        if (!clientId) return;
         if (isLoading) return;
 
         const { currentOrder, elementsToSave } = DrawingUtil.prepareCollaborationChanges({
@@ -121,7 +115,7 @@ export const useBoardCollaboration = ({
         const deltaBoardUpdate = BoardDeltaUpdate.from({
             excalidrawElements: elementsToSave,
             order: currentOrder,
-            senderId: localId,
+            clientId,
         });
 
         mutateDeltaUpdateWithDebounce(deltaBoardUpdate);

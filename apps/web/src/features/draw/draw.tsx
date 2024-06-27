@@ -72,7 +72,6 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const { onContextMenu } = useContextMenu();
 
-    useHelpMenu();
     const { cleanup } = useCleanup();
 
     const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {

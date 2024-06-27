@@ -5,7 +5,6 @@ import { useExport } from "@/features/draw/hooks/base/use-export";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
-import { useLocalIdStore } from "@/stores/use-local-id-store";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
@@ -22,11 +21,8 @@ type In = {
     toggleSidebar: () => void;
 };
 
-const env = Env.client();
-
 export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const { excalidrawApi } = useGlobal();
-    const localId = useLocalIdStore(state => state.localId);
     const navigate = useNavigate();
 
     const { isAuthenticated } = useAuth();

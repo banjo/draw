@@ -29,30 +29,6 @@ const applyDeltaUpdate = (previous: string[], deltaUpdate: BoardDeltaUpdate): st
     return updatedLockedElements;
 };
 
-/**
- * Mark locked elements as unlocked
- * @param board - the board to update
- * @param lockedElements - the elements to unlock
- */
-const restoreBoardLockedElements = (board: Board, lockedElements: string[]) => {
-    const affectedUpdatedElements: ExcalidrawSimpleElement[] = [];
-
-    const allUpdatedElements = board.elements.map(element => {
-        if (lockedElements.includes(element.id.toString())) {
-            const updatedElement = { ...element, locked: false };
-            affectedUpdatedElements.push(updatedElement);
-            return updatedElement;
-        }
-
-        return element;
-    });
-
-    const updatedBoard: Board = { ...board, elements: allUpdatedElements };
-
-    return { updatedBoard, updatedElements: affectedUpdatedElements };
-};
-
 export const ElementStateUtil = {
     applyDeltaUpdate,
-    restoreBoardLockedElements,
 };

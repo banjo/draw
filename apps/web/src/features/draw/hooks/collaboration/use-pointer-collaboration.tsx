@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
-import { isDefined, Maybe } from "@banjoanton/utils";
+import { useClientIdStore } from "@/stores/use-client-id-store";
+import { isDefined, isEmpty, Maybe, randomString } from "@banjoanton/utils";
 import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
 import { useThrottle } from "@uidotdev/usehooks";
 import { ExcalidrawApi } from "common";
@@ -10,7 +11,6 @@ import generateName from "sillyname";
 type In = {
     slug?: string;
     excalidrawApi: Maybe<ExcalidrawApi>;
-    localId: string;
 };
 
 type PointerUpdateData = {
@@ -30,60 +30,59 @@ const randomAvatar = (hash: string) => `https://robohash.org/${hash}.png`;
 const collaborators = new Map<string, Collaborator>();
 const MOUSE_THROTTLE_TIME = 30;
 
-export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) => {
+export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
+    const clientId = useClientIdStore(s => s.clientId);
     const { name, avatarUrl } = useAuth();
 
     const displayName = useMemo(() => name ?? generateName(), []);
-    const avatar = useMemo(() => avatarUrl ?? randomAvatar(localId), []);
+    const avatar = useMemo(() => avatarUrl ?? randomAvatar(clientId ?? randomString(10)), []);
     const [isCollaborating, setIsCollaborating] = useState(false);
 
-    trpc.collaboration.onCollaboratorChange.useSubscription(
-        { slug: slug ?? "", id: localId },
-        {
-            enabled: isDefined(slug),
-            onData: externalCollaborators => {
-                if (!slug || !excalidrawApi) return;
+    const input = { slug: slug ?? "", clientId: clientId ?? "" };
+    trpc.collaboration.onCollaboratorChange.useSubscription(input, {
+        enabled: isDefined(slug) && isDefined(clientId),
+        onData: externalCollaborators => {
+            if (!slug || !excalidrawApi || !clientId) return;
 
-                if (externalCollaborators.length <= 1 && !isCollaborating) {
-                    return;
-                }
+            if (externalCollaborators.length <= 1 && !isCollaborating) {
+                return;
+            }
 
-                if (externalCollaborators.length <= 1) {
-                    setIsCollaborating(false);
-                    collaborators.clear();
-                    excalidrawApi.updateScene({
-                        collaborators,
-                    });
-                    return;
-                }
-
-                setIsCollaborating(true);
-
-                const filtered = externalCollaborators.filter(c => c.id !== localId);
+            if (externalCollaborators.length <= 1) {
+                setIsCollaborating(false);
                 collaborators.clear();
-                filtered.forEach(c => {
-                    collaborators.set(c.id, {
-                        avatarUrl: c.avatarUrl,
-                        username: c.name,
-                        id: c.id,
-                        pointer: {
-                            tool: "pointer",
-                            x: c.x,
-                            y: c.y,
-                        },
-                    });
-                });
-
                 excalidrawApi.updateScene({
                     collaborators,
-                    elements: excalidrawApi.getSceneElements(),
                 });
-            },
-            onError: error => {
-                console.error({ error });
-            },
-        }
-    );
+                return;
+            }
+
+            setIsCollaborating(true);
+
+            const filtered = externalCollaborators.filter(c => c.clientId !== clientId);
+            collaborators.clear();
+            filtered.forEach(c => {
+                collaborators.set(c.clientId, {
+                    avatarUrl: c.avatarUrl,
+                    username: c.name,
+                    id: c.clientId,
+                    pointer: {
+                        tool: "pointer",
+                        x: c.x,
+                        y: c.y,
+                    },
+                });
+            });
+
+            excalidrawApi.updateScene({
+                collaborators,
+                elements: excalidrawApi.getSceneElements(),
+            });
+        },
+        onError: error => {
+            console.error({ error });
+        },
+    });
 
     const updateCollaborator = trpc.collaboration.updateCollaborator.useMutation();
 
@@ -97,17 +96,20 @@ export const usePointerCollaboration = ({ slug, excalidrawApi, localId }: In) =>
 
     useEffect(() => {
         if (!slug) return;
+        if (!isDefined(clientId)) return;
+
         updateCollaborator.mutate({
             collaborator: {
+                userId: clientId, // TODO:: get from auth
                 avatarUrl: avatar,
-                id: localId,
+                clientId,
                 name: displayName,
                 x: debouncedMousePosition.x,
                 y: debouncedMousePosition.y,
             },
             slug,
         });
-    }, [debouncedMousePosition, slug]);
+    }, [debouncedMousePosition, slug, clientId]);
 
     return {
         isCollaborating,
