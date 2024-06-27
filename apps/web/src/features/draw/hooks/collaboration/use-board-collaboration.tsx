@@ -1,6 +1,5 @@
 import { useDeltaMutation } from "@/features/draw/hooks/collaboration/use-delta-mutation";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
-import { ElementUtil } from "@/features/draw/utils/element-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useClientIdStore } from "@/stores/use-client-id-store";
@@ -16,7 +15,7 @@ import {
     ExcalidrawElements,
     ExcalidrawSimpleElement,
 } from "common";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type In = {
@@ -45,9 +44,9 @@ export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elemen
 
     const input = { slug: slug ?? "" };
     trpc.collaboration.onBoardChange.useSubscription(input, {
-        enabled: isDefined(slug) && isDefined(clientId),
+        enabled: isDefined(slug),
         onData: update => {
-            if (!slug || !excalidrawApi || !clientId) return;
+            if (!slug || !excalidrawApi) return;
 
             if (BoardUpdateResponse.isFullBoard(update)) {
                 const elements = ExcalidrawSimpleElement.toExcalidrawElements(
@@ -104,7 +103,6 @@ export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elemen
 
         // rest is only for collaboration
         if (!slug) return;
-        if (!clientId) return;
         if (isLoading) return;
 
         const { currentOrder, elementsToSave } = DrawingUtil.prepareCollaborationChanges({

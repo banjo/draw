@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
 import { useClientIdStore } from "@/stores/use-client-id-store";
-import { isDefined, isEmpty, Maybe, randomString } from "@banjoanton/utils";
+import { isDefined, Maybe } from "@banjoanton/utils";
 import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
 import { useThrottle } from "@uidotdev/usehooks";
 import { ExcalidrawApi } from "common";
@@ -35,14 +35,14 @@ export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
     const { name, avatarUrl } = useAuth();
 
     const displayName = useMemo(() => name ?? generateName(), []);
-    const avatar = useMemo(() => avatarUrl ?? randomAvatar(clientId ?? randomString(10)), []);
+    const avatar = useMemo(() => avatarUrl ?? randomAvatar(clientId), []);
     const [isCollaborating, setIsCollaborating] = useState(false);
 
-    const input = { slug: slug ?? "", clientId: clientId ?? "" };
+    const input = { slug: slug ?? "", clientId };
     trpc.collaboration.onCollaboratorChange.useSubscription(input, {
-        enabled: isDefined(slug) && isDefined(clientId),
+        enabled: isDefined(slug),
         onData: externalCollaborators => {
-            if (!slug || !excalidrawApi || !clientId) return;
+            if (!slug || !excalidrawApi) return;
 
             if (externalCollaborators.length <= 1 && !isCollaborating) {
                 return;
@@ -96,7 +96,6 @@ export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
 
     useEffect(() => {
         if (!slug) return;
-        if (!isDefined(clientId)) return;
 
         updateCollaborator.mutate({
             collaborator: {
@@ -109,7 +108,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
             },
             slug,
         });
-    }, [debouncedMousePosition, slug, clientId]);
+    }, [debouncedMousePosition, slug]);
 
     return {
         isCollaborating,

@@ -1,13 +1,20 @@
-import { Maybe } from "@banjoanton/utils";
+import { uuid } from "@banjoanton/utils";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 type UseLocalIdStore = {
-    clientId: Maybe<string>;
-    setClientId: (id: string) => void;
+    clientId: string;
 };
 
-// TODO: use localStorage to persist the client id instead of own implementaion?
-export const useClientIdStore = create<UseLocalIdStore>(set => ({
-    clientId: undefined,
-    setClientId: (id: string) => set({ clientId: id }),
-}));
+const ID_KEY = "banjo-collab-id";
+export const useClientIdStore = create<UseLocalIdStore>()(
+    persist(
+        () => ({
+            clientId: uuid(),
+        }),
+        {
+            name: ID_KEY,
+            storage: createJSONStorage(() => localStorage),
+        }
+    )
+);

@@ -6,7 +6,6 @@ import { isEmpty, Maybe } from "@banjoanton/utils";
 import { elementsOverlappingBBox } from "@excalidraw/excalidraw";
 import { useEffect } from "react";
 import { ElementPositionUtil } from "../../utils/element-position-util";
-import { useInitClientId } from "./use-init-client-id";
 import { useHelpMenu } from "./use-help-menu";
 
 type Props = {
@@ -14,7 +13,6 @@ type Props = {
 };
 
 export const useInit = ({ slug }: Props) => {
-    useInitClientId();
     useHelpMenu();
     const { excalidrawApi } = useGlobal();
     const isLoading = useGlobalLoadingStore(state => state.isLoading);
