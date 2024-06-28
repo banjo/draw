@@ -10,16 +10,16 @@ generator client {
 
 // USER AND AUTH
 model User {
-  id              Int            @id @default(autoincrement())
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  email           String         @unique
-  name            String?
-  avatarUrl       String?
-  drawings        Drawing[]      @relation("OwnerDrawings")
-  collection      Drawing[]      @relation("Collection")
-  sessions        Session[]
-  OauthAccount    OauthAccount[]
+  id           Int            @id @default(autoincrement())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  email        String         @unique
+  name         String?
+  avatarUrl    String?
+  drawings     Drawing[]      @relation("OwnerDrawings")
+  collection   Drawing[]      @relation("Collection")
+  sessions     Session[]
+  OauthAccount OauthAccount[]
 }
 
 model Session {
@@ -35,10 +35,11 @@ model OauthAccount {
   userId         Int
   provider       String // github, google, etc
   providerUserId String // id from the provider
-  @@id([provider, providerUserId]) // composite primary key
   user           User     @relation(fields: [userId], references: [id])
   avatarUrl      String?
   name           String?
+
+  @@id([provider, providerUserId]) // composite primary key
 }
 
 // APPLICATION
@@ -68,10 +69,12 @@ model DrawingElement {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   data      Json
-  elementId String   @unique
+  elementId String
   version   Int
   drawing   Drawing  @relation(fields: [drawingId], references: [id])
   drawingId Int
+
+  @@unique([drawingId, elementId])
 }
 
 model Image {

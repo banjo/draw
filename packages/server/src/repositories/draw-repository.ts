@@ -31,7 +31,6 @@ const getDrawingBySlug = async (slug: string) => {
 
                 return element;
             })
-            // eslint-disable-next-line unicorn/no-array-callback-reference
             .filter(isDefined);
 
         logger.trace(`Drawing found: ${slug}`);
@@ -45,77 +44,79 @@ const getDrawingBySlug = async (slug: string) => {
 // TODO: implement a better way to save the drawing (does this even work?)
 const saveDrawingFromBoard = async (slug: string, board: Board) => {
     try {
-        const drawing = await prisma.drawing.findUnique({
-            where: {
-                slug,
-            },
-        });
-
-        const order = board.elements.map(element => element.id.toString());
-
-        if (drawing) {
-            const deleteAll = await prisma.drawingElement.deleteMany({
+        return await prisma.$transaction(async tx => {
+            const drawing = await tx.drawing.findUnique({
                 where: {
-                    drawingId: drawing.id,
+                    slug,
                 },
             });
 
-            if (!deleteAll) {
-                logger.error(`Error deleting drawing elements with slug ${slug}`);
-                return Result.error("Error deleting drawing elements", "InternalError");
+            const order = board.elements.map(element => element.id.toString());
+
+            if (drawing) {
+                const deleteAll = await tx.drawingElement.deleteMany({
+                    where: {
+                        drawingId: drawing.id,
+                    },
+                });
+
+                if (!deleteAll) {
+                    logger.error(`Error deleting drawing elements with slug ${slug}`);
+                    return Result.error("Error deleting drawing elements", "InternalError");
+                }
+
+                const createNewDrawingElements = await tx.drawingElement.createMany({
+                    data: board.elements.map(element => ({
+                        data: element as Prisma.InputJsonValue,
+                        elementId: element.id.toString(),
+                        version: element.version,
+                        drawingId: drawing.id,
+                    })),
+                });
+
+                if (!createNewDrawingElements) {
+                    logger.error(`Error saving drawing elements: ${slug}`);
+                    return Result.error("Error saving drawing elements", "InternalError");
+                }
+
+                const orderUpdate = await tx.drawing.update({
+                    where: {
+                        id: drawing.id,
+                    },
+                    data: {
+                        order,
+                    },
+                });
+
+                if (!orderUpdate) {
+                    logger.error(`Error saving drawing order: ${slug}`);
+                    return Result.error("Error saving drawing order", "InternalError");
+                }
+
+                return Result.ok(drawing.id);
             }
 
-            const createNewDrawingElements = await prisma.drawingElement.createMany({
-                data: board.elements.map(element => ({
-                    data: element as Prisma.InputJsonValue,
-                    elementId: element.id.toString(),
-                    version: element.version,
-                    drawingId: drawing.id,
-                })),
-            });
-
-            if (!createNewDrawingElements) {
-                logger.error(`Error saving drawing elements: ${slug}`);
-                return Result.error("Error saving drawing elements", "InternalError");
-            }
-
-            const orderUpdate = await prisma.drawing.update({
-                where: {
-                    id: drawing.id,
-                },
+            const createNewDrawing = await prisma.drawing.create({
                 data: {
+                    slug,
+                    elements: {
+                        create: board.elements.map(element => ({
+                            data: element as Prisma.InputJsonValue,
+                            elementId: element.id.toString(),
+                            version: element.version,
+                        })),
+                    },
                     order,
                 },
             });
 
-            if (!orderUpdate) {
-                logger.error(`Error saving drawing order: ${slug}`);
-                return Result.error("Error saving drawing order", "InternalError");
+            if (!createNewDrawing) {
+                logger.error(`Error saving drawing: ${slug}`);
+                return Result.error("Error saving drawing", "InternalError");
             }
 
-            return Result.ok(drawing.id);
-        }
-
-        const createNewDrawing = await prisma.drawing.create({
-            data: {
-                slug,
-                elements: {
-                    create: board.elements.map(element => ({
-                        data: element as Prisma.InputJsonValue,
-                        elementId: element.id.toString(),
-                        version: element.version,
-                    })),
-                },
-                order,
-            },
+            return Result.ok(createNewDrawing.id);
         });
-
-        if (!createNewDrawing) {
-            logger.error(`Error saving drawing: ${slug}`);
-            return Result.error("Error saving drawing", "InternalError");
-        }
-
-        return Result.ok(createNewDrawing.id);
     } catch (error) {
         logger.error({ error, slug }, `Error saving drawing: ${slug}`);
         return Result.error("Error saving drawing", "InternalError");
@@ -140,6 +141,9 @@ const saveDrawingFromDeltaUpdate = async (
                 where: {
                     elementId: {
                         in: elements.map(element => element.id.toString()),
+                    },
+                    drawing: {
+                        slug,
                     },
                 },
             });
