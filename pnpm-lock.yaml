@@ -20,12 +20,18 @@ importers:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.2.1
         version: 4.2.1(prettier@3.3.2)
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
       eslint:
         specifier: ^8.57.0
         version: 8.57.0
       hoks:
         specifier: ^0.1.17
         version: 0.1.17(typescript@5.5.2)
+      picocolors:
+        specifier: ^1.0.1
+        version: 1.0.1
       prettier:
         specifier: ^3.3.2
         version: 3.3.2
@@ -2571,7 +2577,7 @@ packages:
     resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
     dependencies:
       '@types/jsonfile': 6.1.4
-      '@types/node': 18.19.39
+      '@types/node': 20.14.8
     dev: true
 
   /@types/hast@2.3.10:

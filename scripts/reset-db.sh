@@ -8,3 +8,4 @@ nr db:local:start
 
 echo "Reseting database..."
 nr db:local:reset
+
