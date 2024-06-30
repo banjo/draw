@@ -1,4 +1,3 @@
-import { authService } from "@/services/auth-service";
 import { toastError } from "@/utils/error";
 import { attempt, defaults, Maybe } from "@banjoanton/utils";
 import { TRPCClientError } from "@trpc/client";

@@ -11,7 +11,7 @@ export * from "./model/excalidraw-custom-data";
 export * from "./model/excalidraw-element";
 export * from "./model/excalidraw-simple-element";
 export * from "./model/slug";
-export * from "./model/http-response-model";
+export * from "./model/core-response-model";
 export * from "./model/auth-info";
 export * from "./utils/delta-update-util";
 export * from "./utils/element-state-util";
