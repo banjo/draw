@@ -4,11 +4,31 @@ import { isDefined, Maybe, produce, randomString } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElement, ExcalidrawElements, ExcalidrawLinearElement } from "common";
 
+/**
+ * Merge new elements into the existing elements, replacing the existing elements with the same id. All new elements that are not in the existing elements are added.
+ */
+const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElements) => {
+    const mergedElements = elements.map(element => {
+        const newElement = newElements.find(newElement => newElement.id === element.id);
+        return newElement || element;
+    });
+
+    const missedNewElements = newElements.filter(
+        newElement => !elements.some(element => element.id === newElement.id)
+    );
+
+    return [...mergedElements, ...missedNewElements];
+};
+
 const getSelectedElementIds = (state: AppState) => Object.keys(state.selectedElementIds);
 
 const getSelectedElements = (state: AppState, elements: ExcalidrawElements) => {
     const ids = getSelectedElementIds(state);
-    return elements.filter(element => ids.includes(element.id));
+    const selectedElements = elements.filter(element => ids.includes(element.id));
+
+    // @ts-ignore - wrong with type, it contains a containerId in some cases
+    const containerElements = elements.filter(e => ids.includes(e?.containerId));
+    return mergeElements(selectedElements, containerElements);
 };
 
 const getLockedElementIds = (state: AppState) => {
@@ -140,22 +160,6 @@ const createNewLinearElementSelection = (
     });
 
     return { updatedState };
-};
-
-/**
- * Merge new elements into the existing elements, replacing the existing elements with the same id. All new elements that are not in the existing elements are added.
- */
-const mergeElements = (elements: ExcalidrawElements, newElements: ExcalidrawElements) => {
-    const mergedElements = elements.map(element => {
-        const newElement = newElements.find(newElement => newElement.id === element.id);
-        return newElement || element;
-    });
-
-    const missedNewElements = newElements.filter(
-        newElement => !elements.some(element => element.id === newElement.id)
-    );
-
-    return [...mergedElements, ...missedNewElements];
 };
 
 /**
