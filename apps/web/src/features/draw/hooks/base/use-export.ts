@@ -19,11 +19,18 @@ const getCodeElements = (): HTMLElement[] =>
 const getFileName = (extension: string) => `banjodraw-${toIsoDateString(new Date())}.${extension}`;
 
 const prepare = async (excalidrawApi: ExcalidrawApi) => {
-    const codeHtmlElements = getCodeElements();
+    const currentElements = excalidrawApi.getSceneElements();
+    const appState = excalidrawApi.getAppState();
+    const selectedElements = ElementUtil.getSelectedElements(appState, currentElements);
 
-    const codeExcalidrawElements = excalidrawApi
-        .getSceneElements()
-        .filter(e => e.customData?.type === "codeblock");
+    const elementsToExport = isEmpty(selectedElements) ? currentElements : selectedElements;
+    const elementsToExportIds = new Set(elementsToExport.map(e => e.id));
+
+    const codeExcalidrawElements = elementsToExport.filter(e => e.customData?.type === "codeblock");
+    const codeHtmlElements = getCodeElements().filter(e => {
+        const elementId = e.dataset?.elementId ?? "";
+        return elementsToExportIds.has(elementId);
+    });
 
     if (codeExcalidrawElements.length !== codeHtmlElements.length) {
         logger.error("Code elements mismatch");
@@ -57,15 +64,9 @@ const prepare = async (excalidrawApi: ExcalidrawApi) => {
 
     const newImageElements = customElements.map(CustomElementImageData.toExcalidrawImageElement);
 
-    const currentElements = excalidrawApi.getSceneElements();
-    const appState = excalidrawApi.getAppState();
-    const selectedElements = ElementUtil.getSelectedElements(appState, currentElements);
-
-    const elementsToExport = isEmpty(selectedElements) ? currentElements : selectedElements;
-
     StateUtil.mutateState(appState, draft => {
         draft.exportWithDarkMode = false;
-        draft.exportBackground = false;
+        draft.exportBackground = true;
     });
 
     excalidrawApi.addFiles(customElements.map(e => e.binaryFileData));
