@@ -15,7 +15,7 @@ export const useImages = ({ elements }: In) => {
     const { excalidrawApi } = useGlobal();
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
     const { handleError } = useError();
-    const utils = trpc.useContext();
+    const utils = trpc.useUtils();
 
     const fetchImages = async (ids: string[]) => {
         if (!excalidrawApi) return;

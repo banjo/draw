@@ -12,8 +12,8 @@ importers:
         specifier: ^0.21.12
         version: 0.21.12
       '@banjoanton/eslint-config':
-        specifier: ^0.1.20
-        version: 0.1.20(eslint@8.57.0)(prettier@3.3.2)(typescript@5.5.2)
+        specifier: ^0.1.21
+        version: 0.1.21(eslint@8.57.0)(prettier@3.3.2)(typescript@5.5.2)
       '@banjoanton/prettier-config':
         specifier: ^0.1.10
         version: 0.1.10(prettier@3.3.2)
@@ -744,8 +744,8 @@ packages:
       - '@types/eslint'
     dev: true
 
-  /@banjoanton/eslint-config@0.1.20(eslint@8.57.0)(prettier@3.3.2)(typescript@5.5.2):
-    resolution: {integrity: sha512-GiNmZZSur04SNdagbBIwZcnDyf1pyd3XxVmImcTKJLpFwqgUrHt8oYws/J2EcQKxn8ok3++A2tkvLHjvuwEkVQ==}
+  /@banjoanton/eslint-config@0.1.21(eslint@8.57.0)(prettier@3.3.2)(typescript@5.5.2):
+    resolution: {integrity: sha512-N9bTrRSryCKbuzHdfZZhfifiYSkvBnX3MfhBHsX0FsKu1lPfhLNX1y8EH79zJRHAQN5/d6u94s5N/GQReHS7kg==}
     peerDependencies:
       eslint: ^8.44.0
     dependencies:

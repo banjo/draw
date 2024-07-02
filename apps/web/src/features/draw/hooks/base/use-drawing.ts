@@ -19,7 +19,7 @@ export type SaveDrawing = (
 export const useDrawing = ({ slug }: In) => {
     const { handleError } = useError();
 
-    const utils = trpc.useContext();
+    const utils = trpc.useUtils();
 
     const [isSavingDrawing, setIsSavingDrawing] = useState(false);
     const isSavingDrawingRef = useRef(isSavingDrawing);

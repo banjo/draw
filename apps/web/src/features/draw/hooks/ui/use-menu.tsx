@@ -28,7 +28,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const { isAuthenticated } = useAuth();
     const { handleError } = useError();
 
-    const utils = trpc.useContext();
+    const utils = trpc.useUtils();
 
     const signOut = () => {
         authService.signOut();

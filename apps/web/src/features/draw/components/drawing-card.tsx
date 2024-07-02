@@ -5,8 +5,7 @@ import { EditIcon, TrashIcon } from "lucide-react";
 import { useRef } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { EditableLabel } from "../../../../../../packages/ui/src/components/shared/editable-label";
-import { ResponsiveIcon } from "../../../../../../packages/ui/src/components/shared/responsive-icon";
+import { EditableLabel, ResponsiveIcon } from "ui";
 
 type Props = {
     cardSlug: string;
@@ -23,7 +22,7 @@ type EditableLabelRef = {
 
 export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Props) => {
     const navigate = useNavigate();
-    const utils = trpc.useContext();
+    const utils = trpc.useUtils();
     const { handleError } = useError();
 
     const editableLabelRef = useRef<EditableLabelRef>(null);
