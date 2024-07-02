@@ -129,6 +129,7 @@ const saveDrawingFromDeltaUpdate = async (
     order: string[],
     userId?: number
 ) => {
+    // TODO: wrap in transaction
     try {
         const drawingExists = await prisma.drawing.findUnique({
             where: {
@@ -186,37 +187,37 @@ const saveDrawingFromDeltaUpdate = async (
             return Result.ok(drawingExists.id);
         }
 
-        const ownerId: Maybe<number> = userId;
-
         const createNewDrawing = await prisma.drawing.create({
             data: {
                 slug,
                 order,
-                owner: ownerId
+                owner: userId
                     ? {
                           connect: {
-                              id: ownerId,
+                              id: userId,
                           },
                       }
                     : undefined,
-                elements: {
-                    connectOrCreate: elements.map(element => ({
-                        where: {
-                            elementId: element.id.toString(),
-                        },
-                        create: {
-                            data: element as Prisma.InputJsonValue,
-                            elementId: element.id.toString(),
-                            version: element.version,
-                        },
-                    })),
-                },
             },
         });
 
         if (!createNewDrawing) {
             logger.error(`Error saving drawing: ${slug}`);
             return Result.error("Error saving drawing", "InternalError");
+        }
+
+        const createNewDrawingElements = await prisma.drawingElement.createMany({
+            data: elements.map(element => ({
+                data: element as Prisma.InputJsonValue,
+                elementId: element.id.toString(),
+                version: element.version,
+                drawingId: createNewDrawing.id,
+            })),
+        });
+
+        if (!createNewDrawingElements) {
+            logger.error(`Error saving drawing elements: ${slug}`);
+            return Result.error("Error saving drawing elements", "InternalError");
         }
 
         return Result.ok(createNewDrawing.id);
