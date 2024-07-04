@@ -85,19 +85,6 @@ export const AddElementContainer = () => {
         NativeContainer.focus();
     };
 
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setSearch(value);
-
-        if (isEmpty(value)) {
-            setListItems(itemsToNavigate);
-            return;
-        }
-
-        const results = fuse.search(value);
-        setListItems(results.map(result => result.item));
-    };
-
     const onClick = (item: Shape) => {
         if (!excalidrawApi) return;
 
@@ -123,10 +110,25 @@ export const AddElementContainer = () => {
         closeMenu();
     };
 
-    const { refs, selectedIndex, handleKeyboardNavigation } = useKeyboardNavigation({
-        itemsToNavigate,
-        onClick,
-    });
+    const { refs, selectedIndex, handleKeyboardNavigation, resetSelectedIndex } =
+        useKeyboardNavigation({
+            itemsToNavigate,
+            onClick,
+        });
+
+    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearch(value);
+
+        if (isEmpty(value)) {
+            setListItems(itemsToNavigate);
+            return;
+        }
+
+        const results = fuse.search(value);
+        resetSelectedIndex();
+        setListItems(results.map(result => result.item));
+    };
 
     const onComponentClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.stopPropagation();

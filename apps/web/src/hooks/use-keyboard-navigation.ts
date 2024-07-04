@@ -9,6 +9,8 @@ export const useKeyboardNavigation = <T>({ itemsToNavigate, onClick }: Props<T>)
     const [selectedIndex, setSelectedIndex] = useState(0);
     const refs = itemsToNavigate.map(() => createRef<HTMLDivElement>());
 
+    const resetSelectedIndex = () => setSelectedIndex(0);
+
     const handleKeyboardNavigation = (e: React.KeyboardEvent) => {
         let newValue = 0;
 
@@ -37,5 +39,5 @@ export const useKeyboardNavigation = <T>({ itemsToNavigate, onClick }: Props<T>)
         }
     };
 
-    return { handleKeyboardNavigation, refs, selectedIndex };
+    return { handleKeyboardNavigation, refs, selectedIndex, resetSelectedIndex };
 };
