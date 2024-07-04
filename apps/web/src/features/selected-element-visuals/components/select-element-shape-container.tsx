@@ -3,22 +3,14 @@ import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ElementVisualUtils } from "@/features/draw/utils/element-visual-utils";
 import { SelectElementShapeIcon } from "@/features/selected-element-visuals/components/select-element-shape-icon";
+import { shapes } from "@/models/shapes";
 import { Callback, first } from "@banjoanton/utils";
 import { CustomElementType } from "common";
-import { Circle, Code, Diamond, LucideIcon, RectangleHorizontalIcon, Table2 } from "lucide-react";
 import { KeyboardEventHandler, useState } from "react";
 
 type Props = {
     closeSelectElementDialog: Callback;
 };
-
-const shapes: { type: CustomElementType; icon: LucideIcon }[] = [
-    { type: "rectangle", icon: RectangleHorizontalIcon },
-    { type: "ellipse", icon: Circle },
-    { type: "diamond", icon: Diamond },
-    { type: "codeblock", icon: Code },
-    { type: "model", icon: Table2 },
-];
 
 export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props) => {
     const { excalidrawApi } = useGlobal();
@@ -72,7 +64,7 @@ export const SelectElementShapeContainer = ({ closeSelectElementDialog }: Props)
 
     return (
         <div className="flex flow-row gap-2" onKeyDown={handleKeyDown}>
-            {shapes.map(({ type, icon }, index) => (
+            {shapes.map(({ type, Icon: icon }, index) => (
                 <SelectElementShapeIcon
                     key={type}
                     Icon={icon}

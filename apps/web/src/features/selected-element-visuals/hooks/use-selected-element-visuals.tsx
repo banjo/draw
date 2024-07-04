@@ -144,30 +144,28 @@ export const useSelectedElementVisuals = () => {
         DrawingUtil.focusCanvas();
     };
 
-    const render = () => {
-        return (
-            <>
-                {showChangeElementKeyDialog && (
-                    <ChangeElementKeyDialog
-                        changeElementKeyRef={changeElementKeyRef}
-                        onClick={handleChangeElementDialogClick}
-                    />
-                )}
-                {showSelectElementDialog && (
-                    <SelectElementDialog
-                        customRef={selectElementRef}
-                        closeSelectElementDialog={closeSelectElementDialog}
-                    />
-                )}
+    const render = () => (
+        <>
+            {showChangeElementKeyDialog && (
+                <ChangeElementKeyDialog
+                    changeElementKeyRef={changeElementKeyRef}
+                    onClick={handleChangeElementDialogClick}
+                />
+            )}
+            {showSelectElementDialog && (
+                <SelectElementDialog
+                    customRef={selectElementRef}
+                    closeSelectElementDialog={closeSelectElementDialog}
+                />
+            )}
 
-                {showSmartCopyDialog && (
-                    <SmartCopyKeyDialog keyRef={smartCopyKeyDialogRef} onClick={noop} />
-                )}
+            {showSmartCopyDialog && (
+                <SmartCopyKeyDialog keyRef={smartCopyKeyDialogRef} onClick={noop} />
+            )}
 
-                {showExtendElements && <ExtendElementsContainer refs={extendElementRefs} />}
-            </>
-        );
-    };
+            {showExtendElements && <ExtendElementsContainer refs={extendElementRefs} />}
+        </>
+    );
 
     return {
         render,

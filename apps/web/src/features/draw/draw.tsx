@@ -2,7 +2,6 @@ import { useGlobal } from "@/contexts/global-context";
 import { useContextMenu } from "@/features/draw/hooks/base/use-context-menu";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
-import { useHelpMenu } from "@/features/draw/hooks/base/use-help-menu";
 import { useHistory } from "@/features/draw/hooks/base/use-history";
 import { useImages } from "@/features/draw/hooks/base/use-images";
 import { useInit } from "@/features/draw/hooks/base/use-init";
@@ -18,6 +17,7 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
 import { useCleanup } from "./hooks/utils/use-cleanup";
+import { useAddElement } from "../add-element/hooks/use-add-element";
 
 type DrawProps = {
     slug?: string;
@@ -65,6 +65,7 @@ export const Draw = ({ slug }: DrawProps) => {
     } = useSelectedElementVisuals();
 
     const { render: renderCodeBlocks, updateCodeBlockElements } = useCodeBlockElement();
+    const { render: renderAddElement } = useAddElement();
 
     const { handleKeyDown, handleKeyUp } = useKeyboard({
         handleChangeElementDialogClick,
@@ -92,6 +93,7 @@ export const Draw = ({ slug }: DrawProps) => {
         >
             {renderCodeBlocks()}
             {renderSelectedElementVisuals()}
+            {renderAddElement()}
             <Excalidraw
                 excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}
                 // @ts-ignore - better local typings
