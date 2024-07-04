@@ -33,6 +33,15 @@ const getActiveViewportBounds = (state: AppState): Bounds => {
     });
 };
 
+const getCenterFromBounds = (bounds: Bounds) => {
+    const [startX, startY, endX, endY] = bounds;
+
+    return {
+        x: (endX + startX) / 2,
+        y: (endY + startY) / 2,
+    };
+};
+
 const getPositionFromBounds = (bounds: Bounds) => {
     const [startX, startY, endX, endY] = bounds;
 
@@ -239,4 +248,5 @@ export const ElementPositionUtil = {
     getScenePositionFromWindowPosition,
     createBounds,
     getActiveViewportBounds,
+    getCenterFromBounds,
 };

@@ -1,4 +1,8 @@
+import { useGlobal } from "@/contexts/global-context";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
+import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
+import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
+import { ElementUtil } from "@/features/draw/utils/element-util";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { Shape, shapes } from "@/models/shapes";
 import { useAddElementStore } from "@/stores/use-add-element-store";
@@ -62,6 +66,7 @@ const Background = ({ children, ...props }: BackgroundProps) => (
 const itemsToNavigate = shapes;
 
 export const AddElementContainer = () => {
+    const { excalidrawApi } = useGlobal();
     const setShowAddElementMenu = useAddElementStore(s => s.setShowAddElementMenu);
     const [search, setSearch] = useState("");
     const [listItems, setListItems] = useState<Shape[]>(() => shapes);
@@ -94,8 +99,27 @@ export const AddElementContainer = () => {
     };
 
     const onClick = (item: Shape) => {
-        console.log(item);
-        // add element to the canvas
+        if (!excalidrawApi) return;
+
+        const currentElements = excalidrawApi.getSceneElements();
+        const appState = excalidrawApi.getAppState();
+
+        const viewportBounds = ElementPositionUtil.getActiveViewportBounds(appState);
+        const center = ElementPositionUtil.getCenterFromBounds(viewportBounds);
+
+        const newElements = ElementCreationUtil.createElementFromType(item.type, {
+            x: center.x,
+            y: center.y,
+        });
+
+        const { updatedState } = ElementUtil.createNewElementSelection(newElements, appState);
+
+        excalidrawApi.updateScene({
+            elements: [...currentElements, ...newElements],
+            appState: updatedState,
+            commitToHistory: true,
+        });
+
         closeMenu();
     };
 

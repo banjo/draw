@@ -428,6 +428,40 @@ const createElementsFromElement = ({ element, newValues, type }: CreateElementFr
 
     return toArray(createElementFromSkeleton(newElement));
 };
+
+const createElementFromType = (type: CustomElementType, base: BasePosition) => {
+    if (type === "codeblock") {
+        return toArray(
+            createCodeBlock({
+                base: {
+                    x: base.x,
+                    y: base.y,
+                    width: ELEMENT_WIDTH,
+                    height: 150,
+                },
+                code: "",
+            })
+        );
+    }
+
+    if (type === "model") {
+        return createModelElement({ base });
+    }
+
+    return toArray(
+        createElement({
+            base: {
+                x: base.x,
+                y: base.y,
+                width: ELEMENT_WIDTH,
+                height: 150,
+                type: ExcalidrawUtil.getElementTypeFromCustomType(type),
+            },
+            customElementType: type,
+        })
+    );
+};
+
 export const ElementCreationUtil = {
     createLinearElement,
     createElement,
@@ -439,4 +473,5 @@ export const ElementCreationUtil = {
     createModelElement,
     createText,
     appendTextToModelElement,
+    createElementFromType,
 };
