@@ -13,20 +13,23 @@ type ListItemProps = PropsWithChildren & {
 };
 
 const ListItem = ({ onClick, selected = false, refObject, shape }: ListItemProps) => {
-    const { title, Icon } = shape;
+    const { title, Icon, description } = shape;
     const selectedStyle = selected ? "bg-gray-100" : "";
     return (
         <div
             ref={refObject}
             onClick={() => onClick?.(shape)}
             className={cn(
-                `p-4 border border-gray-300 bg-white rounded-md w-full hover:bg-gray-100 hover:cursor-pointer`,
+                `px-4 py-2 border border-gray-300 bg-white rounded-md w-full hover:bg-gray-100 hover:cursor-pointer`,
                 selectedStyle
             )}
         >
             <div className="flex gap-4 items-center">
                 {Icon && <Icon />}
-                {title}
+                <div className="flex flex-col items-start">
+                    <span className="text-sm">{title}</span>
+                    <span className="text-gray-600 text-xs">{description}</span>
+                </div>
             </div>
         </div>
     );
