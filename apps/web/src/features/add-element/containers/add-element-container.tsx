@@ -1,6 +1,8 @@
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { Shape, shapes } from "@/models/shapes";
-import { PropsWithChildren, RefObject } from "react";
+import { isEmpty } from "@banjoanton/utils";
+import Fuse from "fuse.js";
+import React, { HTMLAttributes, PropsWithChildren, RefObject, useState } from "react";
 import { cn } from "ui";
 
 type ListItemProps = PropsWithChildren & {
@@ -34,11 +36,10 @@ const ListContainer = ({ children }: PropsWithChildren) => (
     <div className="mt-4 flex flex-col gap-y-2 items-center">{children}</div>
 );
 
-type ComponentContainerProps = PropsWithChildren & {
-    onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
-};
-const ComponentContainer = ({ children, onKeyDown }: ComponentContainerProps) => (
-    <div onKeyDown={onKeyDown} className="bg-white rounded-md shadow-lg w-80 max-h-2/3 h-auto p-4">
+type ComponentContainerProps = HTMLAttributes<HTMLDivElement> & PropsWithChildren;
+
+const ComponentContainer = ({ children, ...props }: ComponentContainerProps) => (
+    <div {...props} className="bg-white rounded-md shadow-lg w-80 h-[410px] p-4">
         {children}
     </div>
 );
@@ -52,6 +53,30 @@ const Background = ({ children }: PropsWithChildren) => (
 const itemsToNavigate = shapes;
 
 export const AddElementContainer = () => {
+    const [search, setSearch] = useState("");
+    const [listItems, setListItems] = useState<Shape[]>(() => shapes);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    const fuseOptions = {
+        threshold: 0.3,
+        keys: ["title"],
+    };
+
+    const fuse = new Fuse(itemsToNavigate, fuseOptions);
+
+    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearch(value);
+
+        if (isEmpty(value)) {
+            setListItems(itemsToNavigate);
+            return;
+        }
+
+        const results = fuse.search(value);
+        setListItems(results.map(result => result.item));
+    };
+
     const onClick = (item: Shape) => {
         console.log(item);
     };
@@ -61,18 +86,29 @@ export const AddElementContainer = () => {
         onClick,
     });
 
+    const onComponentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.stopPropagation();
+        inputRef.current?.focus();
+    };
+
+    const noResults = isEmpty(listItems);
+
     return (
         <Background>
-            <ComponentContainer onKeyDown={handleKeyboardNavigation}>
+            <ComponentContainer onClick={onComponentClick} onKeyDown={handleKeyboardNavigation}>
                 <input
+                    value={search}
+                    onChange={onInputChange}
                     className="border border-gray-300 bg-white h-10 px-5 rounded-md text-sm focus:outline-none w-full"
                     type="search"
                     name="search"
                     placeholder="Search..."
                     autoComplete="off"
+                    ref={inputRef}
                 />
                 <ListContainer>
-                    {itemsToNavigate.map((item, index) => (
+                    {noResults && <div className="text-gray-500">No results found</div>}
+                    {listItems.slice(0, 5).map((item, index) => (
                         <ListItem
                             key={index}
                             selected={selectedIndex === index}
