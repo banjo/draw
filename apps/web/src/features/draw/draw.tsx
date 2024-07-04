@@ -85,39 +85,41 @@ export const Draw = ({ slug }: DrawProps) => {
     };
 
     return (
-        <div
-            style={{ height: "100dvh" }}
-            onKeyDown={handleKeyDown}
-            onKeyUp={handleKeyUp}
-            onContextMenu={onContextMenu}
-        >
-            {renderCodeBlocks()}
-            {renderSelectedElementVisuals()}
+        <>
             {renderAddElement()}
-            <Excalidraw
-                excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}
-                // @ts-ignore - better local typings
-                onChange={handleOnChange}
-                onLibraryChange={onLibraryChange}
-                isCollaborating={isCollaborating}
-                onPointerUpdate={onPointerUpdate}
-                handleKeyboardGlobally={false}
-                autoFocus={true}
-                // @ts-ignore - better local typings
-                initialData={{ elements, scrollToContent: true, libraryItems: library }}
-                UIOptions={{
-                    dockedSidebarBreakpoint: 0,
-                }}
-                renderTopRightUI={() => (
-                    <>
-                        {renderCollabButton()}
-                        {renderSidebarButton()}
-                    </>
-                )}
+            <div
+                style={{ height: "100dvh" }}
+                onKeyDown={handleKeyDown}
+                onKeyUp={handleKeyUp}
+                onContextMenu={onContextMenu}
             >
-                {renderMenu()}
-                {renderSidebar()}
-            </Excalidraw>
-        </div>
+                {renderCodeBlocks()}
+                {renderSelectedElementVisuals()}
+                <Excalidraw
+                    excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}
+                    // @ts-ignore - better local typings
+                    onChange={handleOnChange}
+                    onLibraryChange={onLibraryChange}
+                    isCollaborating={isCollaborating}
+                    onPointerUpdate={onPointerUpdate}
+                    handleKeyboardGlobally={false}
+                    autoFocus={true}
+                    // @ts-ignore - better local typings
+                    initialData={{ elements, scrollToContent: true, libraryItems: library }}
+                    UIOptions={{
+                        dockedSidebarBreakpoint: 0,
+                    }}
+                    renderTopRightUI={() => (
+                        <>
+                            {renderCollabButton()}
+                            {renderSidebarButton()}
+                        </>
+                    )}
+                >
+                    {renderMenu()}
+                    {renderSidebar()}
+                </Excalidraw>
+            </div>
+        </>
     );
 };

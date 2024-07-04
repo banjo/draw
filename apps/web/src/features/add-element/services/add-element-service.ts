@@ -1,8 +1,11 @@
 import { NativeToolbar } from "@/features/draw/models/native/native-toolbar";
 import { NativeToolbarAddElementButton } from "@/features/draw/models/native/native-toolbar-add-element-button";
 
-const init = () => {
-    NativeToolbarAddElementButton.create();
+type InitProps = {
+    onClick: () => void;
+};
+const init = ({ onClick }: InitProps) => {
+    NativeToolbarAddElementButton.create({ onClick });
     const id = NativeToolbarAddElementButton.getId();
     const addElementButton = NativeToolbarAddElementButton.get();
 

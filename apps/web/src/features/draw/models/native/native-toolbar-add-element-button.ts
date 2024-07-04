@@ -32,16 +32,14 @@ class NativeToolbarAddElementButtonClass {
         this.element = element;
     }
 
-    public create() {
+    public create({ onClick }: { onClick: () => void }) {
         this.element = NativeToolbarButton.create({
             id: ADD_ELEMENT_ID,
             title: "Add element",
             icon: createPlusIcon(),
             keybinding: this.keybinding,
-            onClick: () => {
-                console.log(this.isSelected());
-                logger.info("Add element button clicked");
-            },
+            onClick,
+            includeInput: false,
         });
     }
 
@@ -50,28 +48,6 @@ class NativeToolbarAddElementButtonClass {
             throw new Error("Element not found");
         }
         return this.element;
-    }
-
-    public select() {
-        if (!this.element) {
-            throw new Error("Element not found");
-        }
-        const input = this.element.querySelector("input");
-        if (!input) {
-            throw new Error("Input not found");
-        }
-        input.checked = true;
-    }
-
-    public deselect() {
-        if (!this.element) {
-            throw new Error("Element not found");
-        }
-        const input = this.element.querySelector("input");
-        if (!input) {
-            throw new Error("Input not found");
-        }
-        input.checked = false;
     }
 
     public isSelected() {

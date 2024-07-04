@@ -6,6 +6,7 @@ export type NativeToolbarButtonProps = {
     title: string;
     id: string;
     onClick: () => void;
+    includeInput?: boolean;
 };
 
 class NativeToolbarButtonClass {
@@ -21,32 +22,39 @@ class NativeToolbarButtonClass {
     }
 
     public create(props: NativeToolbarButtonProps) {
-        const { icon, keybinding, title, id, onClick } = props;
+        const { icon, keybinding, title, id, onClick, includeInput } = props;
         const outerContainer = document.createElement("label");
         outerContainer.id = id;
         ["ToolIcon", "Shape", "fillable"].forEach(className => {
             outerContainer.classList.add(className);
         });
         outerContainer.title = title;
-        const input = document.createElement("input");
-        ["ToolIcon_type_radio", "ToolIcon_size_medium"].forEach(className => {
-            input.classList.add(className);
-        });
-        input.type = "radio";
-        input.onclick = onClick;
 
         const innerContainer = document.createElement("div");
         innerContainer.classList.add("ToolIcon__icon");
 
-        innerContainer.appendChild(icon);
+        innerContainer.append(icon);
 
         const binding = document.createElement("span");
         binding.classList.add("ToolIcon__keybinding");
-        binding.innerText = keybinding;
+        binding.textContent = keybinding;
 
-        innerContainer.appendChild(binding);
-        outerContainer.appendChild(input);
-        outerContainer.appendChild(innerContainer);
+        innerContainer.append(binding);
+
+        if (includeInput) {
+            const input = document.createElement("input");
+            ["ToolIcon_type_radio", "ToolIcon_size_medium"].forEach(className => {
+                input.classList.add(className);
+            });
+            input.type = "radio";
+            input.addEventListener("click", onClick);
+
+            outerContainer.append(input);
+        } else {
+            outerContainer.addEventListener("click", onClick);
+        }
+
+        outerContainer.append(innerContainer);
 
         return outerContainer;
     }

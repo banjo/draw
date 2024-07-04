@@ -1,8 +1,10 @@
+import { NativeContainer } from "@/features/draw/models/native/native-container";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { Shape, shapes } from "@/models/shapes";
+import { useAddElementStore } from "@/stores/use-add-element-store";
 import { isEmpty } from "@banjoanton/utils";
 import Fuse from "fuse.js";
-import React, { HTMLAttributes, PropsWithChildren, RefObject, useState } from "react";
+import React, { HTMLAttributes, PropsWithChildren, RefObject, useEffect, useState } from "react";
 import { cn } from "ui";
 
 type ListItemProps = PropsWithChildren & {
@@ -47,8 +49,12 @@ const ComponentContainer = ({ children, ...props }: ComponentContainerProps) => 
     </div>
 );
 
-const Background = ({ children }: PropsWithChildren) => (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 flex-col">
+type BackgroundProps = PropsWithChildren & HTMLAttributes<HTMLDivElement>;
+const Background = ({ children, ...props }: BackgroundProps) => (
+    <div
+        {...props}
+        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 flex-col"
+    >
         {children}
     </div>
 );
@@ -56,6 +62,7 @@ const Background = ({ children }: PropsWithChildren) => (
 const itemsToNavigate = shapes;
 
 export const AddElementContainer = () => {
+    const setShowAddElementMenu = useAddElementStore(s => s.setShowAddElementMenu);
     const [search, setSearch] = useState("");
     const [listItems, setListItems] = useState<Shape[]>(() => shapes);
     const inputRef = React.useRef<HTMLInputElement>(null);
@@ -66,6 +73,12 @@ export const AddElementContainer = () => {
     };
 
     const fuse = new Fuse(itemsToNavigate, fuseOptions);
+
+    const closeMenu = () => {
+        setShowAddElementMenu(false);
+        NativeContainer.parse();
+        NativeContainer.focus();
+    };
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -82,6 +95,8 @@ export const AddElementContainer = () => {
 
     const onClick = (item: Shape) => {
         console.log(item);
+        // add element to the canvas
+        closeMenu();
     };
 
     const { refs, selectedIndex, handleKeyboardNavigation } = useKeyboardNavigation({
@@ -94,11 +109,30 @@ export const AddElementContainer = () => {
         inputRef.current?.focus();
     };
 
+    const onOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            closeMenu();
+        }
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Escape") {
+            closeMenu();
+            return;
+        }
+
+        return handleKeyboardNavigation(e);
+    };
+
     const noResults = isEmpty(listItems);
 
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, []);
+
     return (
-        <Background>
-            <ComponentContainer onClick={onComponentClick} onKeyDown={handleKeyboardNavigation}>
+        <Background onKeyDown={onKeyDown} onClick={onOutsideClick}>
+            <ComponentContainer onClick={onComponentClick}>
                 <input
                     value={search}
                     onChange={onInputChange}
@@ -107,6 +141,7 @@ export const AddElementContainer = () => {
                     name="search"
                     placeholder="Search..."
                     autoComplete="off"
+                    autoFocus
                     ref={inputRef}
                 />
                 <ListContainer>

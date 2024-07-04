@@ -6,10 +6,11 @@ import {
 } from "@/features/draw/utils/element-visual-utils";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { logger } from "@/utils/logger";
-import { Callback, Maybe, includes } from "@banjoanton/utils";
+import { Callback, includes, Maybe } from "@banjoanton/utils";
 import { KeyboardEventHandler, useState } from "react";
 import { CustomDataUtil } from "../../utils/custom-data-util";
 import { NativeToolbarAddElementButton } from "../../models/native/native-toolbar-add-element-button";
+import { useAddElementStore } from "@/stores/use-add-element-store";
 
 type In = {
     handleChangeElementDialogClick: Callback;
@@ -23,6 +24,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
     const setShowVisualElements = useVisualElementStore(state => state.setShowVisualElements);
     const setMetaKeyIsDown = useVisualElementStore(state => state.setMetaKeyIsDown);
+    const setShowAddElementMenu = useAddElementStore(state => state.setShowAddElementMenu);
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
         if (!excalidrawApi) return;
@@ -40,8 +42,10 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         }
 
         if (event.key === NativeToolbarAddElementButton.getKeybinding()) {
-            NativeToolbarAddElementButton.parse();
-            NativeToolbarAddElementButton.select();
+            // do not send key event to new menu input
+            setTimeout(() => {
+                setShowAddElementMenu(true);
+            }, 0);
             return;
         }
 
@@ -70,7 +74,6 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             );
 
             setShadowElements(result);
-            return;
         }
     };
 
@@ -86,7 +89,6 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         if (shadowElements && event.key === "Meta") {
             ElementVisualUtils.createElementExtensionFromShadow(shadowElements, excalidrawApi);
             setShadowElements(undefined);
-            return;
         }
     };
 
