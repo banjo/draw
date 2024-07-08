@@ -60,11 +60,12 @@ const listAllFiles = async () => {
     return Result.ok(files);
 };
 
-const addFile = async (file: File) => {
+const addFile = async (file: Buffer, key: string, mimeType: string) => {
     const command = new PutObjectCommand({
         Bucket: BUCKET_NAME,
-        Key: file.name,
+        Key: key,
         Body: file,
+        ContentType: mimeType,
     });
 
     const [_, error] = await wrapAsync(() => S3.send(command));

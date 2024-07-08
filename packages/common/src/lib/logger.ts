@@ -4,7 +4,7 @@ import { Env } from "../env";
 // * Pino import needs to be default to work in the browser
 // * This file cannot parse with Env.server() because this file is loaded before the .env file.
 
-export const LOG_LEVELS = ["trace", "debug", "info", "warn", "error", "fatal"] as const;
+export const LOG_LEVELS = ["trace", "debug", "info", "warn", "error", "fatal", "silent"] as const;
 export type LogLevel = (typeof LOG_LEVELS)[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
