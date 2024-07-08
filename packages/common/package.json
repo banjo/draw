@@ -9,7 +9,7 @@
         "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
-        "@banjoanton/utils": "^0.1.84",
+        "@banjoanton/utils": "^0.1.86",
         "@types/node": "^20.14.8",
         "db": "workspace:*",
         "tsconfig": "workspace:*"

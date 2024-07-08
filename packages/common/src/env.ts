@@ -38,6 +38,10 @@ const ServerEnvSchema = z.object({
     DEVELOPMENT_UID: z.string().optional(),
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
+    CLOUDFLARE_ACCOUNT_ID: z.string(),
+    CLOUDFLARE_ACCESS_KEY_ID: z.string(),
+    CLOUDFLARE_SECRET_ACCESS_KEY: z.string(),
+    CLOUDFLARE_BUCKET_NAME: z.string(),
     // AXIOM_DATASET: z.string(),
     // AXIOM_TOKEN: z.string(),
 });

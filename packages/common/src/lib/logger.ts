@@ -13,7 +13,7 @@ let sharedTransport: any;
 export const createLogger = (name: string) => {
     if (isBrowser()) {
         const clientVariables = Env.allClient();
-        return pino({ name, level: clientVariables.VITE_LOG_LEVEL || "info" });
+        return pino({ name, level: clientVariables.VITE_LOG_LEVEL ?? "info" });
     }
 
     const targets: TransportTargetOptions[] = [

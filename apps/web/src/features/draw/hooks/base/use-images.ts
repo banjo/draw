@@ -5,24 +5,26 @@ import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawElements } from "common";
+import { ofetch } from "ofetch";
 import { useEffect, useState } from "react";
 
 type In = {
     elements: ExcalidrawElements;
+    slug?: string;
 };
 
-export const useImages = ({ elements }: In) => {
+export const useImages = ({ elements, slug }: In) => {
     const { excalidrawApi } = useGlobal();
     const [uploadedImages, setUploadedImages] = useState<string[]>([]);
     const { handleError } = useError();
     const utils = trpc.useUtils();
 
     const fetchImages = async (ids: string[]) => {
-        if (!excalidrawApi) return;
+        if (!excalidrawApi || !slug) return;
 
-        const [images, error] = await wrapAsync(
+        const [presignedUrlResults, error] = await wrapAsync(
             async () =>
-                await utils.client.image.getImages.query({
+                await utils.client.file.getPresignedUrlsByImageIds.query({
                     imageIds: ids,
                 })
         );
@@ -32,14 +34,25 @@ export const useImages = ({ elements }: In) => {
             return;
         }
 
-        const files = FileUtil.createImageFiles(
-            images.map(image => ({
-                data: image.data,
-                mimeType: image.mimeType,
-                id: image.imageId,
-            }))
+        const imagesFromUrls = await Promise.all(
+            presignedUrlResults.map(async result => {
+                const url = result.presignedUrl;
+
+                const blob = await ofetch(url, {
+                    method: "GET",
+                    responseType: "blob",
+                });
+
+                return {
+                    data: await FileUtil.blobToBase64(blob),
+                    mimeType: result.mimeType,
+                    id: result.imageId,
+                };
+            })
         );
 
+        setUploadedImages([...uploadedImages, ...imagesFromUrls.map(image => image.id)]);
+        const files = FileUtil.createImageFiles(imagesFromUrls);
         excalidrawApi.addFiles(files);
     };
 
@@ -60,11 +73,11 @@ export const useImages = ({ elements }: In) => {
         if (imagesToFetch.length === 0) return;
 
         fetchImages(imagesToFetch.map(image => image.fileId!));
-    }, [excalidrawApi, elements]);
+    }, [excalidrawApi, elements, slug]);
 
     // save images on change
     useEffect(() => {
-        if (!excalidrawApi) return;
+        if (!excalidrawApi || !slug) return;
 
         const files = excalidrawApi.getFiles();
         const images = Object.values(files).filter(file => file.mimeType.startsWith("image/"));
@@ -82,15 +95,14 @@ export const useImages = ({ elements }: In) => {
         if (notUploadedImages.length === 0) return;
 
         const saveImages = async () => {
-            const [res, error] = await wrapAsync(
+            const [fileData, error] = await wrapAsync(
                 async () =>
-                    await utils.client.image.saveImages.mutate(
-                        notUploadedImages.map(image => ({
-                            id: image.id,
-                            data: image.dataURL,
+                    await utils.client.file.saveImagesByPresignedUrl.mutate({
+                        images: notUploadedImages.map(image => ({
+                            imageId: image.id,
                             mimeType: image.mimeType,
-                        }))
-                    )
+                        })),
+                    })
             );
 
             if (error) {
@@ -98,9 +110,32 @@ export const useImages = ({ elements }: In) => {
                 return;
             }
 
-            setUploadedImages([...uploadedImages, ...notUploadedImages.map(image => image.id)]);
+            const uploadPromises = notUploadedImages.map(async image => {
+                const url = fileData.find(r => r.key.includes(image.id));
+                if (!url) return;
+
+                const uploadResult = await FileUtil.uploadToBucket(image, url.presignedUrl);
+
+                if (!uploadResult.success) {
+                    throw new Error("Failed to upload image to bucket");
+                }
+            });
+
+            const [_, uploadError] = await wrapAsync(() => Promise.all(uploadPromises));
+
+            if (uploadError) {
+                await handleError(uploadError, {
+                    toast: true,
+                    errorMessage: "Failed to upload images",
+                });
+                return;
+            }
+
+            const uploadedImageIds = notUploadedImages.map(image => image.id);
+
+            setUploadedImages([...uploadedImages, ...uploadedImageIds]);
         };
 
         saveImages();
-    }, [excalidrawApi, elements]);
+    }, [excalidrawApi, elements, uploadedImages, slug]);
 };

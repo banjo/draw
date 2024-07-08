@@ -5,6 +5,7 @@ import "dotenv/config";
 import express from "express";
 import {
     appRouter,
+    BucketService,
     createContextLogger,
     createTRPCContext,
     GithubAuthProvider,
@@ -26,6 +27,12 @@ const corsSettings: CorsOptions = {
 app.use(cors(corsSettings));
 app.use(NodeContext.setupExpressContext);
 app.use(OauthCoreProvider.middleware);
+
+app.get("/bucket-test", async (req, res) => {
+    const t = await BucketService.generatePresignedUrlForWrite("slackpicke2.jpg");
+    logger.info({ t }, "bucket-test");
+    res.json({ t });
+});
 
 app.use(
     "/trpc",

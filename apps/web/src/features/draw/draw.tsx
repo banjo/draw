@@ -55,7 +55,7 @@ export const Draw = ({ slug }: DrawProps) => {
         toggleSidebar,
     });
 
-    useImages({ elements });
+    useImages({ elements, slug });
     useHistory({ slug });
 
     const {
