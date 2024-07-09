@@ -11,6 +11,7 @@
     "devDependencies": {
         "@banjoanton/utils": "^0.1.86",
         "@types/express": "^4.17.21",
+        "@types/mime-types": "^2.1.4",
         "@types/node": "^20.14.8",
         "common": "workspace:*",
         "db": "workspace:*",
@@ -26,6 +27,7 @@
         "change-case": "^4.1.2",
         "express": "^4.19.2",
         "lucia": "^3.2.0",
+        "mime-types": "^2.1.35",
         "oslo": "^1.2.0",
         "pino": "^8.21.0",
         "superjson": "1.13.1",
