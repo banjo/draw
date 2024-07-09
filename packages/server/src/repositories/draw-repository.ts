@@ -1,4 +1,4 @@
-import { isDefined, Maybe, Result } from "@banjoanton/utils";
+import { isDefined, Result } from "@banjoanton/utils";
 import { Board, ExcalidrawSimpleElement } from "common";
 import { Prisma, prisma } from "db";
 import { createContextLogger } from "../lib/context-logger";
@@ -227,50 +227,6 @@ const saveDrawingFromDeltaUpdate = async (
     }
 };
 
-const saveImages = async (images: { data: string; id: string; mimeType: string }[]) => {
-    try {
-        const imagesResponse = await prisma.image.createMany({
-            data: images.map(image => ({
-                data: image.data,
-                imageId: image.id,
-                mimeType: image.mimeType,
-            })),
-        });
-
-        if (!imagesResponse) {
-            logger.error(`Error saving images`);
-            return Result.error("Error saving images", "InternalError");
-        }
-
-        return Result.okEmpty();
-    } catch (error) {
-        logger.error({ error }, `Error saving images`);
-        return Result.error("Error saving images", "InternalError");
-    }
-};
-
-const getImages = async (imageIds: string[]) => {
-    try {
-        const images = await prisma.image.findMany({
-            where: {
-                imageId: {
-                    in: imageIds,
-                },
-            },
-        });
-
-        if (!images) {
-            logger.error(`Error getting images`);
-            return Result.error("Error getting images", "InternalError");
-        }
-
-        return Result.ok(images);
-    } catch (error) {
-        logger.error({ error }, `Error getting images`);
-        return Result.error("Error getting images", "InternalError");
-    }
-};
-
 const saveToCollection = async (slug: string, userId: number) => {
     try {
         const drawing = await prisma.drawing.findUnique({
@@ -434,8 +390,6 @@ export const DrawRepository = {
     getDrawingBySlug,
     saveDrawingFromDeltaUpdate,
     saveDrawingFromBoard,
-    saveImages,
-    getImages,
     saveToCollection,
     getCollection,
     deleteDrawingFromCollection,

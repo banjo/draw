@@ -37,9 +37,11 @@ const getFile = (data: string, mimeType: string, id: string) => {
 };
 
 const main = async () => {
-    const imagesInDb = await prisma.image.findMany();
+    // @ts-ignore - migration already done, saved for reference
+    const imagesInDb: any = await prisma.image.findMany();
     console.log(`Fetched ${imagesInDb.length} images from database`);
 
+    // @ts-ignore - migration already done, saved for reference
     const imageFiles = imagesInDb.map(image => ({
         imageId: image.imageId,
         mimeType: image.mimeType,

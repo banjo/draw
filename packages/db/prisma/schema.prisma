@@ -77,16 +77,6 @@ model DrawingElement {
   @@unique([drawingId, elementId])
 }
 
-model Image {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  imageId   String   @unique
-  name      String?
-  data      String
-  mimeType  String
-}
-
 model BucketFile {
   id        Int      @id @default(autoincrement())
   imageId   String
