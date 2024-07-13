@@ -114,7 +114,7 @@ export const AddElementContainer = () => {
 
     const [shapeListItems, setShapeListItems] = useState(() => DEFAULT_SHAPES);
 
-    const itemsToNavigate = useMemo(
+    const itemsToNavigate: ListItem[] = useMemo(
         () => [...shapeListItems, ...iconListItems],
         [shapeListItems, iconListItems]
     );
@@ -127,8 +127,10 @@ export const AddElementContainer = () => {
             keys: ["title"],
         };
 
-        return new Fuse(itemsToNavigate, fuseOptions);
-    }, [itemsToNavigate]);
+        const items = [...DEFAULT_SHAPES, ...iconListItems];
+
+        return new Fuse(items, fuseOptions);
+    }, [iconListItems]);
 
     const closeMenu = () => {
         setShowAddElementMenu(false);
