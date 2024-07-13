@@ -13,6 +13,8 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ListItem } from "../models/list-item.model";
 import { useIconsQuery } from "../queries/useIconsQuery";
 import { AddElement } from "../components/add-element-component";
+import { IconService } from "../services/icon-service";
+import { FileUtil } from "@/features/draw/utils/file-util";
 
 const DEFAULT_SHAPES = shapes.slice(0, 5).map(ListItem.toShapeListItem);
 
@@ -38,7 +40,7 @@ export const AddElementContainer = () => {
     const fuse = useMemo(() => {
         const fuseOptions = {
             threshold: 0.3,
-            keys: ["title", "description", "tags"], // TODO: improve search
+            keys: ["title", "description", "tags"], // TODO: improve search to include tags
         };
 
         const items = [...DEFAULT_SHAPES, ...iconListItems];
@@ -53,21 +55,50 @@ export const AddElementContainer = () => {
     };
 
     const onClick = useCallback(
-        (item: ListItem) => {
+        async (item: ListItem) => {
             if (!excalidrawApi) return;
-
-            if (item.type === "icon") {
-                // TODO: handle icon click
-                console.log("icon clicked", item.item);
-                closeMenu();
-                return;
-            }
-
             const currentElements = excalidrawApi.getSceneElements();
             const appState = excalidrawApi.getAppState();
 
             const viewportBounds = ElementPositionUtil.getActiveViewportBounds(appState);
             const center = ElementPositionUtil.getCenterFromBounds(viewportBounds);
+
+            if (item.type === "icon") {
+                const base64Icon = await IconService.fetchIconifyIcon(
+                    item.item.icon,
+                    item.item.group
+                );
+
+                const imageData = FileUtil.createImageFile({
+                    data: base64Icon,
+                    mimeType: "image/svg+xml", // TODO: is this always svg?
+                });
+
+                const imageElement = ElementCreationUtil.createImage({
+                    base: {
+                        x: center.x,
+                        y: center.y,
+                        width: 100,
+                        height: 100,
+                    },
+                    fileId: imageData.id,
+                });
+
+                const { updatedState } = ElementUtil.createNewElementSelection(
+                    [imageElement],
+                    appState
+                );
+
+                excalidrawApi.addFiles([imageData]);
+                excalidrawApi.updateScene({
+                    elements: [...currentElements, imageElement],
+                    appState: updatedState,
+                    commitToHistory: true,
+                });
+
+                closeMenu();
+                return;
+            }
 
             const newElements = ElementCreationUtil.createElementFromType(item.item.type, {
                 x: center.x,

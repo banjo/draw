@@ -1,6 +1,7 @@
 import { includes, invariant, isDefined, take, wrapAsync } from "@banjoanton/utils";
 import { ofetch } from "ofetch";
 import { IconifySearchResponse } from "../types/iconify-search-response";
+import { FileUtil } from "@/features/draw/utils/file-util";
 
 const ICON_GROUPS = ["logos", "noto", "flagpack", "carbon"] as const;
 type IconGroup = (typeof ICON_GROUPS)[number];
@@ -33,15 +34,8 @@ const buildIconifySearchUrl = (query: string) => {
 
 const buildIconifyGetIconUrl = (icon: string, group: IconGroup) => `/${group}/${icon}.svg`;
 
-const getIconifyIcon = (icon: string, group: IconGroup) => {
+const getIconifyIconInfo = (icon: string, group: IconGroup) => {
     const url = buildIconifyGetIconUrl(icon, group);
-
-    // const [res, error] = await wrapAsync(async () => await api<Blob>(url));
-    //
-    // if (error) {
-    //     console.error(error);
-    //     return undefined;
-    // }
 
     const blobDto: IconDto = {
         group,
@@ -51,6 +45,17 @@ const getIconifyIcon = (icon: string, group: IconGroup) => {
     };
 
     return blobDto;
+};
+
+const fetchIconifyIcon = async (icon: string, group: IconGroup) => {
+    const url = buildIconifyGetIconUrl(icon, group);
+    const [blob, error] = await wrapAsync(async () => await api<Blob>(url));
+
+    if (error) {
+        throw new Error(`Failed to fetch icon: ${icon} - ${error}`);
+    }
+
+    return await FileUtil.blobToBase64(blob);
 };
 
 const searchIcons = async (query: string) => {
@@ -73,8 +78,8 @@ const searchIcons = async (query: string) => {
         return { prefix, icon };
     });
 
-    const icons = firstFive.map(({ prefix, icon }) => getIconifyIcon(icon, prefix));
+    const icons = firstFive.map(({ prefix, icon }) => getIconifyIconInfo(icon, prefix));
     return icons.filter(isDefined);
 };
 
-export const IconService = { searchIcons };
+export const IconService = { searchIcons, fetchIconifyIcon };
