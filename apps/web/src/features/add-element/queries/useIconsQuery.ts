@@ -4,7 +4,7 @@ import { IconService } from "../services/icon-service";
 import { isEmpty } from "@banjoanton/utils";
 
 const fetchIcons = async (query: string) => {
-    const icons = await IconService.searchIcons(query, "logos");
+    const icons = await IconService.searchIcons(query);
     return icons.map(ListItem.toIconListItem);
 };
 

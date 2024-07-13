@@ -23,7 +23,7 @@ export type ListItem = ShapeListItem | IconListItem;
 
 const toIconListItem = (icon: IconDto): IconListItem => ({
     type: "icon",
-    description: `Icon - ${capitalize(icon.group)}`,
+    description: `Icon - ${icon.groupDisplayName}`,
     title: icon.icon,
     item: icon,
 });
