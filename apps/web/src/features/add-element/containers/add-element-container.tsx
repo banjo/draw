@@ -38,7 +38,7 @@ export const AddElementContainer = () => {
     const fuse = useMemo(() => {
         const fuseOptions = {
             threshold: 0.3,
-            keys: ["title"],
+            keys: ["title", "description", "tags"], // TODO: improve search
         };
 
         const items = [...DEFAULT_SHAPES, ...iconListItems];
