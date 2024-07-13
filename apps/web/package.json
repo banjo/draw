@@ -45,6 +45,7 @@
     },
     "devDependencies": {
         "@banjoanton/utils": "^0.1.86",
+        "@iconify/types": "^2.0.0",
         "@tanstack/eslint-plugin-query": "^4.38.0",
         "@types/node": "^20.14.8",
         "@types/react": "^18.3.3",
