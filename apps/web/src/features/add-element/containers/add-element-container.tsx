@@ -9,96 +9,10 @@ import { useAddElementStore } from "@/stores/use-add-element-store";
 import { isEmpty } from "@banjoanton/utils";
 import { useDebounce } from "@uidotdev/usehooks";
 import Fuse from "fuse.js";
-import React, {
-    HTMLAttributes,
-    PropsWithChildren,
-    RefObject,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
-import { cn } from "ui";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ListItem } from "../models/list-item.model";
 import { useIconsQuery } from "../queries/useIconsQuery";
-
-type ListItemProps = {
-    selected?: boolean;
-    refObject?: RefObject<HTMLDivElement>;
-    Icon?: React.FC;
-    item: ListItem;
-    title: string;
-    description: string;
-    onClick?: (item: ListItem) => void;
-};
-
-const ListItemWithoutMemo = ({
-    onClick,
-    selected = false,
-    refObject,
-    Icon,
-    item,
-    title,
-    description,
-}: ListItemProps) => {
-    const selectedStyle = selected ? "bg-gray-100" : "";
-
-    // only re-render if the type changes
-    const MemoIcon = useMemo(() => Icon, [item.type]);
-
-    return (
-        <div
-            ref={refObject}
-            onClick={() => onClick?.(item)}
-            className={cn(
-                `px-4 py-2 border border-gray-300 bg-white rounded-md w-full hover:bg-gray-100 hover:cursor-pointer`,
-                selectedStyle
-            )}
-        >
-            <div className="flex gap-4 items-center">
-                {MemoIcon && <MemoIcon />}
-                <div className="flex flex-col items-start">
-                    <span className="text-sm">{title}</span>
-                    <span className="text-gray-600 text-xs">{description}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const ListItemComponent = React.memo(ListItemWithoutMemo);
-
-const ImageComponent = (
-    props: HTMLAttributes<HTMLImageElement> & {
-        width?: number;
-        height?: number;
-        src: string;
-        alt?: string;
-    }
-) => <img {...props} />;
-const MemoImageComponent = React.memo(ImageComponent);
-
-const ListContainer = ({ children }: PropsWithChildren) => (
-    <div className="mt-4 flex flex-col gap-y-2 items-center">{children}</div>
-);
-
-type ComponentContainerProps = HTMLAttributes<HTMLDivElement> & PropsWithChildren;
-
-const ComponentContainer = ({ children, ...props }: ComponentContainerProps) => (
-    <div {...props} className="bg-white rounded-md shadow-lg w-80 h-[410px] p-4">
-        {children}
-    </div>
-);
-
-type BackgroundProps = PropsWithChildren & HTMLAttributes<HTMLDivElement>;
-const Background = ({ children, ...props }: BackgroundProps) => (
-    <div
-        {...props}
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 flex-col"
-    >
-        {children}
-    </div>
-);
+import { AddElement } from "../components/add-element-component";
 
 const DEFAULT_SHAPES = shapes.slice(0, 5).map(ListItem.toShapeListItem);
 
@@ -235,8 +149,8 @@ export const AddElementContainer = () => {
     });
 
     return (
-        <Background onKeyDown={onKeyDown} onClick={onOutsideClick}>
-            <ComponentContainer onClick={onComponentClick}>
+        <AddElement.Background onKeyDown={onKeyDown} onClick={onOutsideClick}>
+            <AddElement.ComponentContainer onClick={onComponentClick}>
                 <input
                     value={search}
                     onChange={onInputChange}
@@ -248,10 +162,10 @@ export const AddElementContainer = () => {
                     autoFocus
                     ref={inputRef}
                 />
-                <ListContainer>
+                <AddElement.ListContainer>
                     {noResults && <div className="text-gray-500">No results found</div>}
                     {sortedItems.slice(0, 5).map((item, index) => (
-                        <ListItemComponent
+                        <AddElement.ListItemComponent
                             key={`${item.type}-${item.title}-${item.description}`}
                             title={item.title}
                             description={item.description}
@@ -264,7 +178,7 @@ export const AddElementContainer = () => {
                                 }
 
                                 return (
-                                    <MemoImageComponent
+                                    <AddElement.MemoImageComponent
                                         className="w-5 h-5"
                                         width={25}
                                         height={25}
@@ -277,8 +191,8 @@ export const AddElementContainer = () => {
                         />
                     ))}
                     {isLoadingIcons && <div className="text-black">Loading icons...</div>}
-                </ListContainer>
-            </ComponentContainer>
-        </Background>
+                </AddElement.ListContainer>
+            </AddElement.ComponentContainer>
+        </AddElement.Background>
     );
 };
