@@ -162,6 +162,9 @@ importers:
       fuse.js:
         specifier: ^7.0.0
         version: 7.0.0
+      fuzzysort:
+        specifier: ^3.0.2
+        version: 3.0.2
       html2canvas:
         specifier: ^1.4.1
         version: 1.4.1
@@ -6252,6 +6255,10 @@ packages:
   /fuse.js@7.0.0:
     resolution: {integrity: sha512-14F4hBIxqKvD4Zz/XjDc3y94mNZN6pRv3U13Udo0lNLCWRBUsrMv2xwcF/y/Z5sV6+FQW+/ow68cHpm4sunt8Q==}
     engines: {node: '>=10'}
+    dev: false
+
+  /fuzzysort@3.0.2:
+    resolution: {integrity: sha512-ZyahVgxvckB1Qosn7YGWLDJJp2XlyaQ2WmZeI+d0AzW0AMqVYnz5N89G6KAKa6m/LOtv+kzJn4lhDF/yVg11Cg==}
     dev: false
 
   /fx@34.0.0:

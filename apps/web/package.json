@@ -26,7 +26,7 @@
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "framer-motion": "^10.18.0",
-        "fuse.js": "^7.0.0",
+        "fuzzysort": "^3.0.2",
         "html2canvas": "^1.4.1",
         "jwt-decode": "^3.1.2",
         "lucide-react": "0.368.0",

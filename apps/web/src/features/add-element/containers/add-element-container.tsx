@@ -3,18 +3,18 @@ import { NativeContainer } from "@/features/draw/models/native/native-container"
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
+import { FileUtil } from "@/features/draw/utils/file-util";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { shapes } from "@/models/shapes";
 import { useAddElementStore } from "@/stores/use-add-element-store";
 import { isEmpty } from "@banjoanton/utils";
 import { useDebounce } from "@uidotdev/usehooks";
-import Fuse from "fuse.js";
+import fuzzysort from "fuzzysort";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { AddElement } from "../components/add-element-component";
 import { ListItem } from "../models/list-item.model";
 import { useIconsQuery } from "../queries/useIconsQuery";
-import { AddElement } from "../components/add-element-component";
 import { IconService } from "../services/icon-service";
-import { FileUtil } from "@/features/draw/utils/file-util";
 
 const DEFAULT_SHAPES = shapes.slice(0, 5).map(ListItem.toShapeListItem);
 
@@ -36,17 +36,6 @@ export const AddElementContainer = () => {
     );
 
     const inputRef = React.useRef<HTMLInputElement>(null);
-
-    const fuse = useMemo(() => {
-        const fuseOptions = {
-            threshold: 0.3,
-            keys: ["title", "description", "tags"], // TODO: improve search to include tags
-        };
-
-        const items = [...DEFAULT_SHAPES, ...iconListItems];
-
-        return new Fuse(items, fuseOptions);
-    }, [iconListItems]);
 
     const closeMenu = () => {
         setShowAddElementMenu(false);
@@ -133,10 +122,13 @@ export const AddElementContainer = () => {
             return;
         }
 
-        const results = fuse.search(value).map(res => res.item);
+        const results = fuzzysort.go(value, itemsToNavigate, {
+            keys: ["title"],
+            threshold: 0,
+        });
         resetSelectedIndex();
 
-        const shapeResults = results.filter(ListItem.filterByShape);
+        const shapeResults = results.map(r => r.obj).filter(ListItem.filterByShape);
         setShapeListItems(shapeResults);
     };
 
