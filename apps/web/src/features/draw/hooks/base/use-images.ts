@@ -41,6 +41,11 @@ export const useImages = ({ elements, slug }: In) => {
     const { handleError } = useError();
     const utils = trpc.useUtils();
 
+    // clear images on new document
+    useEffect(() => {
+        setUploadedImages([]);
+    }, [slug]);
+
     const fetchImages = async (ids: string[]) => {
         if (!excalidrawApi) return;
 

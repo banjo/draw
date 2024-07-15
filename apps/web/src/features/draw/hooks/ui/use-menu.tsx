@@ -62,6 +62,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const saveToCollection = async () => {
         let currentSlug = slug;
         if (!currentSlug) {
+            // TODO: fix this possible race condition bug
             currentSlug = await saveDrawingToDatabase();
         }
 
@@ -70,8 +71,8 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
             return;
         }
 
-        const [res, error] = await wrapAsync(
-            async () => await utils.client.draw.saveToCollection.mutate({ slug: currentSlug! }) // currentSlug is not undefined here
+        const [_, error] = await wrapAsync(
+            async () => await utils.client.draw.saveToCollection.mutate({ slug: currentSlug })
         );
 
         if (error) {
@@ -145,13 +146,23 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
                 New drawing
             </MainMenu.Item>
 
-            <MainMenu.Item onSelect={copyToNewDrawing} icon={<ResponsiveIcon Icon={CopyIcon} />}>
-                Create copy
-            </MainMenu.Item>
+            {slug && (
+                <MainMenu.Item
+                    onSelect={copyToNewDrawing}
+                    icon={<ResponsiveIcon Icon={CopyIcon} />}
+                >
+                    Create copy
+                </MainMenu.Item>
+            )}
 
-            <MainMenu.Item onSelect={onShareDrawing} icon={<ResponsiveIcon Icon={Icons.link} />}>
-                Share drawing
-            </MainMenu.Item>
+            {!slug && (
+                <MainMenu.Item
+                    onSelect={onShareDrawing}
+                    icon={<ResponsiveIcon Icon={Icons.link} />}
+                >
+                    Share drawing
+                </MainMenu.Item>
+            )}
 
             <MainMenu.Separator />
 
