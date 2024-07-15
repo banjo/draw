@@ -118,6 +118,41 @@ class LocalImageSservice {
             transaction.addEventListener("complete", () => resolve(images));
         });
     }
+
+    public removeImage(id: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject("Database not initialized.");
+                return;
+            }
+
+            const transaction = this.db.transaction(OBJECT_STORE_NAME, "readwrite");
+            const store = transaction.objectStore(OBJECT_STORE_NAME);
+            const request = store.delete(id);
+
+            request.addEventListener("success", () => resolve());
+            request.addEventListener("error", () => reject("Error removing image."));
+        });
+    }
+
+    public removeImages(ids: string[]): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (!this.db) {
+                reject("Database not initialized.");
+                return;
+            }
+
+            const transaction = this.db.transaction(OBJECT_STORE_NAME, "readwrite");
+            const store = transaction.objectStore(OBJECT_STORE_NAME);
+
+            ids.forEach(id => {
+                const request = store.delete(id);
+                request.addEventListener("error", () => reject("Error removing image."));
+            });
+
+            transaction.addEventListener("complete", () => resolve());
+        });
+    }
 }
 
 export const localImageService = new LocalImageSservice();

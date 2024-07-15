@@ -5,7 +5,7 @@ import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { localImageService } from "@/services/local-image-service";
 import { logger } from "@/utils/logger";
-import { isDefined, wrapAsync } from "@banjoanton/utils";
+import { isDefined, isEmpty, wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawElements } from "common";
 import { ofetch } from "ofetch";
 import { useEffect, useState } from "react";
@@ -115,6 +115,18 @@ export const useImages = ({ elements, slug }: In) => {
         const notUploadedImages = imagesReferencedOnCanvas.filter(
             image => !uploadedImages.includes(image.id)
         );
+
+        const removedImages = uploadedImages.filter(
+            id => !imagesReferencedOnCanvas.some(image => image.id === id)
+        );
+
+        if (!isEmpty(removedImages)) {
+            setUploadedImages(uploadedImages.filter(id => !removedImages.includes(id)));
+
+            if (!slug) {
+                localImageService.removeImages(removedImages); // do not await
+            }
+        }
 
         if (notUploadedImages.length === 0) return;
 
