@@ -2,6 +2,7 @@ import { ElementUtil } from "@/features/draw/utils/element-util";
 import { invariant, Result, wrapAsync } from "@banjoanton/utils";
 import { FileId } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
+import { m } from "framer-motion";
 import { ofetch } from "ofetch";
 
 type CreateImageFileProps = {
@@ -67,14 +68,23 @@ const blobToBase64 = (blob: Blob) =>
         reader.addEventListener("error", reject);
     });
 
-const uploadToBucket = async (image: BinaryFileData, url: string) => {
-    const dataString = image.dataURL.split(",")[1];
+const dataUrlToBlob = (dataUrl: string, mimeType: string) => {
+    const dataString = dataUrl.split(",")[1];
 
     if (!dataString) {
-        return Result.error("Could not get data string from image", "InternalError");
+        return undefined;
     }
 
-    const blob = base64toBlob(dataString, image.mimeType);
+    return base64toBlob(dataString, mimeType);
+};
+
+const uploadToBucket = async (image: BinaryFileData, url: string) => {
+    const blob = dataUrlToBlob(image.dataURL, image.mimeType);
+
+    if (!blob) {
+        return Result.error("Could not convert data URL to blob", "InternalError");
+    }
+
     const file = new File([blob], image.id, { type: image.mimeType });
 
     const [_, uploadError] = await wrapAsync(
@@ -99,4 +109,5 @@ export const FileUtil = {
     base64toBlob,
     blobToBase64,
     uploadToBucket,
+    dataUrlToBlob,
 };

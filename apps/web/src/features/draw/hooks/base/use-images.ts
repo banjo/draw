@@ -3,10 +3,32 @@ import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { wrapAsync } from "@banjoanton/utils";
+import { localImageService } from "@/services/local-image-service";
+import { logger } from "@/utils/logger";
+import { isDefined, wrapAsync } from "@banjoanton/utils";
 import { ExcalidrawElements } from "common";
 import { ofetch } from "ofetch";
 import { useEffect, useState } from "react";
+
+const fetchImagesFromBucket = async (
+    presignedUrlResults: { mimeType: string; imageId: string; presignedUrl: string }[]
+) =>
+    await Promise.all(
+        presignedUrlResults.map(async result => {
+            const url = result.presignedUrl;
+
+            const blob = await ofetch(url, {
+                method: "GET",
+                responseType: "blob",
+            });
+
+            return {
+                data: await FileUtil.blobToBase64(blob),
+                mimeType: result.mimeType,
+                id: result.imageId,
+            };
+        })
+    );
 
 type In = {
     elements: ExcalidrawElements;
@@ -20,7 +42,24 @@ export const useImages = ({ elements, slug }: In) => {
     const utils = trpc.useUtils();
 
     const fetchImages = async (ids: string[]) => {
-        if (!excalidrawApi || !slug) return;
+        if (!excalidrawApi) return;
+
+        if (!slug) {
+            const localImages = await localImageService.loadImages(ids);
+
+            const imageFileProps = await Promise.all(
+                localImages.map(async image => ({
+                    data: await FileUtil.blobToBase64(image.blob),
+                    mimeType: image.mimeType,
+                    id: image.id,
+                }))
+            );
+
+            const files = FileUtil.createImageFiles(imageFileProps);
+            setUploadedImages([...uploadedImages, ...imageFileProps.map(image => image.id)]);
+            excalidrawApi.addFiles(files);
+            return;
+        }
 
         const [presignedUrlResults, error] = await wrapAsync(
             async () =>
@@ -34,22 +73,7 @@ export const useImages = ({ elements, slug }: In) => {
             return;
         }
 
-        const imagesFromUrls = await Promise.all(
-            presignedUrlResults.map(async result => {
-                const url = result.presignedUrl;
-
-                const blob = await ofetch(url, {
-                    method: "GET",
-                    responseType: "blob",
-                });
-
-                return {
-                    data: await FileUtil.blobToBase64(blob),
-                    mimeType: result.mimeType,
-                    id: result.imageId,
-                };
-            })
-        );
+        const imagesFromUrls = await fetchImagesFromBucket(presignedUrlResults);
 
         setUploadedImages([...uploadedImages, ...imagesFromUrls.map(image => image.id)]);
         const files = FileUtil.createImageFiles(imagesFromUrls);
@@ -77,7 +101,7 @@ export const useImages = ({ elements, slug }: In) => {
 
     // save images on change
     useEffect(() => {
-        if (!excalidrawApi || !slug) return;
+        if (!excalidrawApi) return;
 
         const files = excalidrawApi.getFiles();
         const images = Object.values(files).filter(file => file.mimeType.startsWith("image/"));
@@ -95,6 +119,30 @@ export const useImages = ({ elements, slug }: In) => {
         if (notUploadedImages.length === 0) return;
 
         const saveImages = async () => {
+            if (!slug) {
+                const localImages = notUploadedImages
+                    .map(image => {
+                        const blob = FileUtil.dataUrlToBlob(image.dataURL, image.mimeType);
+
+                        if (!blob) {
+                            logger.error({ id: image.id }, "Could not convert dataURL to blob");
+                            return undefined;
+                        }
+
+                        return {
+                            id: image.id,
+                            blob,
+                            mimeType: image.mimeType,
+                        };
+                    })
+                    .filter(isDefined);
+
+                await localImageService.saveImages(localImages);
+
+                setUploadedImages([...uploadedImages, ...localImages.map(image => image.id)]);
+                return;
+            }
+
             const [fileData, error] = await wrapAsync(
                 async () =>
                     await utils.client.file.saveImagesByPresignedUrl.mutate({
