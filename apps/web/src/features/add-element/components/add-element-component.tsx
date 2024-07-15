@@ -70,18 +70,7 @@ const ComponentContainer = ({ children, ...props }: ComponentContainerProps) => 
     </div>
 );
 
-type BackgroundProps = PropsWithChildren & HTMLAttributes<HTMLDivElement>;
-const Background = ({ children, ...props }: BackgroundProps) => (
-    <div
-        {...props}
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 flex-col"
-    >
-        {children}
-    </div>
-);
-
 export const AddElement = {
-    Background,
     ComponentContainer,
     ListContainer,
     ListItemComponent,

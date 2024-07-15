@@ -15,6 +15,7 @@ import { AddElement } from "../components/add-element-component";
 import { ListItem } from "../models/list-item.model";
 import { useIconsQuery } from "../queries/useIconsQuery";
 import { IconService } from "../services/icon-service";
+import { ModalContainer } from "@/components/modal";
 
 const DEFAULT_SHAPES = shapes.slice(0, 5).map(ListItem.toShapeListItem);
 
@@ -37,7 +38,7 @@ export const AddElementContainer = () => {
 
     const inputRef = React.useRef<HTMLInputElement>(null);
 
-    const closeMenu = () => {
+    const onClose = () => {
         setShowAddElementMenu(false);
         NativeContainer.parse();
         NativeContainer.focus();
@@ -85,7 +86,7 @@ export const AddElementContainer = () => {
                     commitToHistory: true,
                 });
 
-                closeMenu();
+                onClose();
                 return;
             }
 
@@ -102,9 +103,9 @@ export const AddElementContainer = () => {
                 commitToHistory: true,
             });
 
-            closeMenu();
+            onClose();
         },
-        [excalidrawApi, closeMenu]
+        [excalidrawApi, onClose]
     );
 
     const { refs, selectedIndex, handleKeyboardNavigation, resetSelectedIndex } =
@@ -137,21 +138,7 @@ export const AddElementContainer = () => {
         inputRef.current?.focus();
     };
 
-    const onOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
-            closeMenu();
-        }
-    };
-
-    const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === "Escape") {
-            closeMenu();
-            return;
-        }
-
-        return handleKeyboardNavigation(e);
-    };
-
+    const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => handleKeyboardNavigation(e);
     const noResults = isEmpty(itemsToNavigate) && !isLoadingIcons;
 
     useEffect(() => {
@@ -172,7 +159,7 @@ export const AddElementContainer = () => {
     });
 
     return (
-        <AddElement.Background onKeyDown={onKeyDown} onClick={onOutsideClick}>
+        <ModalContainer onClose={onClose} onKeyDown={onKeyDown} setShow={setShowAddElementMenu}>
             <AddElement.ComponentContainer onClick={onComponentClick}>
                 <input
                     value={search}
@@ -216,6 +203,6 @@ export const AddElementContainer = () => {
                     {isLoadingIcons && <div className="text-black">Loading icons...</div>}
                 </AddElement.ListContainer>
             </AddElement.ComponentContainer>
-        </AddElement.Background>
+        </ModalContainer>
     );
 };
