@@ -83,6 +83,7 @@ export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elemen
             });
         },
         onError: error => {
+            setIsLoading(false);
             handleError(error, { toast: true });
             navigate("/");
         },
