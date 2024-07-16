@@ -18,6 +18,8 @@ import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
 import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useAddElement } from "../add-element/hooks/use-add-element";
+import { SignInModal } from "./components/sign-in-modal";
+import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 
 type DrawProps = {
     slug?: string;
@@ -30,6 +32,9 @@ export type OnChangeCallback = Maybe<
 export const Draw = ({ slug }: DrawProps) => {
     const { elements, setElements } = useElementsState({ slug });
     const { setExcalidrawApi, excalidrawApi } = useGlobal();
+
+    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
+    const showSignInModal = useSignInModalStore(s => s.showSignInModal);
 
     useInit({ slug });
 
@@ -87,6 +92,7 @@ export const Draw = ({ slug }: DrawProps) => {
     return (
         <>
             {renderAddElement()}
+            <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
             <div
                 style={{ height: "100dvh" }}
                 onKeyDown={handleKeyDown}

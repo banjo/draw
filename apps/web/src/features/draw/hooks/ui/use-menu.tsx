@@ -5,10 +5,10 @@ import { useExport } from "@/features/draw/hooks/base/use-export";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
+import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
-import { Env } from "common";
 import { BrushIcon, CopyIcon, FileDown, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
@@ -25,14 +25,12 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const { excalidrawApi } = useGlobal();
     const navigate = useNavigate();
 
+    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
+
     const { isAuthenticated } = useAuth();
     const { handleError } = useError();
 
     const utils = trpc.useUtils();
-
-    const signOut = () => {
-        authService.signOut();
-    };
 
     const { exportToPng, exportToSvg } = useExport();
 
@@ -111,94 +109,102 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     };
 
     const renderMenu = () => (
-        <MainMenu>
-            {isAuthenticated ? (
-                <MainMenu.Item onSelect={signOut} icon={<ResponsiveIcon Icon={Icons.signOut} />}>
-                    Sign out
-                </MainMenu.Item>
-            ) : (
-                <MainMenu.Item
-                    onSelect={() => {
-                        authService.signInWithGithub();
-                    }}
-                    icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
-                >
-                    Sign in
-                </MainMenu.Item>
-            )}
-
-            <MainMenu.Separator />
-
-            {slug && (
-                <>
+        <>
+            <MainMenu>
+                {isAuthenticated ? (
                     <MainMenu.Item
-                        onSelect={goToLocalDrawing}
-                        icon={<ResponsiveIcon Icon={FolderIcon} />}
+                        onSelect={async () => await authService.signOut()}
+                        icon={<ResponsiveIcon Icon={Icons.signOut} />}
                     >
-                        Offline mode
+                        Sign out
                     </MainMenu.Item>
-
-                    <MainMenu.Separator />
-                </>
-            )}
-
-            <MainMenu.Item onSelect={createNewDrawing} icon={<ResponsiveIcon Icon={PlusIcon} />}>
-                New drawing
-            </MainMenu.Item>
-
-            {slug && (
-                <MainMenu.Item
-                    onSelect={copyToNewDrawing}
-                    icon={<ResponsiveIcon Icon={CopyIcon} />}
-                >
-                    Create copy
-                </MainMenu.Item>
-            )}
-
-            {!slug && (
-                <MainMenu.Item
-                    onSelect={onShareDrawing}
-                    icon={<ResponsiveIcon Icon={Icons.link} />}
-                >
-                    Share drawing
-                </MainMenu.Item>
-            )}
-
-            <MainMenu.Separator />
-
-            {isAuthenticated && (
-                <>
+                ) : (
                     <MainMenu.Item
-                        onSelect={toggleSidebar}
-                        icon={<ResponsiveIcon Icon={BrushIcon} />}
+                        onSelect={() => {
+                            setShowSignInModal(true);
+                        }}
+                        icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
                     >
-                        Collection
+                        Sign in
                     </MainMenu.Item>
+                )}
 
+                <MainMenu.Separator />
+
+                {slug && (
+                    <>
+                        <MainMenu.Item
+                            onSelect={goToLocalDrawing}
+                            icon={<ResponsiveIcon Icon={FolderIcon} />}
+                        >
+                            Offline mode
+                        </MainMenu.Item>
+
+                        <MainMenu.Separator />
+                    </>
+                )}
+
+                <MainMenu.Item
+                    onSelect={createNewDrawing}
+                    icon={<ResponsiveIcon Icon={PlusIcon} />}
+                >
+                    New drawing
+                </MainMenu.Item>
+
+                {slug && (
                     <MainMenu.Item
-                        onSelect={saveToCollection}
-                        icon={<ResponsiveIcon Icon={SaveIcon} />}
+                        onSelect={copyToNewDrawing}
+                        icon={<ResponsiveIcon Icon={CopyIcon} />}
                     >
-                        Save to my collection
+                        Create copy
                     </MainMenu.Item>
+                )}
 
-                    <MainMenu.Separator />
-                </>
-            )}
+                {!slug && (
+                    <MainMenu.Item
+                        onSelect={onShareDrawing}
+                        icon={<ResponsiveIcon Icon={Icons.link} />}
+                    >
+                        Share drawing
+                    </MainMenu.Item>
+                )}
 
-            {/* TODO: USE ImageDown WHEN IT WORKS  */}
-            <MainMenu.Item onSelect={exportToPng} icon={<ResponsiveIcon Icon={FileDown} />}>
-                Export as PNG
-            </MainMenu.Item>
+                <MainMenu.Separator />
 
-            <MainMenu.Item onSelect={exportToSvg} icon={<ResponsiveIcon Icon={FileDown} />}>
-                Export as SVG
-            </MainMenu.Item>
+                {isAuthenticated && (
+                    <>
+                        <MainMenu.Item
+                            onSelect={toggleSidebar}
+                            icon={<ResponsiveIcon Icon={BrushIcon} />}
+                        >
+                            Collection
+                        </MainMenu.Item>
 
-            <MainMenu.DefaultItems.Export />
-            <MainMenu.Separator />
-            <MainMenu.DefaultItems.Help />
-        </MainMenu>
+                        <MainMenu.Item
+                            onSelect={saveToCollection}
+                            icon={<ResponsiveIcon Icon={SaveIcon} />}
+                        >
+                            Save to my collection
+                        </MainMenu.Item>
+
+                        <MainMenu.Separator />
+                    </>
+                )}
+
+                {/* TODO: USE ImageDown WHEN IT WORKS  */}
+                <MainMenu.Item onSelect={exportToPng} icon={<ResponsiveIcon Icon={FileDown} />}>
+                    Export as PNG
+                </MainMenu.Item>
+
+                <MainMenu.Item onSelect={exportToSvg} icon={<ResponsiveIcon Icon={FileDown} />}>
+                    Export as SVG
+                </MainMenu.Item>
+
+                <MainMenu.DefaultItems.Export />
+                <MainMenu.Separator />
+                <MainMenu.DefaultItems.Help />
+            </MainMenu>
+        </>
     );
 
     return {

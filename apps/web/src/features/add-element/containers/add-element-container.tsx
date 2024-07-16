@@ -15,7 +15,7 @@ import { AddElement } from "../components/add-element-component";
 import { ListItem } from "../models/list-item.model";
 import { useIconsQuery } from "../queries/useIconsQuery";
 import { IconService } from "../services/icon-service";
-import { ModalContainer } from "@/components/modal";
+import { Modal } from "@/components/modal";
 
 const DEFAULT_SHAPES = shapes.slice(0, 5).map(ListItem.toShapeListItem);
 
@@ -159,7 +159,7 @@ export const AddElementContainer = () => {
     });
 
     return (
-        <ModalContainer onClose={onClose} onKeyDown={onKeyDown} setShow={setShowAddElementMenu}>
+        <Modal.Container onClose={onClose} onKeyDown={onKeyDown} setShow={setShowAddElementMenu}>
             <AddElement.ComponentContainer onClick={onComponentClick}>
                 <input
                     value={search}
@@ -203,6 +203,6 @@ export const AddElementContainer = () => {
                     {isLoadingIcons && <div className="text-black">Loading icons...</div>}
                 </AddElement.ListContainer>
             </AddElement.ComponentContainer>
-        </ModalContainer>
+        </Modal.Container>
     );
 };
