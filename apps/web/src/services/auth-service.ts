@@ -62,6 +62,10 @@ class AuthService {
         window.location.href = `${env.VITE_API_URL}/login/github`;
     }
 
+    public signInWithGoogle() {
+        window.location.href = `${env.VITE_API_URL}/login/google`;
+    }
+
     public async signOut() {
         const signOutUrl = `${env.VITE_API_URL}/logout`;
         fetch(signOutUrl, {

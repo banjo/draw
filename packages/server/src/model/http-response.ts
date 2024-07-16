@@ -1,9 +1,10 @@
 import { Response as IResponse } from "express";
 import { CoreResponse, CoreResponseError, CoreResponseMetadata, CoreResponseSuccess } from "common";
+import ck from "cookie";
 
 type BaseProps = {
     res: IResponse;
-    cookie?: string;
+    cookies?: string[];
     meta?: CoreResponseMetadata;
 };
 
@@ -14,11 +15,11 @@ type SuccessProps<T> = BaseProps & {
 const success = <T>({
     res,
     data,
-    cookie,
+    cookies,
     meta,
 }: SuccessProps<T>): IResponse<CoreResponseSuccess<T>> => {
-    if (cookie) {
-        res.setHeader("Set-Cookie", cookie);
+    if (cookies) {
+        res.setHeader("Set-Cookie", cookies);
     }
 
     if (!data) {
@@ -38,11 +39,11 @@ const error = ({
     res,
     message,
     status = 500,
-    cookie,
+    cookies,
     errorCode,
 }: ErrorProps): IResponse<CoreResponseError> => {
-    if (cookie) {
-        res.setHeader("Set-Cookie", cookie);
+    if (cookies) {
+        res.setHeader("Set-Cookie", cookies);
     }
 
     return res.status(status).json(CoreResponse.error(message, errorCode));
@@ -51,42 +52,47 @@ const error = ({
 const badRequest = ({
     res,
     message,
-    cookie,
+    cookies,
     errorCode,
 }: ErrorProps): IResponse<CoreResponseError> =>
-    error({ res, message, status: 400, cookie, errorCode });
+    error({ res, message, status: 400, cookies, errorCode });
 
 const unauthorized = ({
     res,
     message,
-    cookie,
+    cookies,
     errorCode,
 }: ErrorProps): IResponse<CoreResponseError> =>
-    error({ res, message, status: 401, cookie, errorCode });
+    error({ res, message, status: 401, cookies, errorCode });
 
 const internalServerError = ({
     res,
     message,
-    cookie,
+    cookies,
     errorCode,
 }: ErrorProps): IResponse<CoreResponseError> =>
-    error({ res, message, status: 500, cookie, errorCode });
+    error({ res, message, status: 500, cookies, errorCode });
 
-const notFound = ({ res, message, cookie, errorCode }: ErrorProps): IResponse<CoreResponseError> =>
-    error({ res, message, status: 404, cookie, errorCode });
+const notFound = ({ res, message, cookies, errorCode }: ErrorProps): IResponse<CoreResponseError> =>
+    error({ res, message, status: 404, cookies, errorCode });
 
-const forbidden = ({ res, message, cookie, errorCode }: ErrorProps): IResponse<CoreResponseError> =>
-    error({ res, message, status: 403, cookie, errorCode });
+const forbidden = ({
+    res,
+    message,
+    cookies,
+    errorCode,
+}: ErrorProps): IResponse<CoreResponseError> =>
+    error({ res, message, status: 403, cookies, errorCode });
 
 type RedirectProps = {
     res: IResponse;
     url: string;
-    cookie?: string;
+    cookies?: string[];
 };
 
-const redirect = ({ res, url, cookie }: RedirectProps) => {
-    if (cookie) {
-        res.setHeader("Set-Cookie", cookie);
+const redirect = ({ res, url, cookies }: RedirectProps) => {
+    if (cookies) {
+        res.setHeader("Set-Cookie", cookies);
     }
 
     return res.redirect(url);

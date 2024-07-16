@@ -36,8 +36,14 @@ const ServerEnvSchema = z.object({
     WS_PORT: z.string(),
     LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
     DEVELOPMENT_UID: z.string().optional(),
+    // GITHUB AUTH
     GITHUB_CLIENT_ID: z.string(),
     GITHUB_CLIENT_SECRET: z.string(),
+    // GOOGLE AUTH
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
+    GOOGLE_REDIRECT_URI: z.string(),
+    // CLOUDFLARE BUCKET
     CLOUDFLARE_ACCOUNT_ID: z.string(),
     CLOUDFLARE_ACCESS_KEY_ID: z.string(),
     CLOUDFLARE_SECRET_ACCESS_KEY: z.string(),

@@ -25,7 +25,11 @@ export const SignInModal = ({ setShow, show }: SignInModalProps) => {
                     </Modal.Description>
                 </Modal.Header>
                 <Modal.Body className="grid gap-4">
-                    <Button variant="outline" className="w-full">
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => authService.signInWithGoogle()}
+                    >
                         <Chrome className="h-5 w-5 mr-2" />
                         Sign in with Google
                     </Button>
