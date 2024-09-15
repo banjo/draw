@@ -2,6 +2,7 @@
     "name": "banjodraw",
     "version": "1.0.0",
     "description": "",
+    "type": "module",
     "main": "index.js",
     "scripts": {
         "dev": "turbo dev",
@@ -26,11 +27,10 @@
     "license": "ISC",
     "devDependencies": {
         "@antfu/ni": "^0.21.12",
-        "@banjoanton/eslint-config": "^0.1.21",
+        "@banjoanton/eslint-config": "^0.2.8",
         "@banjoanton/prettier-config": "^0.1.10",
-        "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
         "dotenv": "^16.4.5",
-        "eslint": "^8.57.0",
+        "eslint": "^9.10.0",
         "hoks": "^0.1.17",
         "picocolors": "^1.0.1",
         "prettier": "^3.3.2",

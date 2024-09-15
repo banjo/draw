@@ -1,7 +1,0 @@
-{
-    "root": true,
-    "extends": ["@banjoanton/eslint-config"],
-    "rules": {
-        "promise/catch-or-return": "off"
-    }
-}

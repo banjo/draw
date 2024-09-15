@@ -9,19 +9,17 @@ import { Toaster } from "react-hot-toast";
 import { ErrorPage } from "ui";
 import "./index.css";
 
-export const App: FC = () => {
-    return (
-        <ErrorBoundary fallback={<ErrorPage />}>
-            <AuthProvider>
-                <TrpcProvider>
-                    <GlobalLoadingProvider>
-                        <GlobalContextProvider>
-                            <Toaster />
-                            <Root />
-                        </GlobalContextProvider>
-                    </GlobalLoadingProvider>
-                </TrpcProvider>
-            </AuthProvider>
-        </ErrorBoundary>
-    );
-};
+export const App: FC = () => (
+    <ErrorBoundary fallback={<ErrorPage />}>
+        <AuthProvider>
+            <TrpcProvider>
+                <GlobalLoadingProvider>
+                    <GlobalContextProvider>
+                        <Toaster />
+                        <Root />
+                    </GlobalContextProvider>
+                </GlobalLoadingProvider>
+            </TrpcProvider>
+        </AuthProvider>
+    </ErrorBoundary>
+);
