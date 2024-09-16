@@ -17,6 +17,9 @@ importers:
       '@banjoanton/prettier-config':
         specifier: ^0.1.10
         version: 0.1.10(prettier@3.3.2)
+      '@banjoanton/typescript-config':
+        specifier: ^0.0.1
+        version: 0.0.1
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
@@ -444,7 +447,14 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
 
-  packages/tsconfig: {}
+  packages/tsconfig:
+    devDependencies:
+      '@banjoanton/typescript-config':
+        specifier: ^0.0.1
+        version: 0.0.1
+      '@total-typescript/tsconfig':
+        specifier: ^1.0.4
+        version: 1.0.4
 
   packages/ui:
     dependencies:
@@ -1477,6 +1487,10 @@ packages:
       prettier: ^3.0.0
     dependencies:
       prettier: 3.3.2
+    dev: true
+
+  /@banjoanton/typescript-config@0.0.1:
+    resolution: {integrity: sha512-i1+v4g3275OS/Ve32DevWwb7GVyjqmV8324nIUoLXDRJlM0sn40Tg/ZkKFZVBjEbBTnVxwttIMiO6GmiDYoEdw==}
     dev: true
 
   /@banjoanton/utils@0.1.86:
@@ -3646,6 +3660,10 @@ packages:
       '@tanstack/query-core': 5.45.0
       react: 18.3.1
     dev: false
+
+  /@total-typescript/tsconfig@1.0.4:
+    resolution: {integrity: sha512-fO4ctMPGz1kOFOQ4RCPBRBfMy3gDn+pegUfrGyUFRMv/Rd0ZM3/SHH3hFCYG4u6bPLG8OlmOGcBLDexvyr3A5w==}
+    dev: true
 
   /@trpc/client@11.0.0-rc.417(@trpc/server@11.0.0-rc.417):
     resolution: {integrity: sha512-uXztohI5ygT76jpMoGjh8zlJKR51k5vRt+3EFdFdnyAkyvoWiJgWyzujMZBUoO9VVoMI+6iAUdugyUdoAUTjcg==}

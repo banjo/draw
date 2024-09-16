@@ -173,7 +173,7 @@ export const AddElementContainer = () => {
                     ref={inputRef}
                 />
                 <AddElement.ListContainer>
-                    {noResults && <div className="text-gray-500">No results found</div>}
+                    {noResults ? <div className="text-gray-500">No results found</div> : null}
                     {sortedItems.slice(0, 5).map((item, index) => (
                         <AddElement.ListItemComponent
                             key={`${item.type}-${item.title}-${item.description}`}
@@ -200,7 +200,7 @@ export const AddElementContainer = () => {
                             onClick={onClick}
                         />
                     ))}
-                    {isLoadingIcons && <div className="text-black">Loading icons...</div>}
+                    {isLoadingIcons ? <div className="text-black">Loading icons...</div> : null}
                 </AddElement.ListContainer>
             </AddElement.ComponentContainer>
         </Modal.Container>

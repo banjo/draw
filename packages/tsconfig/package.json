@@ -5,5 +5,9 @@
     "license": "MIT",
     "publishConfig": {
         "access": "public"
+    },
+    "devDependencies": {
+        "@banjoanton/typescript-config": "^0.0.1",
+        "@total-typescript/tsconfig": "^1.0.4"
     }
 }
