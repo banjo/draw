@@ -1,8 +1,8 @@
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { invariant, Result, wrapAsync } from "@banjoanton/utils";
+import { invariant, wrapAsync } from "@banjoanton/utils";
 import { FileId } from "@excalidraw/excalidraw/types/element/types";
 import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
-import { m } from "framer-motion";
+import { Result } from "common";
 import { ofetch } from "ofetch";
 
 type CreateImageFileProps = {
@@ -82,7 +82,7 @@ const uploadToBucket = async (image: BinaryFileData, url: string) => {
     const blob = dataUrlToBlob(image.dataURL, image.mimeType);
 
     if (!blob) {
-        return Result.error("Could not convert data URL to blob", "InternalError");
+        return Result.error("Could not convert data URL to blob");
     }
 
     const file = new File([blob], image.id, { type: image.mimeType });
@@ -96,7 +96,7 @@ const uploadToBucket = async (image: BinaryFileData, url: string) => {
     );
 
     if (uploadError) {
-        return Result.error(uploadError.message, "InternalError");
+        return Result.error(uploadError.message);
     }
 
     return Result.ok();

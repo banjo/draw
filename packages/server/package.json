@@ -9,7 +9,7 @@
         "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
-        "@banjoanton/utils": "^0.1.86",
+        "@banjoanton/utils": "^0.1.92",
         "@types/cookie": "^0.6.0",
         "@types/express": "^4.17.21",
         "@types/mime-types": "^2.1.4",

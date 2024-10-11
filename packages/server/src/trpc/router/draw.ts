@@ -1,6 +1,5 @@
-import { Result } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
-import { Cause, ExcalidrawSimpleElementSchema } from "common";
+import { Cause, ExcalidrawSimpleElementSchema, Result } from "common";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { createContextLogger } from "../../lib/context-logger";
@@ -78,7 +77,7 @@ export const drawRouter = createTRPCRouter({
             }
 
             logger.info({ slug }, "Drawing saved to collection");
-            return Result.okEmpty();
+            return Result.ok();
         }),
     getCollection: protectedProcedure.query(async ({ ctx }) => {
         const { userId } = ctx;
@@ -124,7 +123,7 @@ export const drawRouter = createTRPCRouter({
             }
 
             logger.info({ slug }, "Drawing deleted from collection");
-            return Result.okEmpty();
+            return Result.ok();
         }),
     updateDrawingName: protectedProcedure
         .input(z.object({ slug: z.string(), name: z.string() }))
@@ -158,6 +157,6 @@ export const drawRouter = createTRPCRouter({
             }
 
             logger.info({ slug }, "Drawing name updated");
-            return Result.okEmpty();
+            return Result.ok();
         }),
 });

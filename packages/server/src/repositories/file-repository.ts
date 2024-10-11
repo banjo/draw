@@ -1,7 +1,7 @@
-import { Result, wrapAsync } from "@banjoanton/utils";
+import { wrapAsync } from "@banjoanton/utils";
 import { createContextLogger } from "../lib/context-logger";
 import { prisma } from "db";
-import { Env } from "common";
+import { Env, Result } from "common";
 import { BucketKey } from "../model/bucket/bucket-key";
 import { ImageFile } from "../trpc/router/file";
 
@@ -28,7 +28,7 @@ const savePresignedImageFiles = async (imageFile: ImageFile[]) => {
 
     if (findError) {
         logger.error({ error: findError }, "Failed to fetch existing files from database");
-        return Result.error(findError.message, "InternalError");
+        return Result.error(findError.message);
     }
 
     const imageIdsToSave = imageFile.filter(
@@ -53,7 +53,7 @@ const savePresignedImageFiles = async (imageFile: ImageFile[]) => {
 
     if (error) {
         logger.error({ error }, "Failed to save bucket image to database");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     return Result.ok(count);
@@ -74,7 +74,7 @@ const fetchImagesByImageIds = async (imageIds: string[]) => {
 
     if (error) {
         logger.error({ error }, "Failed to fetch images by imageIds");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     return Result.ok(images);

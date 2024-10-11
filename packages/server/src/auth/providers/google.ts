@@ -1,12 +1,12 @@
 import { Google } from "arctic";
-import { Env } from "common";
+import { Env, Result } from "common";
 import { Cookie } from "../models";
 import { OauthProvider } from "../providers";
 import { OauthCoreProvider } from "../core";
 import { FetchUser, OauthUserInfo } from "../helpers/user-info";
 import { z } from "zod";
 import { ofetch } from "ofetch";
-import { Result, wrapAsync } from "@banjoanton/utils";
+import { wrapAsync } from "@banjoanton/utils";
 import { createContextLogger } from "../../lib/context-logger";
 
 const STATE_COOKIE_NAME = "google_oauth_state";
@@ -50,7 +50,7 @@ const fetchUser: FetchUser = async accessToken => {
 
     if (error) {
         logger.error({ error }, "Error fetching user");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     const user: OauthUserInfo = {

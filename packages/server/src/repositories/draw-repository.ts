@@ -1,5 +1,5 @@
-import { isDefined, Result } from "@banjoanton/utils";
-import { Board, ExcalidrawSimpleElement } from "common";
+import { isDefined } from "@banjoanton/utils";
+import { Board, ExcalidrawSimpleElement, Result } from "common";
 import { Prisma, prisma } from "db";
 import { createContextLogger } from "../lib/context-logger";
 
@@ -18,7 +18,7 @@ const getDrawingBySlug = async (slug: string) => {
 
         if (!drawing) {
             logger.error({ slug }, `Drawing with slug ${slug} not found`);
-            return Result.error("Drawing not found", "NotFound");
+            return Result.error("Drawing not found");
         }
 
         const orderedElements = drawing.order
@@ -37,7 +37,7 @@ const getDrawingBySlug = async (slug: string) => {
         return Result.ok(orderedElements);
     } catch (error) {
         logger.error({ error }, `Error getting drawing with slug ${slug}`);
-        return Result.error("Error getting drawing", "InternalError");
+        return Result.error("Error getting drawing");
     }
 };
 
@@ -62,7 +62,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
 
                 if (!deleteAll) {
                     logger.error(`Error deleting drawing elements with slug ${slug}`);
-                    return Result.error("Error deleting drawing elements", "InternalError");
+                    return Result.error("Error deleting drawing elements");
                 }
 
                 const createNewDrawingElements = await tx.drawingElement.createMany({
@@ -76,7 +76,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
 
                 if (!createNewDrawingElements) {
                     logger.error(`Error saving drawing elements: ${slug}`);
-                    return Result.error("Error saving drawing elements", "InternalError");
+                    return Result.error("Error saving drawing elements");
                 }
 
                 const orderUpdate = await tx.drawing.update({
@@ -90,7 +90,7 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
 
                 if (!orderUpdate) {
                     logger.error(`Error saving drawing order: ${slug}`);
-                    return Result.error("Error saving drawing order", "InternalError");
+                    return Result.error("Error saving drawing order");
                 }
 
                 return Result.ok(drawing.id);
@@ -112,14 +112,14 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
 
             if (!createNewDrawing) {
                 logger.error(`Error saving drawing: ${slug}`);
-                return Result.error("Error saving drawing", "InternalError");
+                return Result.error("Error saving drawing");
             }
 
             return Result.ok(createNewDrawing.id);
         });
     } catch (error) {
         logger.error({ error, slug }, `Error saving drawing: ${slug}`);
-        return Result.error("Error saving drawing", "InternalError");
+        return Result.error("Error saving drawing");
     }
 };
 
@@ -151,7 +151,7 @@ const saveDrawingFromDeltaUpdate = async (
 
             if (!deleteAll) {
                 logger.error(`Error deleting drawing elements: ${slug}`);
-                return Result.error("Error deleting drawing elements", "InternalError");
+                return Result.error("Error deleting drawing elements");
             }
 
             const toUpdate = elements.filter(element => !element.isDeleted);
@@ -167,7 +167,7 @@ const saveDrawingFromDeltaUpdate = async (
 
             if (!update) {
                 logger.error(`Error saving drawing elements: ${slug}`);
-                return Result.error("Error saving drawing elements", "InternalError");
+                return Result.error("Error saving drawing elements");
             }
 
             const orderUpdate = await prisma.drawing.update({
@@ -181,7 +181,7 @@ const saveDrawingFromDeltaUpdate = async (
 
             if (!orderUpdate) {
                 logger.error(`Error saving drawing order: ${slug}`);
-                return Result.error("Error saving drawing order", "InternalError");
+                return Result.error("Error saving drawing order");
             }
 
             return Result.ok(drawingExists.id);
@@ -203,7 +203,7 @@ const saveDrawingFromDeltaUpdate = async (
 
         if (!createNewDrawing) {
             logger.error(`Error saving drawing: ${slug}`);
-            return Result.error("Error saving drawing", "InternalError");
+            return Result.error("Error saving drawing");
         }
 
         const createNewDrawingElements = await prisma.drawingElement.createMany({
@@ -217,13 +217,13 @@ const saveDrawingFromDeltaUpdate = async (
 
         if (!createNewDrawingElements) {
             logger.error(`Error saving drawing elements: ${slug}`);
-            return Result.error("Error saving drawing elements", "InternalError");
+            return Result.error("Error saving drawing elements");
         }
 
         return Result.ok(createNewDrawing.id);
     } catch (error) {
         logger.error({ error, slug }, `Error saving drawing: ${slug}`);
-        return Result.error("Error saving drawing", "InternalError");
+        return Result.error("Error saving drawing");
     }
 };
 
@@ -237,7 +237,7 @@ const saveToCollection = async (slug: string, userId: number) => {
 
         if (!drawing) {
             logger.error(`Drawing not found: ${slug}`);
-            return Result.error("Drawing not found", "NotFound");
+            return Result.error("Drawing not found");
         }
 
         const user = await prisma.user.findUnique({
@@ -248,7 +248,7 @@ const saveToCollection = async (slug: string, userId: number) => {
 
         if (!user) {
             logger.error(`User not found: ${userId}`);
-            return Result.error("User not found", "NotFound");
+            return Result.error("User not found");
         }
 
         const saveToCollectionResult = await prisma.user.update({
@@ -266,13 +266,13 @@ const saveToCollection = async (slug: string, userId: number) => {
 
         if (!saveToCollectionResult) {
             logger.error(`Error saving drawing to user: ${slug}`);
-            return Result.error("Error saving drawing to user", "InternalError");
+            return Result.error("Error saving drawing to user");
         }
 
-        return Result.okEmpty();
+        return Result.ok();
     } catch (error) {
         logger.error({ error, slug, userId }, `Error saving drawing to user`);
-        return Result.error("Error saving drawing to user", "InternalError");
+        return Result.error("Error saving drawing to user");
     }
 };
 
@@ -293,7 +293,7 @@ const getCollection = async (userId: number) => {
 
         if (!collection) {
             logger.error(`Error getting user collection: ${userId}`);
-            return Result.error("Error getting user collection", "InternalError");
+            return Result.error("Error getting user collection");
         }
 
         const mapped = collection.collection.map(drawing => ({
@@ -305,7 +305,7 @@ const getCollection = async (userId: number) => {
         return Result.ok(mapped);
     } catch (error) {
         logger.error({ error, userId }, `Error getting user collection for user ${userId}`);
-        return Result.error("Error getting user collection", "InternalError");
+        return Result.error("Error getting user collection");
     }
 };
 
@@ -319,7 +319,7 @@ const deleteDrawingFromCollection = async (userId: number, slug: string) => {
 
         if (!drawing) {
             logger.error(`Drawing not found: ${slug}`);
-            return Result.error("Drawing not found", "NotFound");
+            return Result.error("Drawing not found");
         }
 
         const deleteDrawingResult = await prisma.user.update({
@@ -337,13 +337,13 @@ const deleteDrawingFromCollection = async (userId: number, slug: string) => {
 
         if (!deleteDrawingResult) {
             logger.error(`Error deleting drawing from user: ${slug}`);
-            return Result.error("Error deleting drawing from user", "InternalError");
+            return Result.error("Error deleting drawing from user");
         }
 
-        return Result.okEmpty();
+        return Result.ok();
     } catch (error) {
         logger.error({ error, slug }, `Error deleting drawing from user: ${slug}`);
-        return Result.error("Error deleting drawing from user", "InternalError");
+        return Result.error("Error deleting drawing from user");
     }
 };
 
@@ -357,12 +357,12 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
 
         if (!drawing) {
             logger.error(`Drawing not found: ${slug}`);
-            return Result.error("Drawing not found", "NotFound");
+            return Result.error("Drawing not found");
         }
 
         if (drawing.ownerId !== userId) {
             logger.error(`User not authorized to update drawing: ${slug}`);
-            return Result.error("User not authorized to update drawing", "Unauthorized");
+            return Result.error("User not authorized to update drawing");
         }
 
         const updateDrawingResult = await prisma.drawing.update({
@@ -376,13 +376,13 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
 
         if (!updateDrawingResult) {
             logger.error(`Error updating drawing name: ${slug}`);
-            return Result.error("Error updating drawing name", "InternalError");
+            return Result.error("Error updating drawing name");
         }
 
-        return Result.okEmpty();
+        return Result.ok();
     } catch (error) {
         logger.error({ error, slug }, `Error updating drawing name: ${slug}`);
-        return Result.error("Error updating drawing name", "InternalError");
+        return Result.error("Error updating drawing name");
     }
 };
 

@@ -1,4 +1,5 @@
 export * from "./env";
+export * from "./lib/result";
 export * from "./lib/logger";
 export * from "./model/board";
 export * from "./model/board-delta-update";

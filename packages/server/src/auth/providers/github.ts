@@ -1,10 +1,10 @@
 import { GitHub } from "arctic";
-import { Env } from "common";
+import { Env, Result } from "common";
 import { FetchUser, OauthUserInfo } from "../helpers/user-info";
 import { OauthCoreProvider } from "../core";
 import { OauthProvider } from "../providers";
 import { Cookie } from "../models";
-import { Result, wrapAsync } from "@banjoanton/utils";
+import { wrapAsync } from "@banjoanton/utils";
 import { ofetch } from "ofetch";
 import { createContextLogger } from "../../lib/context-logger";
 
@@ -25,7 +25,7 @@ const fetchUser: FetchUser = async (accessToken: string) => {
 
     if (error) {
         logger.error({ error }, "Error fetching user");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     const parsed = OauthUserInfo.parse(githubUserData);

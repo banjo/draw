@@ -1,8 +1,7 @@
-import { Result } from "@banjoanton/utils";
 import { OAuth2Provider, OAuth2ProviderWithPKCE } from "arctic";
 import { parseCookies } from "oslo/cookie";
 import { FetchUser } from "./user-info";
-import { Env } from "common";
+import { Env, Result } from "common";
 import { Request, Response } from "express";
 import { createContextLogger } from "../../lib/context-logger";
 import { lucia } from "../../lib/lucia";
@@ -23,7 +22,7 @@ const getTokensFromSimpleProvider = async (
 
     if (!cookieName) {
         logger.error("Could not find state cookie name");
-        return Result.error("Could not find state cookie name", "InternalError");
+        return Result.error("Could not find state cookie name");
     }
 
     const code = req.query.code?.toString() ?? null;
@@ -32,7 +31,7 @@ const getTokensFromSimpleProvider = async (
 
     if (!code || !state || !storedState || state !== storedState) {
         logger.error("Invalid state");
-        return Result.error("Invalid state", "Unauthorized");
+        return Result.error("Invalid state");
     }
 
     logger.trace("Validating authorization code");
@@ -54,7 +53,7 @@ const getTokensFromPKCEProvider = async (
 
     if (!stateCookieName || !codeVerifierCookieName) {
         logger.error("Could not find state or code_verifier cookie name");
-        return Result.error("Could not find state or code_verifier cookie name", "InternalError");
+        return Result.error("Could not find state or code_verifier cookie name");
     }
 
     const stateCookie = parsedCookies.get(stateCookieName) ?? null;
@@ -67,7 +66,7 @@ const getTokensFromPKCEProvider = async (
 
     if (!state || !stateCookie || !code || stateCookie !== state || !codeVerifier) {
         logger.error({ state, stateCookie, code, codeVerifier, stateCookieName }, "Invalid state");
-        return Result.error("Invalid state", "Unauthorized");
+        return Result.error("Invalid state");
     }
 
     const tokens = await provider.validateAuthorizationCode(code, codeVerifier);

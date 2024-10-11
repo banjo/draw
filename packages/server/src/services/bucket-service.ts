@@ -4,8 +4,8 @@ import {
     ListObjectsV2Command,
     PutObjectCommand,
 } from "@aws-sdk/client-s3";
-import { Result, toSeconds, wrapAsync } from "@banjoanton/utils";
-import { createLogger, Env } from "common";
+import { toSeconds, wrapAsync } from "@banjoanton/utils";
+import { createLogger, Env, Result } from "common";
 import { S3 } from "../providers/bucket-provider";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PresignedUrlResult } from "../model/bucket/presigned-url-result";
@@ -27,7 +27,7 @@ const listAllBuckets = async () => {
 
     if (error) {
         logger.error({ error }, "Could not list buckets");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     if (!response.Buckets) {
@@ -47,7 +47,7 @@ const listAllFiles = async () => {
 
     if (error) {
         logger.error({ error }, "Could not list buckets");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     if (!response.Contents) {
@@ -72,7 +72,7 @@ const addFile = async (file: Buffer, key: string, mimeType: string) => {
 
     if (error) {
         logger.error({ error }, "Could not add file");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     return Result.ok();
@@ -90,7 +90,7 @@ const generatePresignedUrlForWrite = async (key: string) => {
 
     if (error) {
         logger.error({ error }, "Could not generate presigned URL");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     // TODO: public url for cloudflare bucket
@@ -109,7 +109,7 @@ const generateMultiplePresignedUrlsForWrite = async (keys: string[]) => {
 
     if (errors.length > 0) {
         logger.error({ keys }, "Could not generate presigned URLs for multiple keys");
-        return Result.error("Could not generate multiple presigned URLs", "InternalError");
+        return Result.error("Could not generate multiple presigned URLs");
     }
 
     // TODO: make partition better
@@ -130,7 +130,7 @@ const generatePresignedUrlForRead = async (key: string) => {
 
     if (error) {
         logger.error({ error }, "Could not generate presigned URL");
-        return Result.error(error.message, "InternalError");
+        return Result.error(error.message);
     }
 
     const result = PresignedUrlResult.from(url, key);
@@ -146,7 +146,7 @@ const generateMultiplePresignedUrlsForRead = async (keys: string[]) => {
 
     if (errors.length > 0) {
         logger.error({ keys }, "Could not generate presigned URLs for multiple keys");
-        return Result.error("Could not generate multiple presigned URLs", "InternalError");
+        return Result.error("Could not generate multiple presigned URLs");
     }
 
     const successResults = allResults.filter(result => result.success);

@@ -1,7 +1,8 @@
-import { Result, wrapAsync } from "@banjoanton/utils";
+import { wrapAsync } from "@banjoanton/utils";
 import { prisma } from "db";
 import { OauthProvider } from "../auth/providers";
 import { createContextLogger } from "../lib/context-logger";
+import { Result } from "common";
 
 const logger = createContextLogger("user-repository");
 
@@ -37,7 +38,7 @@ const createOauthUser = async (props: CreateOauthUserProps) => {
 
     if (error) {
         logger.error({ error, provider, providerUserId, email }, "Error creating oauth user");
-        return Result.error("Error creating oauth user", "InternalError");
+        return Result.error("Error creating oauth user");
     }
 
     logger.info({ provider, providerUserId, email }, "Successfully created oauth user");
@@ -59,7 +60,7 @@ const getOauthByProvider = async (provider: OauthProvider, providerUserId: strin
 
     if (error) {
         logger.error({ error, provider, providerUserId }, "Error getting user by oauth provider");
-        return Result.error("Error getting user by oauth provider", "InternalError");
+        return Result.error("Error getting user by oauth provider");
     }
 
     if (oauth) {
@@ -82,7 +83,7 @@ const getUserByEmail = async (email: string) => {
 
     if (error) {
         logger.error({ error, email }, "Error getting user by email");
-        return Result.error("Error getting user by email", "InternalError");
+        return Result.error("Error getting user by email");
     }
 
     if (user) {
@@ -114,7 +115,7 @@ const addOauthAccount = async (
 
     if (error) {
         logger.error({ error, provider, providerUserId }, "Error adding oauth account");
-        return Result.error("Error adding oauth account", "InternalError");
+        return Result.error("Error adding oauth account");
     }
 
     logger.info({ provider, providerUserId }, "Successfully added oauth account");

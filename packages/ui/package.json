@@ -12,7 +12,7 @@
         "src/styles/globals.css"
     ],
     "devDependencies": {
-        "@banjoanton/utils": "^0.1.86",
+        "@banjoanton/utils": "^0.1.92",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
         "autoprefixer": "^10.4.19",
