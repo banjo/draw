@@ -6,12 +6,14 @@ import {
 } from "@/features/draw/utils/element-visual-utils";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { logger } from "@/utils/logger";
-import { Callback, includes, Maybe } from "@banjoanton/utils";
+import { Callback, first, includes, Maybe } from "@banjoanton/utils";
 import { KeyboardEventHandler, useState } from "react";
 import { CustomDataUtil } from "../../utils/custom-data-util";
 import { NativeToolbarAddElementButton } from "../../models/native/native-toolbar-add-element-button";
 import { useAddElementStore } from "@/stores/use-add-element-store";
 import { Env } from "common";
+import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
+import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 
 type In = {
     handleChangeElementDialogClick: Callback;
@@ -26,6 +28,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const setShowVisualElements = useVisualElementStore(state => state.setShowVisualElements);
     const setMetaKeyIsDown = useVisualElementStore(state => state.setMetaKeyIsDown);
     const setShowAddElementMenu = useAddElementStore(state => state.setShowAddElementMenu);
+    const isEditingCode = useCodeEditorStore(state => state.isEditing);
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
         if (!excalidrawApi) return;
@@ -46,7 +49,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         const addElementKeybindingPressed =
             event.key === NativeToolbarAddElementButton.getKeybinding();
 
-        if (addElementKeybindingPressed && !isEditingText) {
+        if (addElementKeybindingPressed && !isEditingText && !isEditingCode) {
             // do not send key event to new menu input
             setTimeout(() => {
                 setShowAddElementMenu(true);

@@ -9,6 +9,8 @@ type UseCodeEditorStore = {
     getSelectedLanguage: (elementId: string) => CodeEditorLanguage;
     fontSize: number;
     setFontSize: (fontSize: number) => void;
+    isEditing: boolean;
+    setIsEditing: (isEditing: boolean) => void;
 };
 
 export const useCodeEditorStore = create<UseCodeEditorStore>((set, get) => ({
@@ -24,4 +26,6 @@ export const useCodeEditorStore = create<UseCodeEditorStore>((set, get) => ({
         get().selectedLanguages.get(elementId) ?? "JavaScript",
     fontSize: 14,
     setFontSize: (fontSize: number) => set({ fontSize }),
+    isEditing: false,
+    setIsEditing: (isEditing: boolean) => set({ isEditing }),
 }));

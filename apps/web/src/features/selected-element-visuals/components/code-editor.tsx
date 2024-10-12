@@ -6,12 +6,12 @@ import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { CodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { CODE_EDITOR_LANGUAGES } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
-import { Maybe, debounce, includes } from "@banjoanton/utils";
+import { cn } from "@/lib/utils";
+import { includes, Maybe } from "@banjoanton/utils";
+import Editor from "@uiw/react-textarea-code-editor";
 import { CustomData, CustomDataCodeblock } from "common";
 import { useEffect, useRef } from "react";
 import "./code-editor.css";
-import { cn } from "@/lib/utils";
-import Editor from "@uiw/react-textarea-code-editor";
 
 export const CODE_ELEMENT_CLASS = "code-element";
 
@@ -23,6 +23,7 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const fontSize = useCodeEditorStore(state => state.fontSize);
     const editorRef = useRef<HTMLTextAreaElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const setIsEditing = useCodeEditorStore(state => state.setIsEditing);
 
     const onChange = async (value: Maybe<string>) => {
         UpdateElementUtil.mutateElement(element, element => {
@@ -98,6 +99,8 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     language={selectedLanguage.toLowerCase()}
                     data-color-mode="dark"
                     padding={0}
+                    onFocus={() => setIsEditing(true)}
+                    onBlur={() => setIsEditing(false)}
                     onChange={evn => onChange(evn.target.value)}
                     style={{
                         fontSize: fontSizeWithZoom,
