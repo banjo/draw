@@ -42,7 +42,11 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             setMetaKeyIsDown(true);
         }
 
-        if (event.key === NativeToolbarAddElementButton.getKeybinding()) {
+        const isEditingText = state.editingElement?.type === "text";
+        const addElementKeybindingPressed =
+            event.key === NativeToolbarAddElementButton.getKeybinding();
+
+        if (addElementKeybindingPressed && !isEditingText) {
             // do not send key event to new menu input
             setTimeout(() => {
                 setShowAddElementMenu(true);
