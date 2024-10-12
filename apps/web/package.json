@@ -44,7 +44,7 @@
         "zustand": "^4.5.2"
     },
     "devDependencies": {
-        "@banjoanton/utils": "^0.1.92",
+        "@banjoanton/utils": "^0.1.93",
         "@iconify/types": "^2.0.0",
         "@tanstack/eslint-plugin-query": "^4.38.0",
         "@types/node": "^20.14.8",

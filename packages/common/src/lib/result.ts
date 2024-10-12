@@ -1,4 +1,4 @@
-import { createResult } from "@banjoanton/utils";
+import { createResultWithErrorData } from "@banjoanton/utils";
 
 type ResultErrorMap = {
     Unauthorized: undefined;
@@ -6,4 +6,4 @@ type ResultErrorMap = {
 
 type DefaultError = "DefaultError";
 
-export const Result = createResult<ResultErrorMap, DefaultError>();
+export const Result = createResultWithErrorData<ResultErrorMap, DefaultError>();
