@@ -234,26 +234,36 @@ const getParentElementOfGroup = (elements: ExcalidrawElements) => {
 };
 
 const isElementGroup = (elements: ExcalidrawElement[]) => {
-    const isGroupByGroupIds = attempt(() => {
-        const firstElement = first(elements);
-        if (!firstElement) return false;
-        if (firstElement.groupIds.length === 0) return false;
+    const isGroupByGroupIds = attempt(
+        () => {
+            const firstElement = first(elements);
+            if (!firstElement) return false;
+            if (firstElement.groupIds.length === 0) return false;
 
-        const groupIds = firstElement.groupIds;
-        const elementsWithoutFirst = elements.filter(e => e.id !== firstElement.id);
+            const groupIds = firstElement.groupIds;
+            const elementsWithoutFirst = elements.filter(e => e.id !== firstElement.id);
 
-        return elementsWithoutFirst.every(e => e.groupIds.some(id => groupIds.includes(id)));
-    });
+            return elementsWithoutFirst.every(e => e.groupIds.some(id => groupIds.includes(id)));
+        },
+        {
+            fallbackValue: false,
+        }
+    );
 
-    const isGroupByBoundElements = attempt(() => {
-        const boundElementsParent = getParentElementOfGroup(elements);
-        if (!boundElementsParent) return false;
+    const isGroupByBoundElements = attempt(
+        () => {
+            const boundElementsParent = getParentElementOfGroup(elements);
+            if (!boundElementsParent) return false;
 
-        const boundElements = boundElementsParent.boundElements ?? [];
-        const elementsWithoutParent = elements.filter(e => e.id !== boundElementsParent.id);
+            const boundElements = boundElementsParent.boundElements ?? [];
+            const elementsWithoutParent = elements.filter(e => e.id !== boundElementsParent.id);
 
-        return elementsWithoutParent.every(e => boundElements.some(({ id }) => id === e.id));
-    });
+            return elementsWithoutParent.every(e => boundElements.some(({ id }) => id === e.id));
+        },
+        {
+            fallbackValue: false,
+        }
+    );
 
     return isGroupByGroupIds || isGroupByBoundElements;
 };
