@@ -1,6 +1,6 @@
 import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-utils";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { isDefined, Maybe, produce, randomString } from "@banjoanton/utils";
+import { attempt, first, isDefined, Maybe, produce, randomString } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElement, ExcalidrawElements, ExcalidrawLinearElement } from "common";
 
@@ -234,13 +234,28 @@ const getParentElementOfGroup = (elements: ExcalidrawElements) => {
 };
 
 const isElementGroup = (elements: ExcalidrawElement[]) => {
-    const boundElementsParent = getParentElementOfGroup(elements);
-    if (!boundElementsParent) return false;
+    const isGroupByGroupIds = attempt(() => {
+        const firstElement = first(elements);
+        if (!firstElement) return false;
+        if (firstElement.groupIds.length === 0) return false;
 
-    const boundElements = boundElementsParent.boundElements ?? [];
-    const elementsWithoutParent = elements.filter(e => e.id !== boundElementsParent.id);
+        const groupIds = firstElement.groupIds;
+        const elementsWithoutFirst = elements.filter(e => e.id !== firstElement.id);
 
-    return elementsWithoutParent.every(e => boundElements.some(({ id }) => id === e.id));
+        return elementsWithoutFirst.every(e => e.groupIds.some(id => groupIds.includes(id)));
+    });
+
+    const isGroupByBoundElements = attempt(() => {
+        const boundElementsParent = getParentElementOfGroup(elements);
+        if (!boundElementsParent) return false;
+
+        const boundElements = boundElementsParent.boundElements ?? [];
+        const elementsWithoutParent = elements.filter(e => e.id !== boundElementsParent.id);
+
+        return elementsWithoutParent.every(e => boundElements.some(({ id }) => id === e.id));
+    });
+
+    return isGroupByGroupIds || isGroupByBoundElements;
 };
 
 export const ElementUtil = {
