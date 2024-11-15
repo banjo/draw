@@ -224,6 +224,25 @@ const insertBefore = (
     return newElements;
 };
 
+const getParentElementOfGroup = (elements: ExcalidrawElements) => {
+    const boundElementsParent = elements.find(e => {
+        const bounds = e.boundElements ?? [];
+        return bounds.length > 0;
+    });
+
+    return boundElementsParent;
+};
+
+const isElementGroup = (elements: ExcalidrawElement[]) => {
+    const boundElementsParent = getParentElementOfGroup(elements);
+    if (!boundElementsParent) return false;
+
+    const boundElements = boundElementsParent.boundElements ?? [];
+    const elementsWithoutParent = elements.filter(e => e.id !== boundElementsParent.id);
+
+    return elementsWithoutParent.every(e => boundElements.some(({ id }) => id === e.id));
+};
+
 export const ElementUtil = {
     removeDeletedElements,
     resetElement,
@@ -247,4 +266,6 @@ export const ElementUtil = {
     insertAfter,
     mutateInsertBefore,
     insertBefore,
+    getParentElementOfGroup,
+    isElementGroup,
 };

@@ -81,12 +81,15 @@ export const useSelectedElementVisuals = () => {
             return;
         }
 
-        if (selected.length !== 1) {
+        const multipleElementsSelected = selected.length > 1;
+        const isElementGroup = ElementUtil.isElementGroup(selected);
+
+        if (multipleElementsSelected && !isElementGroup) {
             hideAllElements();
             return;
         }
 
-        const selectedElement = first(selected);
+        const selectedElement = ElementUtil.getParentElementOfGroup(selected) ?? first(selected);
 
         if (!selectedElement) {
             hideAllElements();
@@ -146,24 +149,24 @@ export const useSelectedElementVisuals = () => {
 
     const render = () => (
         <>
-            {showChangeElementKeyDialog && (
+            {showChangeElementKeyDialog ? (
                 <ChangeElementKeyDialog
                     changeElementKeyRef={changeElementKeyRef}
                     onClick={handleChangeElementDialogClick}
                 />
-            )}
-            {showSelectElementDialog && (
+            ) : null}
+            {showSelectElementDialog ? (
                 <SelectElementDialog
                     customRef={selectElementRef}
                     closeSelectElementDialog={closeSelectElementDialog}
                 />
-            )}
+            ) : null}
 
-            {showSmartCopyDialog && (
+            {showSmartCopyDialog ? (
                 <SmartCopyKeyDialog keyRef={smartCopyKeyDialogRef} onClick={noop} />
-            )}
+            ) : null}
 
-            {showExtendElements && <ExtendElementsContainer refs={extendElementRefs} />}
+            {showExtendElements ? <ExtendElementsContainer refs={extendElementRefs} /> : null}
         </>
     );
 
