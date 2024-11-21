@@ -52,13 +52,13 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
 
                 <div
                     className={cn(
-                        "p-4 overflow-scroll relative",
+                        "p-4 overflow-scroll relative h-full",
                         isScrollable &&
                             "after:content-[''] after:absolute after:inset-x-0 after:bottom-0 after:h-16 after:bg-gradient-to-t after:from-white after:opacity-50"
                     )}
                     ref={scrollContainerRef}
                 >
-                    {isLoading && "Loading..."}
+                    {isLoading ? "Loading..." : null}
                     <div className="flex flex-col gap-3">
                         {data?.map(({ name, slug, isOwner }) => (
                             <DrawingCard
