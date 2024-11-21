@@ -4,16 +4,14 @@ import {
     ElementExtensionShadow,
     ElementVisualUtils,
 } from "@/features/draw/utils/element-visual-utils";
+import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
+import { useAddElementStore } from "@/stores/use-add-element-store";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { logger } from "@/utils/logger";
-import { Callback, first, includes, Maybe } from "@banjoanton/utils";
+import { Callback, includes, Maybe } from "@banjoanton/utils";
 import { KeyboardEventHandler, useState } from "react";
-import { CustomDataUtil } from "../../utils/custom-data-util";
 import { NativeToolbarAddElementButton } from "../../models/native/native-toolbar-add-element-button";
-import { useAddElementStore } from "@/stores/use-add-element-store";
-import { Env } from "common";
-import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
-import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
+import { CustomDataUtil } from "../../utils/custom-data-util";
 
 type In = {
     handleChangeElementDialogClick: Callback;
@@ -53,7 +51,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             // do not send key event to new menu input
             setTimeout(() => {
                 setShowAddElementMenu(true);
-            }, 0);
+            }, 100);
             return;
         }
 
