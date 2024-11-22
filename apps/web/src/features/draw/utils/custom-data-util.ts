@@ -1,4 +1,4 @@
-import { includes, uniq } from "@banjoanton/utils";
+import { includes } from "@banjoanton/utils";
 import { ExcalidrawElement, ModelType } from "common";
 import { ElementUtil } from "./element-util";
 

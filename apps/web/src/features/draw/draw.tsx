@@ -12,14 +12,15 @@ import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
+import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
-import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useAddElement } from "../add-element/hooks/use-add-element";
 import { SignInModal } from "./components/sign-in-modal";
-import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
+import { useCleanup } from "./hooks/utils/use-cleanup";
+import { useOnPaste } from "./hooks/utils/use-on-paste";
 
 type DrawProps = {
     slug?: string;
@@ -79,6 +80,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const { onContextMenu } = useContextMenu();
 
     const { cleanup } = useCleanup();
+    const { handleOnPaste } = useOnPaste();
 
     const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
         if (!excalidrawApi) return;
@@ -105,11 +107,12 @@ export const Draw = ({ slug }: DrawProps) => {
                     excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}
                     // @ts-ignore - better local typings
                     onChange={handleOnChange}
+                    onPaste={handleOnPaste}
                     onLibraryChange={onLibraryChange}
                     isCollaborating={isCollaborating}
                     onPointerUpdate={onPointerUpdate}
                     handleKeyboardGlobally={false}
-                    autoFocus={true}
+                    autoFocus
                     // @ts-ignore - better local typings
                     initialData={{ elements, scrollToContent: true, libraryItems: library }}
                     UIOptions={{
