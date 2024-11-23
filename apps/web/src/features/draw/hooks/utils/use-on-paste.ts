@@ -10,7 +10,7 @@ export const useOnPaste = () => {
     const { excalidrawApi } = useGlobal();
     const handleOnPaste = (
         data: ClipboardData,
-        event: ClipboardEvent | null
+        _: ClipboardEvent | null
     ): Promise<boolean> | boolean => {
         if (!excalidrawApi) return true;
         const copiedElements = data.elements as Maybe<ExcalidrawElement[]>;
@@ -19,14 +19,12 @@ export const useOnPaste = () => {
         const allElements = excalidrawApi.getSceneElements();
         const appState = excalidrawApi.getAppState();
 
-        // Update custom data group id to avoid conflicts on copy
         const [containerModels, otherElements] = partition(
             copiedElements,
             CustomDataUtil.isModelContainerElement
         );
 
-        console.log({ event });
-
+        // Update custom data group id to avoid conflicts on copy
         if (!isEmpty(containerModels)) {
             const offset = 20;
             for (const container of containerModels) {
