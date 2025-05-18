@@ -2,13 +2,9 @@
 
 **BanjoDraw** is a simple drawing board built on top of [Excalidraw](https://excalidraw.com/), adding a handful of useful features for individuals. Enjoy real-time collaboration, persistent boards, quick icon and emoji insertion, and more—all while keeping the familiar Excalidraw experience.
 
----
-
 ## 🚀 Demo
 
 Try it out: [draw.banjoanton.com](https://draw.banjoanton.com)
-
----
 
 ## ✨ Features
 
@@ -33,8 +29,6 @@ Try it out: [draw.banjoanton.com](https://draw.banjoanton.com)
 
 - **Quick Add**  
      Instantly add icons and emojis to your board with just a click.
-
----
 
 ## 🛠️ Development
 
@@ -66,8 +60,6 @@ pnpm run build
 pnpm run preview
 ```
 
----
-
 ## 🛠️ Development Notes
 
 - **Monorepo** managed with [pnpm workspaces](https://pnpm.io/workspaces) and [Turborepo](https://turbo.build/)
@@ -75,12 +67,6 @@ pnpm run preview
 - **Backend**: Node.js, tRPC, Prisma, Lucia Auth, REST, WebSockets
 - **Frontend**: React, Vite, Tailwind, tRPC, modular features
 
----
-
 ## 🤝 Contributing
 
 Pull requests and issues are welcome!
-
----
-
-> _BanjoDraw: Draw, collaborate, and build diagrams together — with a little extra twang!_
