@@ -4,7 +4,7 @@ import { NativeContextMenu } from "@/features/draw/models/native/native-context-
 import { ElementUtil } from "@/features/draw/utils/element-util";
 
 export const useContextMenu = () => {
-    const { exportPngToClipboard, exportSvgToClipboard } = useExport();
+    const { exportToClipboard } = useExport();
     const { excalidrawApi } = useGlobal();
 
     const onContextMenu = async (e: React.MouseEvent) => {
@@ -24,7 +24,12 @@ export const useContextMenu = () => {
                 label: hasSelection
                     ? "Copy selection to clipboard as PNG"
                     : "Copy to clipboard as PNG",
-                onClick: exportPngToClipboard,
+                onClick: () =>
+                    exportToClipboard({
+                        useDarkMode: false,
+                        exportBackground: false,
+                        format: "png",
+                    }),
             });
 
             NativeContextMenu.updateEntry({
@@ -32,7 +37,12 @@ export const useContextMenu = () => {
                 label: hasSelection
                     ? "Copy selection to clipboard as SVG"
                     : "Copy to clipboard as SVG",
-                onClick: exportSvgToClipboard,
+                onClick: () =>
+                    exportToClipboard({
+                        useDarkMode: false,
+                        exportBackground: false,
+                        format: "svg",
+                    }),
             });
         }, 0);
     };

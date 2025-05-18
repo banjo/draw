@@ -21,6 +21,8 @@ import { useAddElement } from "../add-element/hooks/use-add-element";
 import { SignInModal } from "./components/sign-in-modal";
 import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useOnPaste } from "./hooks/utils/use-on-paste";
+import { useExportModalStore } from "@/stores/use-export-modal-store";
+import { ExportModal } from "@/features/draw/components/export-modal";
 
 type DrawProps = {
     slug?: string;
@@ -36,6 +38,9 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
     const showSignInModal = useSignInModalStore(s => s.showSignInModal);
+
+    const setShowExportModal = useExportModalStore(s => s.setShowExportModal);
+    const showExportModal = useExportModalStore(s => s.showExportModal);
 
     useInit({ slug });
 
@@ -94,7 +99,12 @@ export const Draw = ({ slug }: DrawProps) => {
     return (
         <>
             {renderAddElement()}
-            <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
+            {showSignInModal ? (
+                <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
+            ) : null}
+            {showExportModal ? (
+                <ExportModal setShow={setShowExportModal} show={showExportModal} />
+            ) : null}
             <div
                 style={{ height: "100dvh" }}
                 onKeyDown={handleKeyDown}
