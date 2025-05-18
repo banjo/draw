@@ -4,29 +4,35 @@
 
 ---
 
+## 🚀 Demo
+
+Try it out: [draw.banjoanton.com](https://draw.banjoanton.com)
+
+---
+
 ## ✨ Features
 
 - **Real-Time Collaboration**  
-    Draw, edit, and brainstorm together with others instantly via WebSockets.
+     Draw, edit, and brainstorm together with others instantly via WebSockets.
 
 - **Persistent Boards**  
-    Save unlimited boards and images to your account. Your work is always available.
+     Save unlimited boards and images to your account. Your work is always available.
 
 - **Authentication & Sync**  
-    Log in with GitHub or Google. Sync your favorites and boards across devices.
+     Log in with GitHub or Google. Sync your favorites and boards across devices.
 
 - **Rich Element Library**  
-    Use and extend with custom elements:
+     Use and extend with custom elements:
 
   - Database models
   - Code blocks (with syntax highlighting)
   - Smart copy & extend
 
 - **Image Support**  
-    Upload, share, and manage images directly on your boards.
+     Upload, share, and manage images directly on your boards.
 
 - **Quick Add**  
-    Instantly add icons and emojis to your board with just a click.
+     Instantly add icons and emojis to your board with just a click.
 
 ---
 
@@ -74,3 +80,7 @@ pnpm run preview
 ## 🤝 Contributing
 
 Pull requests and issues are welcome!
+
+---
+
+> _BanjoDraw: Draw, collaborate, and build diagrams together — with a little extra twang!_
