@@ -11,9 +11,9 @@ type ExportModalProps = {
 };
 
 export const ExportModal = ({ setShow, show }: ExportModalProps) => {
-    const { exportToCanvas, exportToPng, exportToSvg, exportToClipboard } = useExport();
+    const { exportToCanvas, exportToPng, exportToSvg, exportToClipboard, getPng } = useExport();
 
-    const [canvas, setCanvas] = useState<HTMLCanvasElement | undefined>();
+    const [png, setPng] = useState<string | undefined>();
     const [useDarkMode, setUseDarkMode] = useState(false);
     const [exportBackground, setExportBackground] = useState(false);
 
@@ -24,15 +24,15 @@ export const ExportModal = ({ setShow, show }: ExportModalProps) => {
                 useDarkMode,
                 format: "png", // does not matter for canvas
             };
-            const element = await exportToCanvas(opts);
+            const element = await getPng(opts);
 
-            if (!canvas && element) {
-                setCanvas(element);
+            if (element) {
+                setPng(element);
             }
         };
 
         fetchCanvas();
-    }, [exportToCanvas, canvas, useDarkMode, exportBackground]);
+    }, [exportToCanvas, png, useDarkMode, exportBackground]);
 
     const onClose = () => {
         NativeContainer.parse();
@@ -49,16 +49,11 @@ export const ExportModal = ({ setShow, show }: ExportModalProps) => {
                     </Modal.Description>
                 </Modal.Header>
                 <Modal.Body className="grid gap-4">
-                    <div className="flex items-center justify-between border p-4 rounded-lg">
-                        {canvas ? (
-                            <canvas
-                                ref={node => {
-                                    if (node) {
-                                        node.replaceWith(canvas);
-                                        canvas.style.width = "100%";
-                                        canvas.style.height = "100%";
-                                    }
-                                }}
+                    <div className="flex items-center justify-between border overflow-auto rounded-lg">
+                        {png ? (
+                            <img
+                                src={png}
+                                alt="Exported PNG"
                                 style={{ width: "100%", height: "100%" }}
                             />
                         ) : (
@@ -67,23 +62,11 @@ export const ExportModal = ({ setShow, show }: ExportModalProps) => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        <Switch
-                            id="dark-mode"
-                            checked={useDarkMode}
-                            onCheckedChange={checked => {
-                                setUseDarkMode(checked);
-                            }}
-                        />
+                        <Switch id="dark-mode" onCheckedChange={setUseDarkMode} />
                         <Label htmlFor="dark-mode">Dark Mode</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Switch
-                            id="use-background"
-                            checked={exportBackground}
-                            onCheckedChange={checked => {
-                                setExportBackground(checked);
-                            }}
-                        />
+                        <Switch id="use-background" onCheckedChange={setExportBackground} />
                         <Label htmlFor="use-background">Use Background</Label>
                     </div>
 

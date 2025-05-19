@@ -119,16 +119,32 @@ export const useExport = () => {
         return canvas;
     };
 
-    const exportToPng = async (opts: ExportOpts) => {
+    const getPng = async (opts: ExportOpts) => {
         if (!excalidrawApi) return;
-        const canvas = await exportToCanvas(opts);
-        if (!canvas) return;
 
-        const fileName = getFileName("png");
-        FileUtil.downloadImage(canvas.toDataURL("image/png"), fileName);
+        const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, opts);
+
+        const canvas = await exportToCanvasLocal({
+            // @ts-ignore - wrong with local types
+            elements,
+            files,
+            appState,
+            exportPadding,
+        });
+
+        return canvas.toDataURL("image/png");
     };
 
-    const exportToSvg = async (opts: ExportOpts) => {
+    const exportToPng = async (opts: ExportOpts) => {
+        if (!excalidrawApi) return;
+        const png = await getPng(opts);
+        if (!png) return;
+
+        const fileName = getFileName("png");
+        FileUtil.downloadImage(png, fileName);
+    };
+
+    const getSvg = async (opts: ExportOpts) => {
         if (!excalidrawApi) return;
 
         const { appState, elements, exportPadding, files } = await prepare(excalidrawApi, opts);
@@ -141,6 +157,15 @@ export const useExport = () => {
             exportPadding,
         });
 
+        return svg;
+    };
+
+    const exportToSvg = async (opts: ExportOpts) => {
+        if (!excalidrawApi) return;
+
+        const svg = await getSvg(opts);
+        if (!svg) return;
+
         const serializer = new XMLSerializer();
         const svgString = serializer.serializeToString(svg);
         const blob = new Blob([svgString], { type: "image/svg+xml" });
@@ -150,5 +175,5 @@ export const useExport = () => {
         FileUtil.downloadImage(url, fileName);
     };
 
-    return { exportToPng, exportToSvg, exportToCanvas, exportToClipboard };
+    return { getSvg, getPng, exportToPng, exportToSvg, exportToCanvas, exportToClipboard };
 };
