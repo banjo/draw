@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button, Label, Switch } from "ui";
 import { NativeContainer } from "../models/native/native-container";
 import toast from "react-hot-toast";
+import { useTheme } from "@/providers/theme-provider";
 
 type ExportModalProps = {
     setShow: (show: boolean) => void;
@@ -14,8 +15,9 @@ type ExportModalProps = {
 export const ExportModal = ({ setShow, show }: ExportModalProps) => {
     const { exportToCanvas, exportToPng, exportToSvg, exportToClipboard, getPng } = useExport();
 
+    const { theme } = useTheme();
     const [png, setPng] = useState<string | undefined>();
-    const [useDarkMode, setUseDarkMode] = useState(false);
+    const [useDarkMode, setUseDarkMode] = useState(() => theme === "dark");
     const [exportBackground, setExportBackground] = useState(false);
 
     useEffect(() => {
@@ -63,7 +65,11 @@ export const ExportModal = ({ setShow, show }: ExportModalProps) => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        <Switch id="dark-mode" onCheckedChange={setUseDarkMode} />
+                        <Switch
+                            id="dark-mode"
+                            onCheckedChange={setUseDarkMode}
+                            checked={useDarkMode}
+                        />
                         <Label htmlFor="dark-mode">Dark Mode</Label>
                     </div>
                     <div className="flex items-center space-x-2">

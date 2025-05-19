@@ -21,7 +21,7 @@ const Background = ({ children, className, refObject, ...props }: BackgroundProp
         ref={refObject}
         tabIndex={-1}
         className={cn(
-            "fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 flex-col",
+            "fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-50 flex-col",
             className
         )}
     >
@@ -83,7 +83,13 @@ const Container = (props: ModalProps) => {
 
 type ContentProps = PropsWithChildren & HTMLAttributes<HTMLDivElement>;
 const Content = ({ children, className, ...props }: ContentProps) => (
-    <div {...props} className={cn("bg-white p-4 rounded-md shadow-lg mt-2", className)}>
+    <div
+        {...props}
+        className={cn(
+            "bg-white dark:bg-gray-900 dark:text-gray-100 p-4 rounded-md shadow-lg mt-2",
+            className
+        )}
+    >
         {children}
     </div>
 );
@@ -99,7 +105,7 @@ const Header = ({ children, onClose, className, ...props }: HeaderProps) => (
         {onClose ? (
             <X
                 onClick={onClose}
-                className="absolute top-0 right-0 cursor-pointer"
+                className="absolute top-0 right-0 cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 aria-label="Close modal"
             />
         ) : null}
@@ -108,14 +114,14 @@ const Header = ({ children, onClose, className, ...props }: HeaderProps) => (
 
 type TitleProps = PropsWithChildren & HTMLAttributes<HTMLHeadingElement>;
 const Title = ({ children, className, ...props }: TitleProps) => (
-    <h2 {...props} className={cn("text-lg font-bold", className)}>
+    <h2 {...props} className={cn("text-lg font-bold text-gray-900 dark:text-gray-100", className)}>
         {children}
     </h2>
 );
 
 type DescriptionProps = PropsWithChildren & HTMLAttributes<HTMLParagraphElement>;
 const Description = ({ children, className, ...props }: DescriptionProps) => (
-    <p {...props} className={cn("text-gray-500 mt-1", className)}>
+    <p {...props} className={cn("text-gray-500 dark:text-gray-400 mt-1", className)}>
         {children}
     </p>
 );
