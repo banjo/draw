@@ -164,7 +164,7 @@ export const AddElementContainer = () => {
                 <input
                     value={search}
                     onChange={onInputChange}
-                    className="border border-gray-300 bg-white h-10 px-5 rounded-md text-sm focus:outline-none w-full"
+                    className="border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white h-10 px-5 rounded-md text-sm focus:outline-none w-full"
                     type="search"
                     name="search"
                     placeholder="Search..."

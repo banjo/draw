@@ -56,10 +56,10 @@ const CodeEditorMenu = ({ element }: Props) => {
 
     return (
         <div className="flex gap-2 items-center absolute z-[3] pointer-events-auto h-full ">
-            <div className="bg-[#ECECF4] rounded-lg flex items-center gap-4">
+            <div className="bg-[#ECECF4] dark:bg-[#23232A] rounded-lg flex items-center gap-4">
                 <select
                     value={getSelectedLanguage(element.id)}
-                    className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"
+                    className="p-2 bg-[#ECECF4] dark:bg-[#23232A] rounded-lg border-none focus:outline-none focus-visible:outline-none"
                     onChange={e => updateLanguage(e.target.value as CodeEditorLanguage)}
                 >
                     {CODE_EDITOR_LANGUAGES.map(language => (
@@ -71,7 +71,7 @@ const CodeEditorMenu = ({ element }: Props) => {
             </div>
             <select
                 value={selectedFontSize}
-                className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"
+                className="p-2 bg-[#ECECF4] dark:bg-[#23232A] rounded-lg border-none focus:outline-none focus-visible:outline-none"
                 onChange={e => updateFontSize(e.target.value)}
             >
                 {FONT_SIZES.map(fontSizes => (

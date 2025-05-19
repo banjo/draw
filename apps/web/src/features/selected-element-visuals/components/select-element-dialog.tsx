@@ -11,8 +11,8 @@ export const SelectElementDialog = ({ customRef, closeSelectElementDialog }: Pro
     <div
         ref={customRef}
         className="absolute z-[4] flex p-2 
-                        bg-white border shadow-lg
-                        rounded-md font-thin text-xs text-[#1B1B1F] hover:cursor-pointer"
+                        bg-white dark:bg-gray-800 border shadow-lg
+                        rounded-md font-thin text-xs text-[#1B1B1F] dark:text-white hover:cursor-pointer"
     >
         <SelectElementShapeContainer closeSelectElementDialog={closeSelectElementDialog} />
     </div>

@@ -31,15 +31,15 @@ const ListItemWithoutMemo = ({
             ref={refObject}
             onClick={() => onClick?.(item)}
             className={cn(
-                `px-4 py-2 border border-gray-300 bg-white rounded-md w-full hover:bg-gray-100 hover:cursor-pointer`,
+                `px-4 py-2 border border-gray-300 bg-white rounded-md w-full hover:bg-gray-100 hover:cursor-pointer dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700`,
                 selectedStyle
             )}
         >
             <div className="flex gap-4 items-center">
                 {MemoIcon ? <MemoIcon /> : null}
                 <div className="flex flex-col items-start">
-                    <span className="text-sm">{title}</span>
-                    <span className="text-gray-600 text-xs">{description}</span>
+                    <span className="text-sm text-gray-900 dark:text-gray-100">{title}</span>
+                    <span className="text-gray-600 text-xs dark:text-gray-400">{description}</span>
                 </div>
             </div>
         </div>
@@ -65,7 +65,7 @@ const ListContainer = ({ children }: PropsWithChildren) => (
 type ComponentContainerProps = HTMLAttributes<HTMLDivElement> & PropsWithChildren;
 
 const ComponentContainer = ({ children, ...props }: ComponentContainerProps) => (
-    <div {...props} className="bg-white rounded-md shadow-lg w-80 h-[410px] p-4">
+    <div {...props} className="bg-white dark:bg-gray-800 rounded-md shadow-lg w-80 h-[410px] p-4">
         {children}
     </div>
 );

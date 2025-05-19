@@ -21,7 +21,9 @@ export const SelectElementShapeIcon = ({
         <div
             className={cn(`p-1 border w-12 h-12 grid place-items-center rounded-lg 
             border-none focus:outline-none focus-visible:outline-none, ${
-                isSelected ? "bg-[#E0DFFF]" : "hover:bg-[#E0DFFF]"
+                isSelected
+                    ? "bg-[#E0DFFF] dark:bg-[#3B3B3B]"
+                    : "hover:bg-[#E0DFFF] dark:hover:bg-[#3B3B3B]"
             } `)}
             tabIndex={0}
             onClick={handleButtonClick}
