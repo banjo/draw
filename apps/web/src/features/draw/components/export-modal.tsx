@@ -4,6 +4,7 @@ import { ClipboardCopy, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button, Label, Switch } from "ui";
 import { NativeContainer } from "../models/native/native-container";
+import toast from "react-hot-toast";
 
 type ExportModalProps = {
     setShow: (show: boolean) => void;
@@ -107,6 +108,7 @@ export const ExportModal = ({ setShow, show }: ExportModalProps) => {
                                 useDarkMode,
                                 format: "png",
                             });
+                            toast.success("Copied to clipboard");
                         }}
                         variant="outline"
                         className="w-full"
