@@ -6,6 +6,7 @@ import { useRef } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { EditableLabel, ResponsiveIcon } from "ui";
+import React from "react";
 
 type Props = {
     cardSlug: string;
@@ -78,7 +79,7 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
             />
 
             <div className="ml-auto flex gap-2">
-                {isOwner && (
+                {isOwner ? (
                     <ResponsiveIcon
                         Icon={EditIcon}
                         onClick={startEditing}
@@ -86,7 +87,7 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
                         tooltip="Change name"
                         enableTooltip
                     />
-                )}
+                ) : null}
 
                 <ResponsiveIcon
                     Icon={TrashIcon}

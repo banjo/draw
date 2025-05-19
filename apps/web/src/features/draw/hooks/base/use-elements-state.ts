@@ -1,6 +1,6 @@
 import { useGlobal } from "@/contexts/global-context";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
-import { Maybe, debounce, first } from "@banjoanton/utils";
+import { debounce, first, Maybe } from "@banjoanton/utils";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { ExcalidrawElements } from "common";
 import { useEffect, useMemo, useState } from "react";
@@ -25,11 +25,13 @@ export const useElementsState = ({ slug }: In) => {
         return localStorageElements ?? [];
     });
 
-    const debouncedSetElements: (updatedElements: ExcalidrawElements) => void = useMemo(() => {
-        return debounce((updatedElements: ExcalidrawElements) => {
-            setElements(updatedElements);
-        }, 300);
-    }, []);
+    const debouncedSetElements: (updatedElements: ExcalidrawElements) => void = useMemo(
+        () =>
+            debounce((updatedElements: ExcalidrawElements) => {
+                setElements(updatedElements);
+            }, 300),
+        []
+    );
 
     useEffect(() => {
         if (slug) return;

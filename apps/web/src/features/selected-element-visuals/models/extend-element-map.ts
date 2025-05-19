@@ -1,4 +1,5 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
+import React from "react";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 
 const DISTANCE_FROM_LINE = 30;
@@ -63,6 +64,4 @@ const positionMap: Record<ArrowKey, Handler> = {
     },
 };
 
-export const getExtendElementHandler = (type: ArrowKey) => {
-    return positionMap[type];
-};
+export const getExtendElementHandler = (type: ArrowKey) => positionMap[type];

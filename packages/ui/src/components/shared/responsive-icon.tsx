@@ -1,8 +1,9 @@
 import { isEmpty, noop } from "@banjoanton/utils";
 import { FC } from "react";
 import { cn } from "../../utils";
-import { IconSize, IconType, iconSizeMapper } from "./icons";
+import { IconSize, iconSizeMapper, IconType } from "./icons";
 import { Tooltip } from "./tooltip";
+import React from "react";
 
 type FilterIconProps = {
     Icon: IconType;
@@ -22,19 +23,17 @@ export const ResponsiveIcon: FC<FilterIconProps> = ({
     enableTooltip = true,
     size = "sm",
     className,
-}) => {
-    return (
-        <Tooltip tooltip={tooltip} enabled={enableTooltip && !isEmpty(tooltip)}>
-            <Icon
-                className={cn(
-                    `${iconSizeMapper[size]} 
+}) => (
+    <Tooltip tooltip={tooltip} enabled={enableTooltip ? !isEmpty(tooltip) : null}>
+        <Icon
+            className={cn(
+                `${iconSizeMapper[size]} 
                     active:opacity-40 
                     ${disabled ? "opacity-30" : "cursor-pointer hover:opacity-70 outline-none"}`,
-                    className
-                )}
-                onClick={disabled ? noop : onClick}
-                disabled={disabled ?? false}
-            />
-        </Tooltip>
-    );
-};
+                className
+            )}
+            onClick={disabled ? noop : onClick}
+            disabled={disabled ?? false}
+        />
+    </Tooltip>
+);

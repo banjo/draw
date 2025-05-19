@@ -1,5 +1,5 @@
-export const waitForElement = (querySelector: string, timeInMs = 100) => {
-    return new Promise<Element | null>(resolve => {
+export const waitForElement = (querySelector: string, timeInMs = 100) =>
+    new Promise<Element | null>(resolve => {
         const interval = setInterval(() => {
             const element = document.querySelector(querySelector);
             if (element) {
@@ -8,4 +8,3 @@ export const waitForElement = (querySelector: string, timeInMs = 100) => {
             }
         }, timeInMs);
     });
-};

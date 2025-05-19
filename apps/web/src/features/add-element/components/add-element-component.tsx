@@ -36,7 +36,7 @@ const ListItemWithoutMemo = ({
             )}
         >
             <div className="flex gap-4 items-center">
-                {MemoIcon && <MemoIcon />}
+                {MemoIcon ? <MemoIcon /> : null}
                 <div className="flex flex-col items-start">
                     <span className="text-sm">{title}</span>
                     <span className="text-gray-600 text-xs">{description}</span>

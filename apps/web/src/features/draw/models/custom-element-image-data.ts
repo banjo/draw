@@ -34,8 +34,8 @@ const fromHtmlElement = async (
     return { data, element, mimeType, binaryFileData, htmlElement };
 };
 
-const toExcalidrawImageElement = ({ element, binaryFileData }: CustomElementImageData) => {
-    return ElementCreationUtil.createImage({
+const toExcalidrawImageElement = ({ element, binaryFileData }: CustomElementImageData) =>
+    ElementCreationUtil.createImage({
         base: {
             height: element.height,
             width: element.width,
@@ -44,6 +44,5 @@ const toExcalidrawImageElement = ({ element, binaryFileData }: CustomElementImag
         },
         fileId: binaryFileData.id,
     });
-};
 
 export const CustomElementImageData = { fromHtmlElement, toExcalidrawImageElement };

@@ -2,6 +2,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { useExport } from "@/features/draw/hooks/base/use-export";
 import { NativeContextMenu } from "@/features/draw/models/native/native-context-menu";
 import { ElementUtil } from "@/features/draw/utils/element-util";
+import React from "react";
 
 export const useContextMenu = () => {
     const { exportToClipboard } = useExport();

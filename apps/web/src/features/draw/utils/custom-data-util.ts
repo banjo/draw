@@ -2,9 +2,7 @@ import { includes } from "@banjoanton/utils";
 import { ExcalidrawElement, ModelType } from "common";
 import { ElementUtil } from "./element-util";
 
-const isCodeBlockElement = (element: ExcalidrawElement) => {
-    return element.customData?.type === "codeblock";
-};
+const isCodeBlockElement = (element: ExcalidrawElement) => element.customData?.type === "codeblock";
 
 const isAnyModelElement = (element: ExcalidrawElement) => {
     if (!element.customData) return false;
@@ -12,13 +10,11 @@ const isAnyModelElement = (element: ExcalidrawElement) => {
     return includes(modelElements, element.customData?.type);
 };
 
-const isModelContainerElement = (element: ExcalidrawElement) => {
-    return element.customData?.type === "model";
-};
+const isModelContainerElement = (element: ExcalidrawElement) =>
+    element.customData?.type === "model";
 
-const isModelTextElement = (element: ExcalidrawElement) => {
-    return element.customData?.type === "model-child" && element.type === "text";
-};
+const isModelTextElement = (element: ExcalidrawElement) =>
+    element.customData?.type === "model-child" && element.type === "text";
 
 const isModelElements = (elements: ExcalidrawElement[]) => {
     const groupIds = elements.flatMap(e => e.groupIds);
@@ -36,9 +32,7 @@ const isModelElements = (elements: ExcalidrawElement[]) => {
     return Boolean(container);
 };
 
-const isShadowElement = (element: ExcalidrawElement) => {
-    return element.customData?.shadow === true;
-};
+const isShadowElement = (element: ExcalidrawElement) => element.customData?.shadow === true;
 
 export const CustomDataUtil = {
     isCodeBlockElement,

@@ -1,11 +1,19 @@
 import { isDefined } from "@banjoanton/utils";
 import { X } from "lucide-react";
-import { HTMLAttributes, PropsWithChildren, useEffect, useRef } from "react";
+import {
+    HTMLAttributes,
+    KeyboardEvent,
+    MouseEvent,
+    PropsWithChildren,
+    RefObject,
+    useEffect,
+    useRef,
+} from "react";
 import { cn } from "ui";
 
 type BackgroundProps = PropsWithChildren &
     HTMLAttributes<HTMLDivElement> & {
-        refObject?: React.RefObject<HTMLDivElement>;
+        refObject?: RefObject<HTMLDivElement>;
     };
 const Background = ({ children, className, refObject, ...props }: BackgroundProps) => (
     <div
@@ -22,9 +30,9 @@ const Background = ({ children, className, refObject, ...props }: BackgroundProp
 );
 
 type ModalProps = PropsWithChildren & {
-    onOutsideClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
-    onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-    onEscape?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+    onOutsideClick?: (e: MouseEvent<HTMLDivElement>) => void;
+    onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
+    onEscape?: (e: KeyboardEvent<HTMLDivElement>) => void;
     setShow: (show: boolean) => void;
     onClose?: () => void;
     show?: boolean;
@@ -44,7 +52,7 @@ const Container = (props: ModalProps) => {
         return null;
     }
 
-    const onOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const onOutsideClick = (e: MouseEvent<HTMLDivElement>) => {
         props.onOutsideClick?.(e);
         if (e.target === e.currentTarget) {
             props.onClose?.();
@@ -52,7 +60,7 @@ const Container = (props: ModalProps) => {
         }
     };
 
-    const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
         props.onKeyDown?.(e);
         if (e.key === "Escape") {
             props.onEscape?.(e);
@@ -88,13 +96,13 @@ type HeaderProps = PropsWithChildren &
 const Header = ({ children, onClose, className, ...props }: HeaderProps) => (
     <div {...props} className={cn("relative flex-col justify-between items-start", className)}>
         {children}
-        {onClose && (
+        {onClose ? (
             <X
                 onClick={onClose}
                 className="absolute top-0 right-0 cursor-pointer"
                 aria-label="Close modal"
             />
-        )}
+        ) : null}
     </div>
 );
 

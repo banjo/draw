@@ -18,7 +18,7 @@ const createAppRouter = () =>
                 },
                 {
                     path: "*",
-                    element: <Navigate to={"/"} />,
+                    element: <Navigate to="/" />,
                 },
             ],
         },

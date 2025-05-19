@@ -11,7 +11,7 @@ export const useKeyboardNavigation = <T>({ itemsToNavigate, onClick }: Props<T>)
 
     const resetSelectedIndex = () => setSelectedIndex(0);
 
-    const handleKeyboardNavigation = (e: React.KeyboardEvent) => {
+    const handleKeyboardNavigation = (e: KeyboardEvent) => {
         let newValue = 0;
 
         if (e.key === "ArrowUp") {

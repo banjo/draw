@@ -14,7 +14,7 @@ import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { ExtendElementButton } from "@/features/selected-element-visuals/components/extend-element-button";
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { logger } from "@/utils/logger";
-import { Maybe, first, isDefined } from "@banjoanton/utils";
+import { first, isDefined, Maybe } from "@banjoanton/utils";
 import { ExcalidrawBindableElement } from "@excalidraw/excalidraw/types/element/types";
 import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
 import { ExcalidrawLinearElement } from "common";

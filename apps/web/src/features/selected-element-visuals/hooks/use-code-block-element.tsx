@@ -7,7 +7,7 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { CodeEditor } from "@/features/selected-element-visuals/components/code-editor";
 import { CodeEditorMenuContainer } from "@/features/selected-element-visuals/components/code-editor-menu";
-import { Maybe, first, isEqual } from "@banjoanton/utils";
+import { first, isEqual, Maybe } from "@banjoanton/utils";
 import { ExcalidrawElement } from "common";
 import { useState } from "react";
 
@@ -73,16 +73,10 @@ export const useCodeBlockElement = () => {
 
         return (
             <>
-                {codeBlockElements.map(({ element, style }) => {
-                    return (
-                        <CodeEditor
-                            key={"code-block" + element.id}
-                            style={style}
-                            element={element}
-                        />
-                    );
-                })}
-                {selectedElement && <CodeEditorMenuContainer element={selectedElement} />}
+                {codeBlockElements.map(({ element, style }) => (
+                    <CodeEditor key={`code-block${element.id}`} style={style} element={element} />
+                ))}
+                {selectedElement ? <CodeEditorMenuContainer element={selectedElement} /> : null}
             </>
         );
     };

@@ -12,6 +12,7 @@ import Editor from "@uiw/react-textarea-code-editor";
 import { CustomData, CustomDataCodeblock } from "common";
 import { useEffect, useRef } from "react";
 import "./code-editor.css";
+import React from "react";
 
 export const CODE_ELEMENT_CLASS = "code-element";
 

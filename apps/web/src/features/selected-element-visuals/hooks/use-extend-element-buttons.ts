@@ -4,6 +4,7 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { getExtendElementHandler } from "@/features/selected-element-visuals/models/extend-element-map";
 import { ExcalidrawElement } from "common";
+import React from "react";
 import { useRef, useState } from "react";
 
 export type ExtendElementRefSummary = { ref: React.RefObject<HTMLDivElement>; position: ArrowKey };

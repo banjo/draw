@@ -6,17 +6,15 @@ type Props = PropsWithChildren<{
     className?: string;
 }>;
 
-export const KeyboardButton = ({ onClick, children, className }: Props) => {
-    return (
-        <button
-            onClick={onClick}
-            className={cn(
-                "flex items-center justify-center rounded-lg border-2 bg-[#FAFBFC] border-[#CED4DB] py-1 px-2",
-                "select-none",
-                className
-            )}
-        >
-            {children}
-        </button>
-    );
-};
+export const KeyboardButton = ({ onClick, children, className }: Props) => (
+    <button
+        onClick={onClick}
+        className={cn(
+            "flex items-center justify-center rounded-lg border-2 bg-[#FAFBFC] border-[#CED4DB] py-1 px-2",
+            "select-none",
+            className
+        )}
+    >
+        {children}
+    </button>
+);

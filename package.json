@@ -27,7 +27,7 @@
     "license": "ISC",
     "devDependencies": {
         "@antfu/ni": "^0.21.12",
-        "@banjoanton/eslint-config": "^0.2.10",
+        "@banjoanton/eslint-config": "^0.2.19",
         "@banjoanton/prettier-config": "^0.1.10",
         "@banjoanton/typescript-config": "^0.0.1",
         "dotenv": "^16.4.5",

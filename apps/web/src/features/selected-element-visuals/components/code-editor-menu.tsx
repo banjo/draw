@@ -56,7 +56,7 @@ const CodeEditorMenu = ({ element }: Props) => {
 
     return (
         <div className="flex gap-2 items-center absolute z-[3] pointer-events-auto h-full ">
-            <div className={`bg-[#ECECF4] rounded-lg flex items-center gap-4`}>
+            <div className="bg-[#ECECF4] rounded-lg flex items-center gap-4">
                 <select
                     value={getSelectedLanguage(element.id)}
                     className="p-2 bg-[#ECECF4] rounded-lg border-none focus:outline-none focus-visible:outline-none"

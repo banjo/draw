@@ -1,11 +1,10 @@
-import defaultConfig from "@banjoanton/eslint-config";
+import ts from "@banjoanton/eslint-config/typescript";
+import js from "@banjoanton/eslint-config/javascript";
+import react from "@banjoanton/eslint-config/react";
+//
+// /** @type {import("eslint").Linter.Config} */
+// export default [
+//     ...defaultConfig,
+// ];
 
-/** @type {import("eslint").Linter.Config} */
-export default [
-    ...defaultConfig,
-    {
-        rules: {
-            "react/forbid-component-props": "off",
-        },
-    },
-];
+export default [...ts, ...js, ...react];

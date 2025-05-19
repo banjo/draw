@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { Maybe, isEqual } from "@banjoanton/utils";
+import { isEqual, Maybe } from "@banjoanton/utils";
 import { useThrottle } from "@uidotdev/usehooks";
 import { BoardDeltaUpdate } from "common";
 import { useCallback, useEffect, useState } from "react";

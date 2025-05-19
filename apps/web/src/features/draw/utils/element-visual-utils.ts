@@ -16,6 +16,7 @@ import {
     ExcalidrawTextElement,
 } from "common";
 import { CustomDataUtil } from "./custom-data-util";
+import React from "react";
 
 export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 

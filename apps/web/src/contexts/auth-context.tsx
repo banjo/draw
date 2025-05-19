@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Loader } from "ui";
 import { authService, AuthState, emptyAuthState } from "@/services/auth-service";
 
@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType>(emptyContext);
 export const useAuth = () => useContext(AuthContext);
 
 type AuthProviderProps = {
-    children: React.ReactNode;
+    children: ReactNode;
 };
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {

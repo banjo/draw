@@ -1,4 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
+import React from "react";
 
 type In = {
     initialText: string;

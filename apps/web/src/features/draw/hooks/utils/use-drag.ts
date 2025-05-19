@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import React from "react";
 
 export type DragPosition = {
     x: number;
@@ -98,12 +99,13 @@ export const useDrag = (props?: Props) => {
     };
 
     // Cleanup event listeners when the component unmounts
-    useEffect(() => {
-        return () => {
+    useEffect(
+        () => () => {
             document.removeEventListener("mousemove", handleMouseMove);
             document.removeEventListener("mouseup", handleMouseUp);
-        };
-    }, []);
+        },
+        []
+    );
 
     // event listener necessary for drag to work
     useEffect(() => {

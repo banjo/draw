@@ -1,6 +1,7 @@
 import { Maybe, noop } from "@banjoanton/utils";
 import { ExcalidrawApi } from "common";
-import { PropsWithChildren, createContext, useContext, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useState } from "react";
+import React from "react";
 
 export interface GlobalContextInterface {
     excalidrawApi: Maybe<ExcalidrawApi>;
