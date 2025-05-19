@@ -8,17 +8,20 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "react-hot-toast";
 import { ErrorPage } from "ui";
 import "./index.css";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 export const App: FC = () => (
     <ErrorBoundary fallback={<ErrorPage />}>
         <AuthProvider>
             <TrpcProvider>
-                <GlobalLoadingProvider>
-                    <GlobalContextProvider>
-                        <Toaster />
-                        <Root />
-                    </GlobalContextProvider>
-                </GlobalLoadingProvider>
+                <ThemeProvider>
+                    <GlobalLoadingProvider>
+                        <GlobalContextProvider>
+                            <Toaster />
+                            <Root />
+                        </GlobalContextProvider>
+                    </GlobalLoadingProvider>
+                </ThemeProvider>
             </TrpcProvider>
         </AuthProvider>
     </ErrorBoundary>

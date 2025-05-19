@@ -1,4 +1,5 @@
 import { createRef, useState } from "react";
+import React from "react";
 
 interface Props<T> {
     itemsToNavigate: T[];
@@ -11,7 +12,7 @@ export const useKeyboardNavigation = <T>({ itemsToNavigate, onClick }: Props<T>)
 
     const resetSelectedIndex = () => setSelectedIndex(0);
 
-    const handleKeyboardNavigation = (e: KeyboardEvent) => {
+    const handleKeyboardNavigation = (e: React.KeyboardEvent<Element>) => {
         let newValue = 0;
 
         if (e.key === "ArrowUp") {

@@ -23,6 +23,8 @@ import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useOnPaste } from "./hooks/utils/use-on-paste";
 import { useExportModalStore } from "@/stores/use-export-modal-store";
 import { ExportModal } from "@/features/draw/components/export-modal";
+import { useEffect } from "react";
+import { useTheme } from "@/providers/theme-provider";
 
 type DrawProps = {
     slug?: string;
@@ -87,8 +89,15 @@ export const Draw = ({ slug }: DrawProps) => {
     const { cleanup } = useCleanup();
     const { handleOnPaste } = useOnPaste();
 
+    const { setTheme, theme } = useTheme();
+
     const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
         if (!excalidrawApi) return;
+
+        if (theme !== appState.theme) {
+            setTheme(appState.theme);
+        }
+
         const elements = excalidrawApi.getSceneElements(); // get elements from excalidraw api, changeElements is buggy
         onDrawingChange(elements, appState);
         updateCodeBlockElements(elements, appState, files);
@@ -123,8 +132,13 @@ export const Draw = ({ slug }: DrawProps) => {
                     onPointerUpdate={onPointerUpdate}
                     handleKeyboardGlobally={false}
                     autoFocus
-                    // @ts-ignore - better local typings
-                    initialData={{ elements, scrollToContent: true, libraryItems: library }}
+                    initialData={{
+                        // @ts-ignore - better local typings
+                        elements,
+                        scrollToContent: true,
+                        libraryItems: library,
+                        appState: { theme: theme === "light" ? "light" : "dark" },
+                    }}
                     UIOptions={{
                         dockedSidebarBreakpoint: 0,
                     }}

@@ -1,15 +1,14 @@
 import { isEmpty, noop } from "@banjoanton/utils";
-import { FC } from "react";
+import { FC, MouseEventHandler } from "react";
 import { cn } from "../../utils";
 import { IconSize, iconSizeMapper, IconType } from "./icons";
 import { Tooltip } from "./tooltip";
-import React from "react";
 
 type FilterIconProps = {
     Icon: IconType;
     tooltip?: string;
     className?: string;
-    onClick?: React.MouseEventHandler;
+    onClick?: MouseEventHandler;
     disabled?: boolean;
     size?: IconSize;
     enableTooltip?: boolean;
@@ -24,7 +23,7 @@ export const ResponsiveIcon: FC<FilterIconProps> = ({
     size = "sm",
     className,
 }) => (
-    <Tooltip tooltip={tooltip} enabled={enableTooltip ? !isEmpty(tooltip) : null}>
+    <Tooltip tooltip={tooltip} enabled={enableTooltip ? !isEmpty(tooltip) : undefined}>
         <Icon
             className={cn(
                 `${iconSizeMapper[size]} 

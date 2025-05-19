@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { Loader } from "ui";
 import { authService, AuthState, emptyAuthState } from "@/services/auth-service";
+import { Loader } from "@/components/global-loading";
 
 export type AuthContextType = AuthState & {
     isLoading: boolean;

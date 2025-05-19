@@ -31,7 +31,7 @@ export const useCollaboration = ({ slug, setElements, elements }: In) => {
     const renderCollabButton = useCallback(
         () => (
             <LiveCollaborationTrigger
-                isCollaborating={isCollaborating ? Boolean(slug) : null}
+                isCollaborating={isCollaborating ? Boolean(slug) : false}
                 onSelect={noop}
             />
         ),
