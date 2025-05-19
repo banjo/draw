@@ -18,7 +18,6 @@ export const ExportModal = ({ setShow, show }: ExportModalProps) => {
     const [exportBackground, setExportBackground] = useState(false);
 
     useEffect(() => {
-        console.log("tjener");
         const fetchCanvas = async () => {
             const opts: ExportOpts = {
                 exportBackground,
