@@ -66,9 +66,9 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
     return (
         <div
             className={`rounded border text-card-foreground 
-                                    shadow-sm w-full relative hover:bg-zinc-100 hover:cursor-pointer 
+                                    shadow-sm w-full relative hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:cursor-pointer 
                                     px-4 py-2 flex gap-2 items-center 
-                                    ${cardSlug === currentSlug ? "bg-zinc-50" : ""}`}
+                                    ${cardSlug === currentSlug ? "bg-zinc-50 dark:bg-zinc-900" : ""}`}
             onClick={() => navigate(`/draw/${cardSlug}`)}
         >
             <EditableLabel

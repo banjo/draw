@@ -200,7 +200,9 @@ export const AddElementContainer = () => {
                             onClick={onClick}
                         />
                     ))}
-                    {isLoadingIcons ? <div className="text-black">Loading icons...</div> : null}
+                    {isLoadingIcons ? (
+                        <div className="text-black dark:text-white">Loading icons...</div>
+                    ) : null}
                 </AddElement.ListContainer>
             </AddElement.ComponentContainer>
         </Modal.Container>
