@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { ExportModal } from "@/features/draw/components/export-modal";
 import { useContextMenu } from "@/features/draw/hooks/base/use-context-menu";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
@@ -12,6 +13,8 @@ import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
+import { useTheme } from "@/providers/theme-provider";
+import { useExportModalStore } from "@/stores/use-export-modal-store";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw } from "@excalidraw/excalidraw";
@@ -21,10 +24,6 @@ import { useAddElement } from "../add-element/hooks/use-add-element";
 import { SignInModal } from "./components/sign-in-modal";
 import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useOnPaste } from "./hooks/utils/use-on-paste";
-import { useExportModalStore } from "@/stores/use-export-modal-store";
-import { ExportModal } from "@/features/draw/components/export-modal";
-import { useEffect } from "react";
-import { useTheme } from "@/providers/theme-provider";
 
 type DrawProps = {
     slug?: string;
