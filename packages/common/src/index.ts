@@ -16,3 +16,4 @@ export * from "./model/core-response-model";
 export * from "./model/auth-info";
 export * from "./utils/delta-update-util";
 export * from "./utils/element-state-util";
+export * from "./model/library";

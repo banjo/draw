@@ -20,6 +20,7 @@ model User {
   collection   Drawing[]      @relation("Collection")
   sessions     Session[]
   OauthAccount OauthAccount[]
+  libraryItems Json[]
 }
 
 model Session {
