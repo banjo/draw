@@ -33,7 +33,6 @@ const ServerEnvSchema = z.object({
     NODE_ENV: z.enum(["development", "production"]),
     LOCAL_DEVELOPMENT: z.enum(["true", "false"]).optional(),
     PORT: z.string(),
-    WS_PORT: z.string(),
     LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
     DEVELOPMENT_UID: z.string().optional(),
     // GITHUB AUTH
