@@ -49,8 +49,5 @@ WORKDIR /app/apps/api
 # HTTP SERVER
 EXPOSE 3003
 
-# WSS SERVER 
-EXPOSE 3004
-
 # Set the command to run your app
-CMD ["node", "dist/http-server.cjs"]
+CMD ["node", "dist/server.cjs"]
