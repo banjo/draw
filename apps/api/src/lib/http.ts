@@ -3,6 +3,7 @@ import { Env } from "common";
 import cors, { CorsOptions } from "cors";
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
 import {
     appRouter,
     createTRPCContext,
@@ -42,4 +43,6 @@ app.get("/login/github", GithubAuthProvider.login);
 app.get("/logout", OauthCoreProvider.logout);
 app.get("/auth", OauthCoreProvider.authCheck);
 
-export { app, PORT };
+const server = createServer(app);
+
+export { app, PORT, server };

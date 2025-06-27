@@ -1,14 +1,14 @@
+import { server } from "@app/lib/http";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import { createLogger, Env } from "common";
+import { createLogger } from "common";
 import "dotenv/config";
 import { appRouter } from "server";
 import { WebSocketServer } from "ws";
 
 const logger = createLogger("ws");
-const WS_PORT = Number(Env.server().WS_PORT) || 3004;
 
 const wss = new WebSocketServer({
-    port: WS_PORT,
+    server,
 });
 
 const handler = applyWSSHandler({
@@ -30,4 +30,4 @@ const closeWss = () => {
     logger.info("🛑 WebSocket Server closed");
 };
 
-export { closeWss, handler, WS_PORT, wss };
+export { closeWss, handler, wss };

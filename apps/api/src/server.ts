@@ -1,11 +1,9 @@
 import { closeWss, wss } from "@app/lib/ws";
 import "dotenv/config";
 import { createContextLogger, startupLog } from "server";
-import { app, PORT } from "./lib/http";
+import { app, PORT, server } from "./lib/http";
 
-const logger = createContextLogger("dev-server");
-
-app.listen(PORT);
+const logger = createContextLogger("prod-server");
 
 app.on("error", error => {
     logger.error({ error }, "HTTP Server error");
@@ -18,7 +16,9 @@ wss.on("connection", ws => {
     });
 });
 
-startupLog("Dev Server");
+server.listen(PORT, () => {
+    startupLog("server");
+});
 
 process.on("SIGTERM", () => {
     logger.info("SIGTERM");
