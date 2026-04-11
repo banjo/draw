@@ -42,6 +42,9 @@ app.get("/login/github/callback", GithubAuthProvider.callback);
 app.get("/login/github", GithubAuthProvider.login);
 app.get("/logout", OauthCoreProvider.logout);
 app.get("/auth", OauthCoreProvider.authCheck);
+app.get("/health", (_req, res) => {
+    return res.status(200).json({ status: "ok" });
+});
 
 const server = createServer(app);
 
