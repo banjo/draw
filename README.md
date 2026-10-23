@@ -1,76 +1,60 @@
 <p align="center">
-  <img src="apps/web/public/banjodraw.svg" width="96" height="96" alt="Banjodraw logo">
+  <img src="apps/web/public/banjodraw.svg" width="96" height="96" alt="BanjoDraw logo">
 </p>
 
-# BanjoDraw
+<h1 align="center">BanjoDraw</h1>
 
-**BanjoDraw** is a simple drawing board built on top of [Excalidraw](https://excalidraw.com/), adding a handful of useful features for individuals. Enjoy real-time collaboration, persistent boards, quick icon and emoji insertion, and more—all while keeping the familiar Excalidraw experience.
+<p align="center">
+  A drawing board built on <a href="https://excalidraw.com">Excalidraw</a>, with collaboration, saved boards, and a few extras.
+</p>
 
-## 🚀 Demo
+<p align="center">
+  <a href="https://draw.banjoanton.com"><b>Open BanjoDraw</b></a>
+</p>
 
-Try it out: [draw.banjoanton.com](https://draw.banjoanton.com)
+## Highlights
 
-## ✨ Features
+- 🤝 Real-time collaboration: draw and brainstorm with others over WebSockets
+- 💾 Persistent boards: save as many boards and images as you want to your account
+- 🔐 Sign in with GitHub or Google, and your boards and favorites sync across devices
+- 🧱 Custom elements: database models, code blocks with syntax highlighting, and smart copy and
+  extend
+- 🖼️ Upload, share, and manage images right on the board
+- ⚡️ Add icons and emojis in one click
+- ✏️ Everything else is plain Excalidraw, so it works the way you already know
 
-- **Real-Time Collaboration**  
-     Draw, edit, and brainstorm together with others instantly via WebSockets.
+## Getting started
 
-- **Persistent Boards**  
-     Save unlimited boards and images to your account. Your work is always available.
+Open [draw.banjoanton.com](https://draw.banjoanton.com) and start drawing.
 
-- **Authentication & Sync**  
-     Log in with GitHub or Google. Sync your favorites and boards across devices.
-
-- **Rich Element Library**  
-     Use and extend with custom elements:
-
-  - Database models
-  - Code blocks (with syntax highlighting)
-  - Smart copy & extend
-
-- **Image Support**  
-     Upload, share, and manage images directly on your boards.
-
-- **Quick Add**  
-     Instantly add icons and emojis to your board with just a click.
-
-## 🛠️ Development
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (see `.nvmrc`)
-- [pnpm](https://pnpm.io/) (`npm i -g pnpm`)
-- [Docker](https://www.docker.com/) (for local DB)
-
-### Common Commands
+To run it yourself, you need [Node.js](https://nodejs.org) (see `.nvmrc`),
+[pnpm](https://pnpm.io), and [Docker](https://www.docker.com) for the database:
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Start local PostgreSQL via Docker
-pnpm run db:local:run
-
-# Reset database (danger: removes all data)
-pnpm run db:reset
-
-# Start development servers (API & Web)
-pnpm run dev
-
-# Build all apps
-pnpm run build
-
-# Preview production build (if available)
-pnpm run preview
+pnpm db:local:start    # Start Postgres in Docker.
+pnpm dev               # Run the web app and the API.
 ```
 
-## 🛠️ Development Notes
+Each app and package has a `.env.example` to copy to `.env` first.
 
-- **Monorepo** managed with [pnpm workspaces](https://pnpm.io/workspaces) and [Turborepo](https://turbo.build/)
-- **Code style**: ESLint, Prettier, Tailwind CSS
-- **Backend**: Node.js, tRPC, Prisma, Lucia Auth, REST, WebSockets
-- **Frontend**: React, Vite, Tailwind, tRPC, modular features
+## Development
 
-## 🤝 Contributing
+```bash
+pnpm build        # Build all apps.
+pnpm typecheck    # Type check everything.
+pnpm lint:all     # Lint everything.
+pnpm db:reset     # Recreate the database. This removes all data.
+```
 
-Pull requests and issues are welcome!
+The repository is a [pnpm workspace](https://pnpm.io/workspaces) run with
+[Turborepo](https://turbo.build):
+
+- `apps/web`: React, Vite, Tailwind, and tRPC
+- `apps/api`: Node.js, Express, tRPC, and WebSockets
+- `packages/db`: Prisma and PostgreSQL
+- `packages/server`: Auth with Lucia, and shared server code
+
+## Contributing
+
+Pull requests and issues are welcome.
