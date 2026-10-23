@@ -1,10 +1,4 @@
-<svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_10_2)">
-<circle cx="75" cy="75" r="75" fill="#DE9239"/>
-</g>
-<defs>
-<clipPath id="clip0_10_2">
-<rect width="150" height="150" fill="white"/>
-</clipPath>
-</defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Banjodraw">
+  <rect width="120" height="120" rx="28" fill="#DE9239"/>
+  <path d="M26 84 C34 54 50 38 60 48 C70 58 46 80 58 88 C68 94 84 70 94 40" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

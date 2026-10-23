@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="apps/web/public/banjodraw.svg" width="96" height="96" alt="Banjodraw logo">
+</p>
+
 # BanjoDraw
 
 **BanjoDraw** is a simple drawing board built on top of [Excalidraw](https://excalidraw.com/), adding a handful of useful features for individuals. Enjoy real-time collaboration, persistent boards, quick icon and emoji insertion, and more—all while keeping the familiar Excalidraw experience.
