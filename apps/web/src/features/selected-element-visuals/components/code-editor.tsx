@@ -4,51 +4,54 @@ import { NativeContainer } from "@/features/draw/models/native/native-container"
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { CodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
-import { CODE_EDITOR_LANGUAGES } from "@/features/selected-element-visuals/models/code-editor-langauges";
+import { getCodeBlockSettings } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { cn } from "@/lib/utils";
-import { includes, Maybe } from "@banjoanton/utils";
+import { debounce, Maybe } from "@banjoanton/utils";
 import Editor from "@uiw/react-textarea-code-editor";
 import { CustomData, CustomDataCodeblock } from "common";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import "./code-editor.css";
 import React from "react";
 
 export const CODE_ELEMENT_CLASS = "code-element";
 
+const SCENE_UPDATE_DELAY = 300;
+
 export const CodeEditor = ({ element, style }: CodeBlockElement) => {
     const { excalidrawApi } = useGlobal();
-    const getSelectedLanguage = useCodeEditorStore(state => state.getSelectedLanguage);
-    const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
-    const setFontSize = useCodeEditorStore(state => state.setFontSize);
-    const fontSize = useCodeEditorStore(state => state.fontSize);
     const editorRef = useRef<HTMLTextAreaElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const setIsEditing = useCodeEditorStore(state => state.setIsEditing);
+    const setEditingElementId = useCodeEditorStore(state => state.setEditingElementId);
 
-    const onChange = async (value: Maybe<string>) => {
-        UpdateElementUtil.mutateElement(element, element => {
-            element.customData = CustomData.updateCodeblock(element.customData, {
+    // Tell Excalidraw about the change, so it's saved and sent to collaborators
+    const updateScene = useMemo(
+        () =>
+            debounce(() => {
+                if (!excalidrawApi) return;
+                excalidrawApi.updateScene({
+                    elements: excalidrawApi.getSceneElementsIncludingDeleted(),
+                });
+            }, SCENE_UPDATE_DELAY),
+        [excalidrawApi]
+    );
+
+    const onChange = (value: Maybe<string>) => {
+        // Change the scene's copy, as a remote update may have replaced it since this rendered
+        const current =
+            excalidrawApi?.getSceneElementsIncludingDeleted().find(e => e.id === element.id) ??
+            element;
+
+        UpdateElementUtil.mutateElement(current, draft => {
+            draft.customData = CustomData.updateCodeblock(draft.customData, {
                 code: value,
             });
         });
+        updateScene();
     };
 
     const customData = element.customData as CustomDataCodeblock;
-
-    useEffect(() => {
-        if (
-            customData.language &&
-            includes(CODE_EDITOR_LANGUAGES, customData.language) &&
-            element.id
-        ) {
-            setSelectedLanguage(element.id, customData.language);
-        }
-
-        if (customData.fontSize) {
-            setFontSize(customData.fontSize);
-        }
-    }, []);
+    const { language, fontSize } = getCodeBlockSettings(element.customData);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -80,7 +83,6 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
 
     const zoom = excalidrawApi?.getAppState().zoom.value ?? 1;
     const fontSizeWithZoom = fontSize * zoom;
-    const selectedLanguage = getSelectedLanguage(element.id);
 
     return (
         <div
@@ -97,11 +99,11 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     ref={editorRef}
                     value={customData.code}
                     className="w-full h-full"
-                    language={selectedLanguage.toLowerCase()}
+                    language={language.toLowerCase()}
                     data-color-mode="dark"
                     padding={0}
-                    onFocus={() => setIsEditing(true)}
-                    onBlur={() => setIsEditing(false)}
+                    onFocus={() => setEditingElementId(element.id)}
+                    onBlur={() => setEditingElementId(undefined)}
                     onChange={evn => onChange(evn.target.value)}
                     style={{
                         fontSize: fontSizeWithZoom,

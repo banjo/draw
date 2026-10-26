@@ -1,10 +1,11 @@
+import { useGlobal } from "@/contexts/global-context";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import {
     CODE_EDITOR_LANGUAGES,
     CodeEditorLanguage,
+    getCodeBlockSettings,
 } from "@/features/selected-element-visuals/models/code-editor-langauges";
-import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { parseNumber } from "@banjoanton/utils";
 import { CustomData, ExcalidrawElement } from "common";
 import { createPortal } from "react-dom";
@@ -26,51 +27,49 @@ export const initCodeblockMenuElement = () => {
 const FONT_SIZES = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
 const CodeEditorMenu = ({ element }: Props) => {
-    const getSelectedLanguage = useCodeEditorStore(state => state.getSelectedLanguage);
-    const setSelectedLanguage = useCodeEditorStore(state => state.setSelectedLanguage);
+    const { excalidrawApi } = useGlobal();
+    const { language, fontSize } = getCodeBlockSettings(element.customData);
 
-    const selectedFontSize = useCodeEditorStore(state => state.fontSize);
-    const setSelectedFontSize = useCodeEditorStore(state => state.setFontSize);
+    const updateCodeblock = (props: { language?: CodeEditorLanguage; fontSize?: number }) => {
+        if (!excalidrawApi) return;
 
-    const updateLanguage = (language: CodeEditorLanguage) => {
-        setSelectedLanguage(element.id, language);
-        UpdateElementUtil.mutateElement(element, element => {
-            element.customData = CustomData.updateCodeblock(element.customData, {
-                language,
+        const elements = excalidrawApi.getSceneElementsIncludingDeleted().map(current => {
+            if (current.id !== element.id) return current;
+
+            return UpdateElementUtil.updateElement(current, draft => {
+                draft.customData = CustomData.updateCodeblock(draft.customData, props);
+                return draft;
             });
         });
+
+        excalidrawApi.updateScene({ elements });
     };
 
     const updateFontSize = (value: string) => {
-        const fontSize = parseNumber(value);
-
-        if (!fontSize) return;
-
-        setSelectedFontSize(fontSize);
-        UpdateElementUtil.mutateElement(element, element => {
-            element.customData = CustomData.updateCodeblock(element.customData, {
-                fontSize,
-            });
-        });
+        const size = parseNumber(value);
+        if (!size) return;
+        updateCodeblock({ fontSize: size });
     };
 
     return (
         <div className="flex gap-2 items-center absolute z-[3] pointer-events-auto h-full ">
             <div className="bg-[#ECECF4] dark:bg-[#23232A] rounded-lg flex items-center gap-4">
                 <select
-                    value={getSelectedLanguage(element.id)}
+                    value={language}
                     className="p-2 bg-[#ECECF4] dark:bg-[#23232A] rounded-lg border-none focus:outline-none focus-visible:outline-none"
-                    onChange={e => updateLanguage(e.target.value as CodeEditorLanguage)}
+                    onChange={e =>
+                        updateCodeblock({ language: e.target.value as CodeEditorLanguage })
+                    }
                 >
-                    {CODE_EDITOR_LANGUAGES.map(language => (
-                        <option key={language} value={language}>
-                            {language}
+                    {CODE_EDITOR_LANGUAGES.map(option => (
+                        <option key={option} value={option}>
+                            {option}
                         </option>
                     ))}
                 </select>
             </div>
             <select
-                value={selectedFontSize}
+                value={fontSize}
                 className="p-2 bg-[#ECECF4] dark:bg-[#23232A] rounded-lg border-none focus:outline-none focus-visible:outline-none"
                 onChange={e => updateFontSize(e.target.value)}
             >

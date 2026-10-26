@@ -70,6 +70,14 @@ const helpers = {
 
 type UpdateHelpers = typeof helpers;
 
+const randomNonce = () => Math.floor(Math.random() * 2 ** 31);
+
+// Like Excalidraw: a new version and a new nonce, which collaboration uses to resolve conflicts
+const bumpVersion = (element: Mutable<ExcalidrawElement>) => {
+    element.version++;
+    element.versionNonce = randomNonce();
+};
+
 export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => T;
 
 /**
@@ -79,8 +87,7 @@ export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) =>
  */
 const updateElement = <T extends ExcalidrawElement>(element: T, callback: UpdateCallback<T>) =>
     produce(element, draft => {
-        // @ts-ignore
-        draft.version++;
+        bumpVersion(draft as Mutable<ExcalidrawElement>);
         return callback(draft, helpers);
     });
 
@@ -95,8 +102,7 @@ const updateElements = <T extends ExcalidrawElement>(
 ) =>
     elements.map(element =>
         produce(element, draft => {
-            // @ts-ignore
-            draft.version++;
+            bumpVersion(draft as Mutable<ExcalidrawElement>);
             return callback(draft, helpers);
         })
     );
@@ -109,8 +115,7 @@ export type MutateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) =>
  * @param callback - The callback to update the element
  */
 const mutateElement = <T extends ExcalidrawElement>(element: T, callback: MutateCallback<T>) => {
-    // @ts-ignore
-    element.version++;
+    bumpVersion(element as Mutable<ExcalidrawElement>);
     callback(element, helpers);
 };
 
@@ -124,8 +129,7 @@ const mutateElements = <T extends ExcalidrawElement>(
     callback: MutateCallback<T>
 ) => {
     elements.map(element => {
-        // @ts-ignore
-        element.version++;
+        bumpVersion(element as Mutable<ExcalidrawElement>);
         callback(element, helpers);
     });
 };

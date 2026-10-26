@@ -1,76 +1,83 @@
-import { isDefined, partition } from "@banjoanton/utils";
+import { isDefined } from "@banjoanton/utils";
 import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
-import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
-import { createLogger } from "../lib/logger";
+
+type VersionedElement = {
+    id: string | number;
+    version: number;
+    versionNonce?: number;
+};
+
+/**
+ * Whether an incoming copy of an element should replace the current one. Same rule as
+ * Excalidraw: the higher version wins, and on a tie the lower versionNonce, so the server and
+ * every client pick the same copy.
+ */
+const shouldReplace = (current: VersionedElement, incoming: VersionedElement) =>
+    incoming.version > current.version ||
+    (incoming.version === current.version &&
+        (incoming.versionNonce ?? 0) < (current.versionNonce ?? 0));
+
+type MergeElementsProps<T extends VersionedElement> = {
+    elements: readonly T[];
+    incoming: readonly T[];
+    order?: readonly string[];
+    /** Keep these elements as they are, e.g. the one the user is editing right now. */
+    keep?: (id: string) => boolean;
+};
+
+/**
+ * Merge incoming elements into the current ones. Deleted elements stay (with isDeleted), so
+ * an older copy can't bring them back. With an order, elements are sorted by it, and the ones
+ * it doesn't list, like elements someone else just added, are kept at the end.
+ */
+const mergeElements = <T extends VersionedElement>({
+    elements,
+    incoming,
+    order,
+    keep,
+}: MergeElementsProps<T>) => {
+    const byId = new Map(elements.map(element => [String(element.id), element]));
+    const applied: T[] = [];
+
+    for (const element of incoming) {
+        const id = String(element.id);
+        const current = byId.get(id);
+        if (current && (keep?.(id) || !shouldReplace(current, element))) continue;
+
+        byId.set(id, element);
+        applied.push(element);
+    }
+
+    if (!order) {
+        return { elements: [...byId.values()], applied };
+    }
+
+    const ordered = [...new Set(order.map(String))].filter(id => byId.has(id));
+    const listed = new Set(ordered);
+    const unlisted = [...byId.keys()].filter(id => !listed.has(id));
+    const merged = [...ordered, ...unlisted].map(id => byId.get(id)).filter(isDefined);
+
+    return { elements: merged, applied };
+};
 
 type ApplyToBoardProps = {
     deltaUpdate: BoardDeltaUpdate;
     board: Board;
-    isOnClient: boolean;
 };
 
-const logger = createLogger("delta-update-util");
+const applyToBoard = ({ board, deltaUpdate }: ApplyToBoardProps): Board => {
+    const { elements } = mergeElements({
+        elements: board.elements,
+        incoming: deltaUpdate.excalidrawElements,
+        order: deltaUpdate.order,
+    });
 
-const applyToBoard = ({ board, deltaUpdate, isOnClient }: ApplyToBoardProps): Board => {
-    const elements = deltaUpdate.excalidrawElements;
-
-    const [deleted, allUpdated] = partition(elements, e => e.isDeleted);
-    const [updated, added] = partition(allUpdated, e => board.elements.some(b => b.id === e.id));
-    const toDelete = new Set(deleted.map(e => e.id));
-    const toUpdate = new Set(updated.map(e => e.id));
-
-    // TODO: this is a bit inefficient, we could just loop through the updated elements and update the board
-    const updatedBoardElements = board.elements
-        .map(e => {
-            if (toDelete.has(e.id)) {
-                return undefined;
-            }
-
-            if (toUpdate.has(e.id)) {
-                const updatedExcalidrawElement: ExcalidrawSimpleElement =
-                    updated.find(u => u.id === e.id) ?? e;
-
-                // always overwrite on client
-                if (isOnClient) {
-                    return updatedExcalidrawElement;
-                }
-
-                if (updatedExcalidrawElement.version > e.version) {
-                    return updatedExcalidrawElement;
-                }
-
-                return e;
-            }
-
-            return e;
-        })
-        .filter(isDefined);
-
-    if (deltaUpdate.order) {
-        const ordered = deltaUpdate.order
-            .map(id => {
-                const addedElement = added.find(e => e.id === id);
-                if (addedElement) {
-                    return addedElement;
-                }
-
-                const updatedElement = updatedBoardElements.find(e => e.id === id);
-                if (updatedElement) {
-                    return updatedElement;
-                }
-
-                logger.trace(`Element with id ${id} not found in delta update`);
-                return undefined;
-            })
-            .filter(isDefined);
-
-        return Board.from({ elements: ordered });
-    }
-
-    return Board.from({ elements: updatedBoardElements });
+    return Board.from({ elements });
 };
 
 export const DeltaUpdateUtil = {
     applyToBoard,
+    mergeElements,
+    shouldReplace,
 };

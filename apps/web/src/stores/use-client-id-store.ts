@@ -7,6 +7,7 @@ type UseLocalIdStore = {
 };
 
 const ID_KEY = "banjo-collab-id";
+// Per tab, so two tabs in the same browser don't ignore each other's changes
 export const useClientIdStore = create<UseLocalIdStore>()(
     persist(
         () => ({
@@ -14,7 +15,7 @@ export const useClientIdStore = create<UseLocalIdStore>()(
         }),
         {
             name: ID_KEY,
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => sessionStorage),
         }
     )
 );

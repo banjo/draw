@@ -26,7 +26,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const setShowVisualElements = useVisualElementStore(state => state.setShowVisualElements);
     const setMetaKeyIsDown = useVisualElementStore(state => state.setMetaKeyIsDown);
     const setShowAddElementMenu = useAddElementStore(state => state.setShowAddElementMenu);
-    const isEditingCode = useCodeEditorStore(state => state.isEditing);
+    const isEditingCode = useCodeEditorStore(state => state.editingElementId !== undefined);
 
     const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = event => {
         if (!excalidrawApi) return;
