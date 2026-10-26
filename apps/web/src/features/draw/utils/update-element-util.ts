@@ -76,6 +76,7 @@ const randomNonce = () => Math.floor(Math.random() * 2 ** 31);
 const bumpVersion = (element: Mutable<ExcalidrawElement>) => {
     element.version++;
     element.versionNonce = randomNonce();
+    element.updated = Date.now();
 };
 
 export type UpdateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => T;

@@ -76,8 +76,24 @@ const applyToBoard = ({ board, deltaUpdate }: ApplyToBoardProps): Board => {
     return Board.from({ elements });
 };
 
+/**
+ * Remove elements that were deleted longer ago than `maxAge`. They're kept for a while so an
+ * older copy can't bring them back, but not forever. Elements without a timestamp are kept.
+ */
+const removeOldDeletedElements = (board: Board, maxAge: number, now = Date.now()): Board => {
+    const elements = board.elements.filter(element => {
+        if (!element.isDeleted) return true;
+        if (element.updated === undefined) return true;
+        return now - element.updated < maxAge;
+    });
+
+    if (elements.length === board.elements.length) return board;
+    return Board.from({ elements });
+};
+
 export const DeltaUpdateUtil = {
     applyToBoard,
     mergeElements,
     shouldReplace,
+    removeOldDeletedElements,
 };

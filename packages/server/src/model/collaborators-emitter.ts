@@ -1,16 +1,21 @@
 import { Collaborator, Slug } from "common";
 import EventEmitter from "node:events";
 
+/**
+ * Holds the cursors of the people on each drawing. Listen to changes for one drawing with
+ * `on(CollaboratorsEmitter.changeEvent(slug), listener)`, which gets the current list.
+ */
 export class CollaboratorsEmitter extends EventEmitter {
-    private collaboratorsMap: Map<Slug, Collaborator[]>;
+    private collaboratorsMap = new Map<Slug, Collaborator[]>();
 
     constructor() {
         super();
-        this.collaboratorsMap = new Map();
+        // One listener per person on a drawing, so the default limit of 10 is too low
+        this.setMaxListeners(0);
     }
 
-    activeCollaborators(slug: Slug) {
-        return this.collaboratorsMap.get(slug)?.length ?? 0;
+    static changeEvent(slug: Slug) {
+        return `change:${slug}`;
     }
 
     update(slug: Slug, collaborator: Collaborator) {
@@ -22,24 +27,25 @@ export class CollaboratorsEmitter extends EventEmitter {
             collaborators[index] = collaborator;
         }
         this.collaboratorsMap.set(slug, collaborators);
-        this.emit("update", slug, collaborator);
+        this.emit(CollaboratorsEmitter.changeEvent(slug), collaborators);
     }
 
     remove(slug: Slug, clientId: string) {
-        const collaborators = this.collaboratorsMap.get(slug) ?? [];
-        const index = collaborators.findIndex(c => c.clientId === clientId);
-        if (index !== -1) {
-            collaborators.splice(index, 1);
-            this.collaboratorsMap.set(slug, collaborators);
-            this.emit("remove", slug, clientId);
-        }
+        const collaborators = this.collaboratorsMap.get(slug);
+        if (!collaborators) return;
 
-        if (collaborators.length === 0) {
+        const remaining = collaborators.filter(c => c.clientId !== clientId);
+        if (remaining.length === collaborators.length) return;
+
+        if (remaining.length === 0) {
             this.collaboratorsMap.delete(slug);
+        } else {
+            this.collaboratorsMap.set(slug, remaining);
         }
+        this.emit(CollaboratorsEmitter.changeEvent(slug), remaining);
     }
 
-    get(slug: Slug): Collaborator[] | undefined {
-        return this.collaboratorsMap.get(slug);
+    get(slug: Slug): Collaborator[] {
+        return this.collaboratorsMap.get(slug) ?? [];
     }
 }

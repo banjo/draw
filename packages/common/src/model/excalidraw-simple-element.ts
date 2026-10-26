@@ -7,6 +7,7 @@ export const ExcalidrawSimpleElementSchema = z
         version: z.number(),
         versionNonce: z.number().optional(),
         isDeleted: z.boolean(),
+        updated: z.number().optional(),
     })
     .passthrough();
 

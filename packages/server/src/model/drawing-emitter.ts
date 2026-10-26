@@ -1,125 +1,200 @@
 import { toMilliseconds } from "@banjoanton/utils";
-import { TRPCError } from "@trpc/server";
-import { Board, BoardDeltaUpdate, Cause, DeltaUpdateUtil, Slug } from "common";
+import {
+    Board,
+    BoardDeltaUpdate,
+    DeltaUpdateUtil,
+    ExcalidrawSimpleElement,
+    Result,
+    Slug,
+} from "common";
 import EventEmitter from "node:events";
-import { ExcalidrawSimpleElement } from "../../../common/src/model/excalidraw-simple-element";
 import { createContextLogger } from "../lib/context-logger";
 import { DrawRepository } from "../repositories/draw-repository";
 
 const logger = createContextLogger("drawing-emitter");
+
 const SAVE_INTERVAL = toMilliseconds({ minutes: 1 });
+const EVICT_DELAY = toMilliseconds({ seconds: 30 });
+const KEEP_DELETED_FOR = toMilliseconds({ days: 1 });
 
+/** A drawing that is open, kept in memory and saved to the database now and then. */
+type Session = {
+    board: Board;
+    subscribers: number;
+    /** Changed since the last save */
+    dirty: boolean;
+    saveInterval: ReturnType<typeof setInterval>;
+    evictTimer?: ReturnType<typeof setTimeout>;
+};
+
+/**
+ * Holds open drawings in memory. Changes are applied here and sent to everyone on the
+ * drawing, and the board is saved every minute and when the last person leaves.
+ *
+ * Listen to changes for one drawing with `on(DrawingEmitter.updateEvent(slug), listener)`.
+ */
 export class DrawingEmitter extends EventEmitter {
-    private boardsMap: Map<Slug, Board>;
-    private saveIntervalMap: Map<Slug, NodeJS.Timeout>;
+    private sessions = new Map<Slug, Session>();
+    private loading = new Map<Slug, Promise<Session | undefined>>();
+    private saving = new Map<Slug, Promise<void>>();
 
-    constructor() {
+    constructor(
+        private options = {
+            saveInterval: SAVE_INTERVAL,
+            evictDelay: EVICT_DELAY,
+            keepDeletedFor: KEEP_DELETED_FOR,
+        }
+    ) {
         super();
-        this.boardsMap = new Map();
-        this.saveIntervalMap = new Map();
+        // One listener per person on a drawing, so the default limit of 10 is too low
+        this.setMaxListeners(0);
     }
 
-    // Wait 30 seconds before clearing the board from memory
-    complete(slug: Slug) {
-        logger.trace({ slug }, `Completing drawing, will clear in 30 seconds`);
-        setTimeout(
-            async () => {
-                logger.trace({ slug }, "Saving and clearing drawing");
-                const board = this.boardsMap.get(slug);
+    static updateEvent(slug: Slug) {
+        return `update:${slug}`;
+    }
 
-                if (board) {
-                    const res = await DrawRepository.saveDrawingFromBoard(slug, board);
+    /** Open a drawing for a subscriber. Returns false if the drawing doesn't exist. */
+    async join(slug: Slug): Promise<boolean> {
+        const session = await this.load(slug);
+        if (!session) return false;
 
-                    if (!res.success) {
-                        logger.error({ slug, message: res.message }, "Error saving drawing");
-                    }
-                } else {
-                    logger.error({ slug }, "Board not found in memory while saving drawing");
-                }
+        session.subscribers++;
+        clearTimeout(session.evictTimer);
+        session.evictTimer = undefined;
 
-                clearInterval(this.saveIntervalMap.get(slug));
-                this.saveIntervalMap.delete(slug);
-                this.boardsMap.delete(slug);
-                logger.trace({ slug }, "Drawing cleared from memory");
-            },
-            toMilliseconds({ seconds: 30 })
-        );
+        return true;
+    }
+
+    getBoard(slug: Slug): Board | undefined {
+        return this.sessions.get(slug)?.board;
+    }
+
+    leave(slug: Slug) {
+        const session = this.sessions.get(slug);
+        if (!session) return;
+
+        session.subscribers = Math.max(0, session.subscribers - 1);
+        if (session.subscribers === 0) {
+            this.scheduleEvict(slug, session);
+        }
     }
 
     async update(slug: Slug, deltaUpdate: BoardDeltaUpdate) {
-        let board = this.boardsMap.get(slug);
+        const session = await this.load(slug);
+        if (!session) return Result.error("Drawing not found");
 
-        if (board) {
-            logger.trace({ slug }, `Drawing found in memory`);
-        } else {
-            logger.trace({ slug }, "Drawing not found in memory");
-            const drawingResult = await DrawRepository.getDrawingBySlug(slug);
+        session.board = DeltaUpdateUtil.applyToBoard({ board: session.board, deltaUpdate });
+        session.dirty = true;
+        this.emit(DrawingEmitter.updateEvent(slug), deltaUpdate);
 
-            if (!drawingResult.success) {
-                logger.error(
-                    { slug, message: drawingResult.message },
-                    "Error getting drawing with slug"
-                );
-                return;
-            }
-
-            board = {
-                elements: drawingResult.data.map(databaseElement =>
-                    ExcalidrawSimpleElement.from(databaseElement.data)
-                ),
-            };
-            logger.trace({ slug }, "Drawing fetched from database");
+        // Changed without anyone subscribed, so save it and free the memory later
+        if (session.subscribers === 0 && !session.evictTimer) {
+            this.scheduleEvict(slug, session);
         }
 
-        const updatedBoard = DeltaUpdateUtil.applyToBoard({
-            board,
-            deltaUpdate,
-        });
-        this.boardsMap.set(slug, updatedBoard);
-        this.emit("update", slug, deltaUpdate);
         logger.trace({ slug }, "Drawing updated");
+        return Result.ok();
     }
 
-    async get(slug: Slug): Promise<Board> {
-        const board = this.boardsMap.get(slug);
-        if (board) {
-            logger.trace({ slug }, `Drawing found in memory: ${slug}`);
-            return board;
+    /** Save all open drawings, e.g. before the server stops. */
+    async saveAll() {
+        await Promise.all([...this.sessions.keys()].map(slug => this.save(slug)));
+    }
+
+    private load(slug: Slug): Promise<Session | undefined> {
+        const session = this.sessions.get(slug);
+        if (session) return Promise.resolve(session);
+
+        // Share one load between everyone opening the drawing at the same time
+        const pending = this.loading.get(slug);
+        if (pending) return pending;
+
+        const loading = this.loadFromDatabase(slug).finally(() => this.loading.delete(slug));
+        this.loading.set(slug, loading);
+        return loading;
+    }
+
+    private async loadFromDatabase(slug: Slug): Promise<Session | undefined> {
+        const result = await DrawRepository.getDrawingBySlug(slug);
+
+        if (!result.success) {
+            logger.error({ slug, message: result.message }, "Could not load drawing");
+            return undefined;
         }
 
-        const elements = await DrawRepository.getDrawingBySlug(slug);
+        const session: Session = {
+            board: {
+                elements: result.data.map(element => ExcalidrawSimpleElement.from(element.data)),
+            },
+            subscribers: 0,
+            dirty: false,
+            saveInterval: setInterval(() => this.save(slug), this.options.saveInterval),
+        };
 
-        if (!elements.success) {
-            logger.error(`Failed to get drawing: ${slug}`);
-            throw new TRPCError({
-                code: "NOT_FOUND",
-                message: elements.message,
-                cause: Cause.DRAWING_NOT_FOUND,
-            });
-        }
-        logger.trace({ slug }, "Drawing fetched from database");
-        const updatedBoard = Board.fromDatabase(elements.data);
+        this.sessions.set(slug, session);
+        logger.trace({ slug }, "Drawing loaded");
+        return session;
+    }
 
-        // clear previous interval and board from memory
-        this.saveIntervalMap.delete(slug);
-        this.boardsMap.delete(slug);
+    /** Save a drawing if it changed. Saves of the same drawing run one after the other. */
+    private save(slug: Slug): Promise<void> {
+        const previous = this.saving.get(slug) ?? Promise.resolve();
+        const next = previous.then(() => this.saveNow(slug));
 
-        this.boardsMap.set(slug, updatedBoard);
-        this.saveIntervalMap.set(
-            slug,
-            setInterval(async () => {
-                const latestBoard = this.boardsMap.get(slug);
+        this.saving.set(slug, next);
+        void next.then(() => {
+            if (this.saving.get(slug) === next) this.saving.delete(slug);
+        });
 
-                if (!latestBoard) {
-                    logger.trace({ slug }, `Board not found for board, clearing interval`);
-                    clearInterval(this.saveIntervalMap.get(slug));
-                    return;
-                }
+        return next;
+    }
 
-                await DrawRepository.saveDrawingFromBoard(slug, latestBoard);
-            }, SAVE_INTERVAL)
+    private async saveNow(slug: Slug) {
+        const session = this.sessions.get(slug);
+        if (!session?.dirty) return;
+
+        const board = DeltaUpdateUtil.removeOldDeletedElements(
+            session.board,
+            this.options.keepDeletedFor
+        );
+        session.board = board;
+        session.dirty = false;
+
+        const result = await DrawRepository.saveDrawingFromBoard(slug, board).catch(
+            (error: unknown) => Result.error(String(error))
         );
 
-        return updatedBoard;
+        if (!result.success) {
+            // Try again with the next save
+            session.dirty = true;
+            logger.error({ slug, message: result.message }, "Could not save drawing");
+            return;
+        }
+
+        logger.trace({ slug }, "Drawing saved");
+    }
+
+    private scheduleEvict(slug: Slug, session: Session) {
+        clearTimeout(session.evictTimer);
+        session.evictTimer = setTimeout(() => this.evict(slug, session), this.options.evictDelay);
+    }
+
+    private async evict(slug: Slug, session: Session) {
+        session.evictTimer = undefined;
+        if (session.subscribers > 0) return;
+
+        await this.save(slug);
+
+        // Someone opened or changed it during the save
+        if (this.sessions.get(slug) !== session || session.subscribers > 0) return;
+        if (session.dirty) {
+            this.scheduleEvict(slug, session);
+            return;
+        }
+
+        clearInterval(session.saveInterval);
+        this.sessions.delete(slug);
+        logger.trace({ slug }, "Drawing removed from memory");
     }
 }

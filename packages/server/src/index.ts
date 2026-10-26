@@ -8,3 +8,4 @@ export * from "./lib/context-logger";
 export * from "./auth/providers/github";
 export * from "./auth/providers/google";
 export * from "./auth/core";
+export { drawingEmitter } from "./model/emitters";

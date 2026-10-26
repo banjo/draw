@@ -1,22 +1,28 @@
+import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import {
     BoardDeltaUpdate,
     BoardDeltaUpdateSchema,
     BoardUpdateResponse,
+    Cause,
     Collaborator,
     CollaboratorSchema,
-    Slug,
 } from "common";
 import { z } from "zod";
 import { createContextLogger } from "../../lib/context-logger";
 import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
 import { DrawingEmitter } from "../../model/drawing-emitter";
+import { collaboratorsEmitter, drawingEmitter } from "../../model/emitters";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 const logger = createContextLogger("collaboration-router");
 
-const collaboratorsEmitter = new CollaboratorsEmitter();
-const drawingEmitter = new DrawingEmitter();
+const drawingNotFound = () =>
+    new TRPCError({
+        code: "NOT_FOUND",
+        message: "Drawing not found",
+        cause: Cause.DRAWING_NOT_FOUND,
+    });
 
 export const collaborationRouter = createTRPCRouter({
     updateCollaborator: publicProcedure
@@ -40,74 +46,75 @@ export const collaborationRouter = createTRPCRouter({
         .mutation(async ({ input }) => {
             const { deltaBoardUpdate, slug } = input;
             logger.trace({ slug }, "Updating board");
-            await drawingEmitter.update(slug, deltaBoardUpdate);
+            const result = await drawingEmitter.update(slug, deltaBoardUpdate);
+
+            if (!result.success) {
+                throw drawingNotFound();
+            }
         }),
     onCollaboratorChange: publicProcedure
         .input(z.object({ slug: z.string(), clientId: z.string() }))
         .subscription(({ input }) => {
-            const { slug: selectedSlug, clientId } = input;
+            const { slug, clientId } = input;
+            const event = CollaboratorsEmitter.changeEvent(slug);
+
             return observable<Collaborator[]>(emit => {
-                const onUpdate = (slug: Slug) => {
-                    if (slug !== selectedSlug) return;
+                const onChange = (collaborators: Collaborator[]) => emit.next(collaborators);
 
-                    const all = collaboratorsEmitter.get(slug) ?? [];
-                    emit.next(all);
-                };
-
-                const onLeave = (slug: Slug, clientId: string) => {
-                    if (slug !== selectedSlug) return;
-
-                    const all = collaboratorsEmitter.get(slug) ?? [];
-
-                    // Remove the collaborator from the list
-                    const index = all.findIndex(c => c.clientId === clientId);
-                    if (index !== -1) {
-                        all.splice(index, 1);
-                        emit.next(all);
-                    }
-                };
-
-                collaboratorsEmitter.on("update", onUpdate);
-                collaboratorsEmitter.on("remove", onUpdate);
+                collaboratorsEmitter.on(event, onChange);
+                emit.next(collaboratorsEmitter.get(slug));
 
                 return () => {
-                    onLeave(selectedSlug, clientId);
-                    collaboratorsEmitter.off("update", onUpdate);
-                    collaboratorsEmitter.off("remove", onUpdate);
+                    collaboratorsEmitter.off(event, onChange);
+                    // Remove the cursor for everyone else
+                    collaboratorsEmitter.remove(slug, clientId);
                 };
             });
         }),
     onBoardChange: publicProcedure
         .input(z.object({ slug: z.string() }))
-        .subscription(async ({ input }) => {
-            const { slug: selectedSlug } = input;
-
-            const board = await drawingEmitter.get(selectedSlug);
+        .subscription(({ input }) => {
+            const { slug } = input;
+            const event = DrawingEmitter.updateEvent(slug);
 
             return observable<BoardUpdateResponse>(emit => {
-                const fullBoard = BoardUpdateResponse.from(board);
-                emit.next(fullBoard);
+                let joined = false;
+                let closed = false;
 
-                const onUpdate = (slug: Slug, deltaUpdate: BoardDeltaUpdate) => {
-                    if (slug !== selectedSlug) return;
-                    const delta = BoardUpdateResponse.from(deltaUpdate);
-                    emit.next(delta);
-                };
+                const onUpdate = (deltaUpdate: BoardDeltaUpdate) =>
+                    emit.next(BoardUpdateResponse.from(deltaUpdate));
 
-                const onLeave = (slug: Slug) => {
-                    if (slug !== selectedSlug) return;
+                drawingEmitter
+                    .join(slug)
+                    .then(exists => {
+                        if (!exists) {
+                            emit.error(drawingNotFound());
+                            return;
+                        }
 
-                    const activeCollaborators = collaboratorsEmitter.activeCollaborators(slug);
+                        // Closed while the drawing was loading
+                        if (closed) {
+                            drawingEmitter.leave(slug);
+                            return;
+                        }
 
-                    if (activeCollaborators === 0) {
-                        drawingEmitter.complete(slug);
-                    }
-                };
+                        joined = true;
+                        // Read the board and listen in the same tick, so no change is missed
+                        const board = drawingEmitter.getBoard(slug);
+                        if (board) emit.next(BoardUpdateResponse.from(board));
+                        drawingEmitter.on(event, onUpdate);
+                    })
+                    .catch((error: unknown) => {
+                        logger.error({ error, slug }, "Could not open drawing");
+                        emit.error(new TRPCError({ code: "INTERNAL_SERVER_ERROR", cause: error }));
+                    });
 
-                drawingEmitter.on("update", onUpdate);
-                return async () => {
-                    onLeave(selectedSlug);
-                    drawingEmitter.off("update", onUpdate);
+                return () => {
+                    closed = true;
+                    if (!joined) return;
+
+                    drawingEmitter.off(event, onUpdate);
+                    drawingEmitter.leave(slug);
                 };
             });
         }),
