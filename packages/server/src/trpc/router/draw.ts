@@ -157,7 +157,7 @@ export const drawRouter = createTRPCRouter({
                 if (drawingResult.type === "Unauthorized") {
                     logger.error({ slug }, `User not authorized to update drawing`);
                     throw new TRPCError({
-                        code: "UNAUTHORIZED",
+                        code: "FORBIDDEN",
                         message: "Not owner of drawing",
                         cause: Cause.NOT_OWNER,
                     });

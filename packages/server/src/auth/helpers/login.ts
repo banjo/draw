@@ -1,17 +1,25 @@
-import {
-    generateCodeVerifier,
-    generateState,
-    OAuth2Provider,
-    OAuth2ProviderWithPKCE,
-} from "arctic";
+import { generateCodeVerifier, generateState, OAuth2ProviderWithPKCE } from "arctic";
 import { serializeCookie } from "oslo/cookie";
 import { Env } from "common";
 import { Response } from "express";
 import { HttpResponse } from "../../model/http-response";
 import { MAX_COOKIE_AGE } from "../core";
-import { Cookie, ProviderType } from "../models";
+import { Cookie, ProviderType, SimpleOauthProvider } from "../models";
 
 const env = Env.server();
+
+const serializeOauthCookie = (name: string, value: string, maxAge: number) =>
+    serializeCookie(name, value, {
+        path: "/",
+        secure: env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge,
+        sameSite: "lax",
+    });
+
+/** Expire the state and code verifier cookies once the login is done. */
+export const clearOauthCookies = (cookies: Cookie[]) =>
+    cookies.map(cookie => serializeOauthCookie(cookie.name, "", 0));
 
 type BaseLoginProps = {
     providerType: ProviderType;
@@ -22,7 +30,7 @@ type BaseLoginProps = {
 
 type LoginSimpleProps = {
     providerType: "simple";
-    provider: OAuth2Provider;
+    provider: SimpleOauthProvider;
 } & BaseLoginProps;
 
 type LoginPKCEProps = {
@@ -34,27 +42,20 @@ type LoginProps = LoginSimpleProps | LoginPKCEProps;
 
 export const login = async ({ provider, res, cookies, providerType, scopes }: LoginProps) => {
     const state = generateState();
+    const stateCookie = cookies.find(c => c.type === "state");
+
+    if (!stateCookie) {
+        return HttpResponse.internalServerError({ res, message: "Could not start the login" });
+    }
 
     if (providerType === "simple") {
-        const url = await provider.createAuthorizationURL(state);
-        const cookie = cookies.find(c => c.type === "state");
+        const url = await provider.createAuthorizationURL(state, scopes ? { scopes } : undefined);
 
-        if (!cookie) {
-            return HttpResponse.internalServerError({
-                res,
-                message: "Could not find state cookie",
-            });
-        }
-
-        const serializedCookie = serializeCookie(cookie.name, state, {
-            path: "/",
-            secure: env.NODE_ENV === "production",
-            httpOnly: true,
-            maxAge: MAX_COOKIE_AGE,
-            sameSite: "lax",
+        return HttpResponse.redirect({
+            res,
+            url: url.toString(),
+            cookies: [serializeOauthCookie(stateCookie.name, state, MAX_COOKIE_AGE)],
         });
-
-        return HttpResponse.redirect({ res, url: url.toString(), cookies: [serializedCookie] });
     }
 
     const codeVerifier = generateCodeVerifier();
@@ -65,33 +66,18 @@ export const login = async ({ provider, res, cookies, providerType, scopes }: Lo
         scopes ? { scopes } : undefined
     );
 
-    const stateCookie = cookies.find(c => c.type === "state");
     const codeVerifierCookie = cookies.find(c => c.type === "code_verifier");
 
-    if (!stateCookie || !codeVerifierCookie) {
-        return HttpResponse.internalServerError({
-            res,
-            message: "Could not find state or code_verifier cookie",
-        });
+    if (!codeVerifierCookie) {
+        return HttpResponse.internalServerError({ res, message: "Could not start the login" });
     }
-
-    const serializedStateCookie = serializeCookie(stateCookie.name, state, {
-        httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        maxAge: MAX_COOKIE_AGE,
-        path: "/",
-    });
-
-    const serializedCodeVerifierCookie = serializeCookie(codeVerifierCookie.name, codeVerifier, {
-        httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        maxAge: MAX_COOKIE_AGE,
-        path: "/",
-    });
 
     return HttpResponse.redirect({
         res,
         url: url.toString(),
-        cookies: [serializedStateCookie, serializedCodeVerifierCookie],
+        cookies: [
+            serializeOauthCookie(stateCookie.name, state, MAX_COOKIE_AGE),
+            serializeOauthCookie(codeVerifierCookie.name, codeVerifier, MAX_COOKIE_AGE),
+        ],
     });
 };

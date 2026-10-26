@@ -1,16 +1,17 @@
-import { OAuth2Provider, OAuth2ProviderWithPKCE } from "arctic";
+import { OAuth2ProviderWithPKCE } from "arctic";
 import { callback } from "./callback";
 import { login } from "./login";
 import { FetchUser } from "./user-info";
 import { Request, Response } from "express";
-import { Cookie } from "../models";
+import { Cookie, SimpleOauthProvider } from "../models";
 import { OauthProvider } from "../providers";
 
 type CreateOauthCoreProviderProps = {
-    provider: OAuth2Provider;
+    provider: SimpleOauthProvider;
     oauthProvider: OauthProvider;
     cookies: Cookie[];
     fetchUser: FetchUser;
+    scopes?: string[];
 };
 
 export const createOauthProvider = ({
@@ -18,9 +19,10 @@ export const createOauthProvider = ({
     fetchUser,
     cookies,
     oauthProvider,
+    scopes,
 }: CreateOauthCoreProviderProps) => ({
     login: async (req: Request, res: Response) =>
-        login({ provider, res, cookies, providerType: "simple" }),
+        login({ provider, res, cookies, providerType: "simple", scopes }),
     callback: async (req: Request, res: Response) =>
         callback({ provider, oauthProvider, fetchUser, req, res, cookies, providerType: "simple" }),
 });

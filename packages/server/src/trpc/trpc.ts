@@ -72,17 +72,9 @@ const contextMiddleware = t.middleware(({ type, next, path, ctx }) => {
         return next();
     }
 
-    return NodeContext.context.run(NodeContext.store, async () => {
-        const isWS = type === "subscription" || path.includes("collaboration");
-        NodeContext.setIsWS(isWS);
-        NodeContext.setRequestId(uuid());
-
-        if (ctx.userId) {
-            NodeContext.setUserId(ctx.userId);
-        }
-
-        return await next();
-    });
+    // A new context per call, so concurrent calls don't share ids in the logs
+    const isWS = type === "subscription" || path.includes("collaboration");
+    return NodeContext.run({ isWS, userId: ctx.userId }, async () => await next());
 });
 
 const enforceUserIsAuthenticated = t.middleware(({ ctx, next }) => {

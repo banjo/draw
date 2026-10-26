@@ -9,3 +9,4 @@ export * from "./auth/providers/github";
 export * from "./auth/providers/google";
 export * from "./auth/core";
 export { drawingEmitter } from "./model/emitters";
+export { errorMiddleware, handleErrors } from "./lib/express";

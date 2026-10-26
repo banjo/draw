@@ -25,15 +25,14 @@ const provider = new Google(
 
 const GoogleUserInfoSchema = z.object({
     sub: z.string(),
-    name: z.string(),
-    picture: z.string(),
+    name: z.string().optional(),
+    picture: z.string().optional(),
     email: z.string(),
     email_verified: z.boolean(),
 });
 
 type GoogleUserInfo = z.infer<typeof GoogleUserInfoSchema>;
 
-// TODO: fetch user
 const fetchUser: FetchUser = async accessToken => {
     const [googleUser, error] = await wrapAsync(async () => {
         const user = await ofetch<GoogleUserInfo>(
@@ -50,18 +49,23 @@ const fetchUser: FetchUser = async accessToken => {
 
     if (error) {
         logger.error({ error }, "Error fetching user");
-        return Result.error(error.message);
+        return Result.error("Could not fetch the Google user");
     }
 
-    const user: OauthUserInfo = {
-        name: googleUser.name,
-        id: Number.parseInt(googleUser.sub),
+    const parsed = OauthUserInfo.safeParse({
+        id: googleUser.sub,
         email: googleUser.email,
+        emailVerified: googleUser.email_verified,
+        name: googleUser.name,
         avatar_url: googleUser.picture,
-    };
+    });
 
-    const parsed = OauthUserInfo.parse(user);
-    return Result.ok(parsed);
+    if (!parsed.success) {
+        logger.error({ error: parsed.error }, "Unexpected Google user");
+        return Result.error("Could not read the Google user");
+    }
+
+    return Result.ok(parsed.data);
 };
 
 const cookies: Cookie[] = [

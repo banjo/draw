@@ -258,7 +258,7 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
 
         if (drawing.ownerId !== userId) {
             logger.error(`User not authorized to update drawing: ${slug}`);
-            return Result.error("User not authorized to update drawing");
+            return Result.error("User not authorized to update drawing", { type: "Unauthorized" });
         }
 
         const updateDrawingResult = await prisma.drawing.update({

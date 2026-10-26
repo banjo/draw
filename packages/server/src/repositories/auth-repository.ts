@@ -6,22 +6,25 @@ import { Result } from "common";
 
 const logger = createContextLogger("user-repository");
 
-type CreateOauthUserProps = {
+type OauthAccountProps = {
     provider: OauthProvider;
     providerUserId: string;
-    email: string;
     name?: string;
     avatarUrl?: string;
 };
 
+type CreateOauthUserProps = OauthAccountProps & {
+    email: string;
+};
+
 const createOauthUser = async (props: CreateOauthUserProps) => {
     const { provider, providerUserId, email, name, avatarUrl } = props;
-    logger.info({ provider, providerUserId, email }, "Creating oauth user");
+    logger.info({ provider }, "Creating oauth user");
 
     const [user, error] = await wrapAsync(async () =>
         prisma.user.create({
             data: {
-                email,
+                email: email.toLowerCase(),
                 name,
                 avatarUrl,
                 OauthAccount: {
@@ -37,17 +40,16 @@ const createOauthUser = async (props: CreateOauthUserProps) => {
     );
 
     if (error) {
-        logger.error({ error, provider, providerUserId, email }, "Error creating oauth user");
+        logger.error({ error, provider }, "Error creating oauth user");
         return Result.error("Error creating oauth user");
     }
 
-    logger.info({ provider, providerUserId, email }, "Successfully created oauth user");
-
+    logger.info({ provider, userId: user.id }, "Successfully created oauth user");
     return Result.ok(user);
 };
 
 const getOauthByProvider = async (provider: OauthProvider, providerUserId: string) => {
-    logger.trace({ provider, providerUserId }, "Getting user by oauth provider");
+    logger.trace({ provider }, "Getting user by oauth provider");
 
     const [oauth, error] = await wrapAsync(async () =>
         prisma.oauthAccount.findFirst({
@@ -59,66 +61,57 @@ const getOauthByProvider = async (provider: OauthProvider, providerUserId: strin
     );
 
     if (error) {
-        logger.error({ error, provider, providerUserId }, "Error getting user by oauth provider");
+        logger.error({ error, provider }, "Error getting user by oauth provider");
         return Result.error("Error getting user by oauth provider");
-    }
-
-    if (oauth) {
-        logger.trace({ provider, providerUserId }, "Successfully got user by oauth provider");
     }
 
     return Result.ok(oauth);
 };
 
+/** Emails are compared without case, as older users may have mixed-case emails stored. */
 const getUserByEmail = async (email: string) => {
-    logger.trace({ email }, "Getting user by email");
+    logger.trace("Getting user by email");
 
     const [user, error] = await wrapAsync(async () =>
         prisma.user.findFirst({
             where: {
-                email,
+                email: { equals: email, mode: "insensitive" },
             },
         })
     );
 
     if (error) {
-        logger.error({ error, email }, "Error getting user by email");
+        logger.error({ error }, "Error getting user by email");
         return Result.error("Error getting user by email");
-    }
-
-    if (user) {
-        logger.trace({ email }, "Successfully got user by email");
-    } else {
-        logger.trace({ email }, "No user found by email");
     }
 
     return Result.ok(user);
 };
 
-const addOauthAccount = async (
+/**
+ * Link a provider account to a user, replacing the user's earlier account with the same
+ * provider. That one has an outdated id, e.g. a Google id that was stored as a rounded number.
+ */
+const linkOauthAccount = async (
     userId: number,
-    { provider, avatarUrl, providerUserId, name }: Omit<CreateOauthUserProps, "email">
+    { provider, avatarUrl, providerUserId, name }: OauthAccountProps
 ) => {
-    logger.info({ provider, providerUserId }, "Adding oauth account");
+    logger.info({ provider, userId }, "Linking oauth account");
 
     const [oauth, error] = await wrapAsync(async () =>
-        prisma.oauthAccount.create({
-            data: {
-                provider,
-                providerUserId,
-                name,
-                avatarUrl,
-                userId,
-            },
+        prisma.$transaction(async tx => {
+            await tx.oauthAccount.deleteMany({ where: { userId, provider } });
+            return await tx.oauthAccount.create({
+                data: { provider, providerUserId, name, avatarUrl, userId },
+            });
         })
     );
 
     if (error) {
-        logger.error({ error, provider, providerUserId }, "Error adding oauth account");
-        return Result.error("Error adding oauth account");
+        logger.error({ error, provider, userId }, "Error linking oauth account");
+        return Result.error("Error linking oauth account");
     }
 
-    logger.info({ provider, providerUserId }, "Successfully added oauth account");
     return Result.ok(oauth);
 };
 
@@ -126,5 +119,5 @@ export const AuthRepository = {
     createOauthUser,
     getOauthByProvider,
     getUserByEmail,
-    addOauthAccount,
+    linkOauthAccount,
 };

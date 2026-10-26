@@ -1,6 +1,7 @@
 import { isLocalDevelopment } from "@/utils/runtime";
 import { attemptAsync } from "@banjoanton/utils";
 import { AuthInfo, CoreResponse, Env } from "common";
+import toast from "react-hot-toast";
 
 const env = Env.client();
 
@@ -68,11 +69,17 @@ class AuthService {
 
     public async signOut() {
         const signOutUrl = `${env.VITE_API_URL}/logout`;
-        fetch(signOutUrl, {
-            credentials: "include",
-        });
-        this.authState = emptyAuthState;
-        this.notifyListeners();
+        const response = await attemptAsync(
+            async () => await fetch(signOutUrl, { method: "POST", credentials: "include" })
+        );
+
+        if (!response?.ok) {
+            toast.error("Could not sign out");
+            return;
+        }
+
+        // Reload, so the WebSocket connects again without the session
+        window.location.reload();
     }
 
     public getAuthState(): AuthState {
