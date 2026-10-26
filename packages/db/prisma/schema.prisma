@@ -1,7 +1,6 @@
 datasource db {
-  provider     = "postgres"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "postgres"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -27,6 +26,8 @@ model Session {
   userId    Int
   expiresAt DateTime
   user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model OauthAccount {
@@ -35,11 +36,12 @@ model OauthAccount {
   userId         Int
   provider       String // github, google, etc
   providerUserId String // id from the provider
-  user           User     @relation(fields: [userId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   avatarUrl      String?
   name           String?
 
   @@id([provider, providerUserId]) // composite primary key
+  @@index([userId])
 }
 
 // APPLICATION
@@ -55,13 +57,14 @@ model Drawing {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   name      String?
-  data      Json[]
   owner     User?            @relation("OwnerDrawings", fields: [ownerId], references: [id])
   ownerId   Int?
   users     User[]           @relation("Collection")
   access    Access           @default(public)
   order     String[]
   elements  DrawingElement[]
+
+  @@index([ownerId])
 }
 
 model DrawingElement {
@@ -71,7 +74,7 @@ model DrawingElement {
   data      Json
   elementId String
   version   Int
-  drawing   Drawing  @relation(fields: [drawingId], references: [id])
+  drawing   Drawing  @relation(fields: [drawingId], references: [id], onDelete: Cascade)
   drawingId Int
 
   @@unique([drawingId, elementId])

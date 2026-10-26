@@ -308,13 +308,21 @@ have no indexes, and nothing stops orphaned rows.
 
 **Fix**
 
-- [ ] Remove `relationMode = "prisma"` (it's meant for PlanetScale) so Postgres creates real
-      foreign keys. Clean up orphaned rows first, or the migration fails.
-- [ ] Or keep it and add `@@index([userId])` on `Session` and `OauthAccount`, and
-      `@@index([ownerId])` on `Drawing`.
-- [ ] Add `onDelete: Cascade` on `DrawingElement.drawing` and `OauthAccount.user`.
-- [ ] Remove the unused `Drawing.data` column.
+- [x] Remove `relationMode = "prisma"` so Postgres creates real foreign keys, including
+      `_Collection`. The remote audit found no orphans. The migration rejects orphaned rows
+      instead of silently deleting them, and runs in one transaction.
+- [x] Add `@@index([userId])` on `Session` and `OauthAccount`, and `@@index([ownerId])`
+      on `Drawing`. Foreign keys don't create these indexes automatically.
+- [x] Add `onDelete: Cascade` on `DrawingElement.drawing` and `OauthAccount.user`.
+- [x] Remove `Drawing.data` from the schema and prepare its removal in the migration. No
+      remote drawings contain legacy data; the migration refuses to drop nonempty data.
 - [x] In `draw-repository.ts`, build a `Map` of elements by id before ordering them (step 3).
+- [x] Twelve PostgreSQL 17 migration tests cover preservation, indexes, foreign keys,
+      cascades, orphan rejection, and rollback. DB/server/API typechecks and the 29 existing
+      server/common tests pass. Rollout instructions are in `packages/db/README.md`.
+- [ ] Deploy the regenerated Prisma client to every API instance, back up the database,
+      then apply `20261026130000_database_relations` remotely. Old generated clients still
+      select `Drawing.data`, so dropping it before deploying would break queries.
 
 ## 8. Local setup
 
