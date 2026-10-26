@@ -320,9 +320,11 @@ have no indexes, and nothing stops orphaned rows.
 - [x] Twelve PostgreSQL 17 migration tests cover preservation, indexes, foreign keys,
       cascades, orphan rejection, and rollback. DB/server/API typechecks and the 29 existing
       server/common tests pass. Rollout instructions are in `packages/db/README.md`.
-- [ ] Deploy the regenerated Prisma client to every API instance, back up the database,
-      then apply `20261026130000_database_relations` remotely. Old generated clients still
-      select `Drawing.data`, so dropping it before deploying would break queries.
+- [x] Deploy the regenerated Prisma client, back up the database, then apply
+      `20261026130000_database_relations` remotely. Done Oct 26 after deployment: all 17
+      migrations applied, six validated foreign keys, three valid indexes, and all row
+      counts unchanged (131 drawings, 5,038 elements). A verified full backup is stored
+      outside the repository under `~/.local/share/banjodraw/backups/`.
 
 ## 8. Local setup
 
