@@ -6,13 +6,15 @@
     "main": "./src/index.ts",
     "types": "./src/index.ts",
     "scripts": {
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run"
     },
     "devDependencies": {
         "@banjoanton/utils": "^0.1.93",
         "@types/node": "^20.14.8",
         "db": "workspace:*",
-        "tsconfig": "workspace:*"
+        "tsconfig": "workspace:*",
+        "vitest": "0.34.6"
     },
     "dependencies": {
         "@axiomhq/pino": "^0.1.3",
