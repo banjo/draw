@@ -1,62 +1,46 @@
 import { wrapAsync } from "@banjoanton/utils";
 import { createContextLogger } from "../lib/context-logger";
 import { prisma } from "db";
-import { Env, Result } from "common";
+import { Env, ImageUpload, Result } from "common";
 import { BucketKey } from "../model/bucket/bucket-key";
-import { ImageFile } from "../trpc/router/file";
 
 const logger = createContextLogger("file-repository");
 const env = Env.server();
 
-const savePresignedImageFiles = async (imageFile: ImageFile[]) => {
-    logger.trace({ imageFile }, "Saving bucket images to database");
+/**
+ * Add rows for images that aren't in the database yet. Returns the rows that already existed
+ * and the images that were added, so only new images get an upload URL.
+ */
+const claimImages = async (images: ImageUpload[]) => {
+    logger.trace({ images }, "Claiming images");
 
-    const [existingFiles, findError] = await wrapAsync(async () => {
-        const files = await prisma.bucketFile.findMany({
-            where: {
-                imageId: {
-                    in: imageFile.map(({ imageId }) => imageId),
-                },
-            },
-            select: {
-                imageId: true,
-            },
+    const [result, error] = await wrapAsync(async () => {
+        const existing = await prisma.bucketFile.findMany({
+            where: { imageId: { in: images.map(({ imageId }) => imageId) } },
+        });
+        const existingIds = new Set(existing.map(file => file.imageId));
+        const added = images.filter(({ imageId }) => !existingIds.has(imageId));
+
+        // The unique imageId skips rows another request added in the meantime
+        await prisma.bucketFile.createMany({
+            data: added.map(({ mimeType, imageId }) => ({
+                imageId,
+                bucket: env.CLOUDFLARE_BUCKET_NAME,
+                key: BucketKey.from(imageId, mimeType),
+                mimeType,
+            })),
+            skipDuplicates: true,
         });
 
-        return files;
-    });
-
-    if (findError) {
-        logger.error({ error: findError }, "Failed to fetch existing files from database");
-        return Result.error(findError.message);
-    }
-
-    const imageIdsToSave = imageFile.filter(
-        ({ imageId }) => !existingFiles.some(file => file.imageId === imageId)
-    );
-
-    const [count, error] = await wrapAsync(async () => {
-        const result = await prisma.bucketFile.createMany({
-            data: imageIdsToSave.map(({ mimeType, imageId }) => {
-                const key = BucketKey.from(imageId, mimeType);
-                return {
-                    imageId,
-                    bucket: env.CLOUDFLARE_BUCKET_NAME,
-                    key,
-                    mimeType,
-                };
-            }),
-        });
-
-        return result.count;
+        return { existing, added };
     });
 
     if (error) {
-        logger.error({ error }, "Failed to save bucket image to database");
-        return Result.error(error.message);
+        logger.error({ error }, "Failed to claim images");
+        return Result.error("Could not save images");
     }
 
-    return Result.ok(count);
+    return Result.ok(result);
 };
 
 const fetchImagesByImageIds = async (imageIds: string[]) => {
@@ -74,10 +58,10 @@ const fetchImagesByImageIds = async (imageIds: string[]) => {
 
     if (error) {
         logger.error({ error }, "Failed to fetch images by imageIds");
-        return Result.error(error.message);
+        return Result.error("Could not fetch images");
     }
 
     return Result.ok(images);
 };
 
-export const FileRepository = { savePresignedImageFiles, fetchImagesByImageIds };
+export const FileRepository = { claimImages, fetchImagesByImageIds };

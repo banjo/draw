@@ -79,7 +79,7 @@ model DrawingElement {
 
 model BucketFile {
   id        Int      @id @default(autoincrement())
-  imageId   String
+  imageId   String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   bucket    String

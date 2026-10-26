@@ -1,5 +1,6 @@
 import {
     GetObjectCommand,
+    HeadObjectCommand,
     ListBucketsCommand,
     ListObjectsV2Command,
     PutObjectCommand,
@@ -11,8 +12,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PresignedUrlResult } from "../model/bucket/presigned-url-result";
 import { Bucket } from "../model/bucket/bucket";
 import { BucketFile } from "../model/bucket/bucket-file";
-import { BucketKey } from "../model/bucket/bucket-key";
-import { ImageFile } from "../trpc/router/file";
 
 const env = Env.server();
 const logger = createLogger("bucket-service");
@@ -78,14 +77,27 @@ const addFile = async (file: Buffer, key: string, mimeType: string) => {
     return Result.ok();
 };
 
-const generatePresignedUrlForWrite = async (key: string) => {
+type ImageToUpload = {
+    key: string;
+    mimeType: string;
+    /** Bytes. The upload must be exactly this size. */
+    size: number;
+};
+
+const generatePresignedUrlForWrite = async ({ key, mimeType, size }: ImageToUpload) => {
     const command = new PutObjectCommand({
         Bucket: BUCKET_NAME,
         Key: key,
+        ContentType: mimeType,
+        ContentLength: size,
     });
 
+    // Signing the type and size makes the bucket reject any other upload with this URL
     const [url, error] = await wrapAsync(() =>
-        getSignedUrl(S3, command, { expiresIn: EXPIRE_TIME_SECONDS })
+        getSignedUrl(S3, command, {
+            expiresIn: EXPIRE_TIME_SECONDS,
+            signableHeaders: new Set(["content-type", "content-length"]),
+        })
     );
 
     if (error) {
@@ -93,29 +105,39 @@ const generatePresignedUrlForWrite = async (key: string) => {
         return Result.error(error.message);
     }
 
-    // TODO: public url for cloudflare bucket
-    const publicUrl = `http://TODO.se`;
-
-    const result = PresignedUrlResult.from(url, key);
-    return Result.ok(result);
+    return Result.ok(PresignedUrlResult.from(url, key));
 };
 
-const generateMultiplePresignedUrlsForWrite = async (keys: string[]) => {
-    const allResults = await Promise.all(
-        keys.map(async key => await generatePresignedUrlForWrite(key))
-    );
+const generateMultiplePresignedUrlsForWrite = async (images: ImageToUpload[]) => {
+    const allResults = await Promise.all(images.map(generatePresignedUrlForWrite));
 
     const errors = allResults.filter(result => !result.success);
 
     if (errors.length > 0) {
-        logger.error({ keys }, "Could not generate presigned URLs for multiple keys");
+        logger.error({ keys: images.map(i => i.key) }, "Could not generate presigned URLs");
         return Result.error("Could not generate multiple presigned URLs");
     }
 
-    // TODO: make partition better
-    const successResults = allResults.filter(result => result.success);
-    const urls = successResults.map(result => result.data);
+    const urls = allResults.filter(result => result.success).map(result => result.data);
     return Result.ok(urls);
+};
+
+const objectExists = async (key: string) => {
+    const [_, error] = await wrapAsync(() =>
+        S3.send(new HeadObjectCommand({ Bucket: BUCKET_NAME, Key: key }))
+    );
+
+    if (!error) return true;
+    if (
+        error.name === "NotFound" ||
+        (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404
+    ) {
+        return false;
+    }
+
+    // Unknown, so treat it as existing and don't allow an upload over it
+    logger.error({ error, key }, "Could not check if object exists");
+    return true;
 };
 
 const generatePresignedUrlForRead = async (key: string) => {
@@ -154,16 +176,13 @@ const generateMultiplePresignedUrlsForRead = async (keys: string[]) => {
     return Result.ok(presignedUrlResults);
 };
 
-const createFileImageKeys = (images: ImageFile[]) =>
-    images.map(({ imageId, mimeType }) => BucketKey.from(imageId, mimeType));
-
 export const BucketService = {
     listAllBuckets,
     listAllFiles,
     addFile,
     generatePresignedUrlForRead,
     generatePresignedUrlForWrite,
-    createFileImageKeys,
+    objectExists,
     generateMultiplePresignedUrlsForWrite,
     generateMultiplePresignedUrlsForRead,
 };

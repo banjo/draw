@@ -3,6 +3,7 @@ import {
     Cause,
     ExcalidrawSimpleElementSchema,
     ExistingSlugSchema,
+    MAX_ELEMENTS,
     Result,
     SlugSchema,
 } from "common";
@@ -37,8 +38,8 @@ export const drawRouter = createTRPCRouter({
         .input(
             z.object({
                 slug: SlugSchema,
-                elements: ExcalidrawSimpleElementSchema.array(),
-                order: z.string().array(),
+                elements: ExcalidrawSimpleElementSchema.array().max(MAX_ELEMENTS),
+                order: z.string().array().max(MAX_ELEMENTS),
             })
         )
         .mutation(async ({ input, ctx }) => {

@@ -17,6 +17,9 @@ const app = express();
 const url = Env.server().CLIENT_URL;
 const PORT = Number(Env.server().PORT) || 3003;
 
+// Drawings are JSON without images, which go straight to the bucket
+const MAX_BODY_SIZE = 10 * 1024 * 1024;
+
 const corsSettings: CorsOptions = {
     credentials: true,
     origin: url,
@@ -30,6 +33,7 @@ app.use(OauthCoreProvider.middleware);
 app.use(
     "/trpc",
     createExpressMiddleware({
+        maxBodySize: MAX_BODY_SIZE,
         middleware: cors(corsSettings),
         router: appRouter,
         createContext: opts => createTRPCContext(opts),

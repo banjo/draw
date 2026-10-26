@@ -9,6 +9,8 @@ const logger = createLogger("ws");
 
 const wss = new WebSocketServer({
     server,
+    // The default is 100 MB. Changes are small, and drawings without images are JSON
+    maxPayload: 10 * 1024 * 1024,
 });
 
 const handler = applyWSSHandler({

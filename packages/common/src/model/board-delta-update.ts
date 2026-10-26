@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { ExcalidrawSimpleElementSchema } from "./excalidraw-simple-element";
 
+export const MAX_ELEMENTS = 20_000;
+
 export const BoardDeltaUpdateSchema = z.object({
-    excalidrawElements: ExcalidrawSimpleElementSchema.array(),
-    order: z.string().array().optional(),
+    excalidrawElements: ExcalidrawSimpleElementSchema.array().max(MAX_ELEMENTS),
+    order: z.string().array().max(MAX_ELEMENTS).optional(),
 });
 
 export type BoardDeltaUpdate = z.infer<typeof BoardDeltaUpdateSchema>;

@@ -5,31 +5,14 @@ import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { localImageService } from "@/services/local-image-service";
 import { logger } from "@/utils/logger";
-import { isDefined, isEmpty, wrapAsync } from "@banjoanton/utils";
+import { isDefined, isEmpty, uniq, wrapAsync } from "@banjoanton/utils";
 import { BinaryFileData, BinaryFiles } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawElements } from "common";
-import { ofetch } from "ofetch";
-import { useEffect, useState } from "react";
+import { ExcalidrawElements, ImageUpload, ImageUtil, MAX_IMAGE_SIZE } from "common";
+import { useEffect, useRef } from "react";
+import toast from "react-hot-toast";
 
-const fetchImagesFromBucket = async (
-    presignedUrlResults: { mimeType: string; imageId: string; presignedUrl: string }[]
-) =>
-    await Promise.all(
-        presignedUrlResults.map(async result => {
-            const url = result.presignedUrl;
-
-            const blob = await ofetch(url, {
-                method: "GET",
-                responseType: "blob",
-            });
-
-            return {
-                data: await FileUtil.blobToBase64(blob),
-                mimeType: result.mimeType,
-                id: result.imageId,
-            };
-        })
-    );
+// Wait this long before trying a failed image again
+const RETRY_DELAY = 30_000;
 
 type In = {
     elements: ExcalidrawElements;
@@ -46,65 +29,81 @@ const getImagesOnCanvas = (files: BinaryFiles, elements: ExcalidrawElements) =>
             })
         );
 
+const toBlobs = (images: BinaryFileData[]) =>
+    images
+        .map(image => {
+            const blob = FileUtil.dataUrlToBlob(image.dataURL, image.mimeType);
+
+            if (!blob) {
+                logger.error({ id: image.id }, "Could not convert dataURL to blob");
+                return undefined;
+            }
+
+            return { image, blob };
+        })
+        .filter(isDefined);
+
+const fetchBlob = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Could not fetch image: ${response.status}`);
+    return await response.blob();
+};
+
+/**
+ * Keeps images in sync: saves new images on the canvas (to the bucket, or to the browser for
+ * the offline drawing), and loads the ones the canvas shows but doesn't have yet.
+ */
 export const useImages = ({ elements, slug }: In) => {
     const { excalidrawApi } = useGlobal();
-    const [uploadedImages, setUploadedImages] = useState<string[]>([]);
     const { handleError } = useError();
     const utils = trpc.useUtils();
 
-    // clear images on new document
-    useEffect(() => {
-        setUploadedImages([]);
-    }, [slug]);
+    // Saved or loaded images, the ones being saved or loaded now, and when an image last failed
+    const done = useRef(new Set<string>());
+    const busy = useRef(new Set<string>());
+    const failedAt = useRef(new Map<string, number>());
 
-    const fetchImages = async (ids: string[]) => {
-        if (!excalidrawApi) return;
+    const canTry = (id: string) =>
+        !busy.current.has(id) && Date.now() - (failedAt.current.get(id) ?? 0) > RETRY_DELAY;
 
-        if (!slug) {
-            const localImages = await localImageService.loadImages(ids);
+    /** Run a save or load once per image, and back off when it fails. */
+    const track = async (ids: string[], work: () => Promise<string[]>) => {
+        ids.forEach(id => busy.current.add(id));
+        const succeeded = new Set(await work());
 
-            const imageFileProps = await Promise.all(
-                localImages.map(async image => ({
-                    data: await FileUtil.blobToBase64(image.blob),
-                    mimeType: image.mimeType,
-                    id: image.id,
-                }))
-            );
-
-            const files = FileUtil.createImageFiles(imageFileProps);
-            setUploadedImages([...uploadedImages, ...imageFileProps.map(image => image.id)]);
-            excalidrawApi.addFiles(files);
-            return;
-        }
-
-        const [presignedUrlResults, error] = await wrapAsync(
-            async () =>
-                await utils.client.file.getPresignedUrlsByImageIds.query({
-                    imageIds: ids,
-                })
-        );
-
-        if (error) {
-            await handleError(error, { toast: true, errorMessage: "Failed to fetch images" });
-            return;
-        }
-
-        const imagesFromUrls = await fetchImagesFromBucket(presignedUrlResults);
-
-        setUploadedImages([...uploadedImages, ...imagesFromUrls.map(image => image.id)]);
-        const files = FileUtil.createImageFiles(imagesFromUrls);
-        excalidrawApi.addFiles(files);
+        ids.forEach(id => {
+            busy.current.delete(id);
+            if (succeeded.has(id)) {
+                done.current.add(id);
+                failedAt.current.delete(id);
+            } else {
+                failedAt.current.set(id, Date.now());
+            }
+        });
     };
 
     const uploadImagesToBucket = async (images: BinaryFileData[]) => {
         if (isEmpty(images)) return true;
 
-        const [fileData, error] = await wrapAsync(
+        if (images.some(image => !ImageUtil.isAllowedMimeType(image.mimeType))) {
+            toast.error("This type of image can't be shared");
+            return false;
+        }
+
+        const blobs = toBlobs(images);
+        if (blobs.some(({ blob }) => blob.size > MAX_IMAGE_SIZE)) {
+            toast.error("Images can be at most 5 MB");
+            return false;
+        }
+
+        const [urls, error] = await wrapAsync(
             async () =>
                 await utils.client.file.saveImagesByPresignedUrl.mutate({
-                    images: images.map(image => ({
+                    images: blobs.map(({ image, blob }) => ({
                         imageId: image.id,
-                        mimeType: image.mimeType,
+                        // Checked above
+                        mimeType: image.mimeType as ImageUpload["mimeType"],
+                        size: blob.size,
                     })),
                 })
         );
@@ -114,18 +113,19 @@ export const useImages = ({ elements, slug }: In) => {
             return false;
         }
 
-        const uploadPromises = images.map(async image => {
-            const url = fileData.find(r => r.key.includes(image.id));
-            if (!url) return;
+        // Images without a URL are in the bucket already
+        const [_, uploadError] = await wrapAsync(() =>
+            Promise.all(
+                blobs.map(async ({ image, blob }) => {
+                    // Keys look like image/<extension>/<id>.<extension>
+                    const url = urls.find(result => result.key.includes(`/${image.id}.`));
+                    if (!url) return;
 
-            const uploadResult = await FileUtil.uploadToBucket(image, url.presignedUrl);
-
-            if (!uploadResult.success) {
-                throw new Error("Failed to upload image to bucket");
-            }
-        });
-
-        const [_, uploadError] = await wrapAsync(() => Promise.all(uploadPromises));
+                    const response = await fetch(url.presignedUrl, { method: "PUT", body: blob });
+                    if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+                })
+            )
+        );
 
         if (uploadError) {
             await handleError(uploadError, {
@@ -136,6 +136,68 @@ export const useImages = ({ elements, slug }: In) => {
         }
 
         return true;
+    };
+
+    const saveImagesLocally = async (images: BinaryFileData[]) => {
+        const localImages = toBlobs(images).map(({ image, blob }) => ({
+            id: image.id,
+            blob,
+            mimeType: image.mimeType,
+        }));
+
+        const [_, error] = await wrapAsync(() => localImageService.saveImages(localImages));
+        if (error) {
+            logger.error({ error }, "Could not save images in the browser");
+            return [];
+        }
+
+        return localImages.map(image => image.id);
+    };
+
+    /** Load images into Excalidraw, and return the ids that loaded. */
+    const loadImages = async (ids: string[]) => {
+        if (!excalidrawApi) return [];
+        const isFirstTry = ids.some(id => !failedAt.current.has(id));
+
+        const [loaded, error] = await wrapAsync(async () => {
+            if (!slug) {
+                const localImages = await localImageService.loadImages(ids);
+                return await Promise.all(
+                    localImages.map(async image => ({
+                        data: await FileUtil.blobToBase64(image.blob),
+                        mimeType: image.mimeType,
+                        id: image.id,
+                    }))
+                );
+            }
+
+            const urls = await utils.client.file.getPresignedUrlsByImageIds.query({
+                imageIds: ids,
+            });
+            const results = await Promise.allSettled(
+                urls.map(async ({ presignedUrl, mimeType, imageId }) => ({
+                    data: await FileUtil.blobToBase64(await fetchBlob(presignedUrl)),
+                    mimeType,
+                    id: imageId,
+                }))
+            );
+
+            return results
+                .map(result => (result.status === "fulfilled" ? result.value : undefined))
+                .filter(isDefined);
+        });
+
+        if (error) {
+            await handleError(error, { toast: isFirstTry, errorMessage: "Failed to load images" });
+            return [];
+        }
+
+        if (loaded.length < ids.length && isFirstTry) {
+            toast.error("Some images could not be loaded");
+        }
+
+        excalidrawApi.addFiles(FileUtil.createImageFiles(loaded));
+        return loaded.map(image => image.id);
     };
 
     // Images in an offline drawing only exist in this browser, so upload them before it gets a link
@@ -149,84 +211,49 @@ export const useImages = ({ elements, slug }: In) => {
         return await uploadImagesToBucket(images);
     };
 
-    // get images on load or when new images are added
-    useEffect(() => {
-        if (!elements || !excalidrawApi) return;
-
-        const images = elements
-            .filter(ExcalidrawUtil.isImageElement)
-            .filter(element => element.fileId && !element.isDeleted);
-
-        if (images.length === 0) return;
-
-        const currentImages = excalidrawApi.getFiles();
-        const alreadyFetchedImages = new Set(Object.values(currentImages).map(image => image.id));
-
-        const imagesToFetch = images.filter(image => !alreadyFetchedImages.has(image.fileId!));
-        if (imagesToFetch.length === 0) return;
-
-        fetchImages(imagesToFetch.map(image => image.fileId!));
-    }, [excalidrawApi, elements, slug]);
-
-    // save images on change
+    // Load images the canvas shows but doesn't have
     useEffect(() => {
         if (!excalidrawApi) return;
 
-        const imagesReferencedOnCanvas = getImagesOnCanvas(excalidrawApi.getFiles(), elements);
+        const files = excalidrawApi.getFiles();
+        const missing = uniq(
+            elements
+                .filter(ExcalidrawUtil.isImageElement)
+                .filter(element => element.fileId && !element.isDeleted)
+                .map(element => element.fileId as string)
+        ).filter(id => !files[id] && canTry(id));
 
-        const notUploadedImages = imagesReferencedOnCanvas.filter(
-            image => !uploadedImages.includes(image.id)
-        );
+        if (missing.length === 0) return;
+        void track(missing, () => loadImages(missing));
+    }, [excalidrawApi, elements, slug]);
 
-        const removedImages = uploadedImages.filter(
-            id => !imagesReferencedOnCanvas.some(image => image.id === id)
-        );
+    // Save new images on the canvas
+    useEffect(() => {
+        if (!excalidrawApi) return;
 
-        if (!isEmpty(removedImages)) {
-            setUploadedImages(uploadedImages.filter(id => !removedImages.includes(id)));
+        const onCanvas = getImagesOnCanvas(excalidrawApi.getFiles(), elements);
+        const onCanvasIds = new Set<string>(onCanvas.map(image => image.id));
 
-            if (!slug) {
-                localImageService.removeImages(removedImages); // do not await
+        // Offline images taken off the canvas are removed from the browser too
+        if (!slug) {
+            const removed = [...done.current].filter(id => !onCanvasIds.has(id));
+            if (removed.length > 0) {
+                removed.forEach(id => done.current.delete(id));
+                localImageService
+                    .removeImages(removed)
+                    .catch(error => logger.error({ error }, "Could not remove images"));
             }
         }
 
-        if (notUploadedImages.length === 0) return;
+        const toSave = onCanvas.filter(image => !done.current.has(image.id) && canTry(image.id));
+        if (toSave.length === 0) return;
 
-        const saveImages = async () => {
-            if (!slug) {
-                const localImages = notUploadedImages
-                    .map(image => {
-                        const blob = FileUtil.dataUrlToBlob(image.dataURL, image.mimeType);
-
-                        if (!blob) {
-                            logger.error({ id: image.id }, "Could not convert dataURL to blob");
-                            return undefined;
-                        }
-
-                        return {
-                            id: image.id,
-                            blob,
-                            mimeType: image.mimeType,
-                        };
-                    })
-                    .filter(isDefined);
-
-                await localImageService.saveImages(localImages);
-
-                setUploadedImages([...uploadedImages, ...localImages.map(image => image.id)]);
-                return;
-            }
-
-            const isUploaded = await uploadImagesToBucket(notUploadedImages);
-            if (!isUploaded) return;
-
-            const uploadedImageIds = notUploadedImages.map(image => image.id);
-
-            setUploadedImages([...uploadedImages, ...uploadedImageIds]);
-        };
-
-        saveImages();
-    }, [excalidrawApi, elements, uploadedImages, slug]);
+        const ids = toSave.map(image => image.id);
+        void track(ids, async () => {
+            if (!slug) return await saveImagesLocally(toSave);
+            return (await uploadImagesToBucket(toSave)) ? ids : [];
+        });
+    }, [excalidrawApi, elements, slug]);
 
     return {
         uploadImagesOnCanvas,

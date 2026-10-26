@@ -1,48 +1,69 @@
+import { isDefined } from "@banjoanton/utils";
 import { TRPCError } from "@trpc/server";
+import { ImageIdSchema, ImageUploadSchema } from "common";
 import { z } from "zod";
 import { createContextLogger } from "../../lib/context-logger";
+import { BucketKey } from "../../model/bucket/bucket-key";
 import { FileRepository } from "../../repositories/file-repository";
 import { BucketService } from "../../services/bucket-service";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 const logger = createContextLogger("file-router");
 
-const ImageFileSchema = z.object({
-    imageId: z.string(),
-    mimeType: z.string(),
-});
-
-export type ImageFile = z.infer<typeof ImageFileSchema>;
-
-const SaveImageSchema = z.object({
-    images: ImageFileSchema.array(),
-});
-
 export const fileRouter = createTRPCRouter({
-    saveImagesByPresignedUrl: publicProcedure.input(SaveImageSchema).mutation(async ({ input }) => {
-        const { images } = input;
-        logger.trace({ images }, "Generating presigned URL for images");
+    /**
+     * Upload URLs for images that aren't in the bucket yet. Uploaded images can't be replaced,
+     * as their ids are in the drawing data that everyone on it can see.
+     */
+    saveImagesByPresignedUrl: publicProcedure
+        .input(z.object({ images: ImageUploadSchema.array().max(50) }))
+        .mutation(async ({ input }) => {
+            const { images } = input;
+            logger.trace({ images }, "Generating presigned URL for images");
 
-        const databaseResult = await FileRepository.savePresignedImageFiles(images);
+            const claimed = await FileRepository.claimImages(images);
 
-        if (!databaseResult.success) {
-            logger.error({ message: databaseResult.message }, "Failed to save images to database");
-            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: databaseResult.message });
-        }
+            if (!claimed.success) {
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: claimed.message });
+            }
 
-        const keys = BucketService.createFileImageKeys(images);
+            const requested = new Map(images.map(image => [image.imageId, image]));
+            const added = claimed.data.added.map(({ imageId, mimeType, size }) => ({
+                key: BucketKey.from(imageId, mimeType),
+                mimeType,
+                size,
+            }));
 
-        const presignedUrls = await BucketService.generateMultiplePresignedUrlsForWrite(keys);
+            // A row without an object is an upload that never finished, which can be retried
+            const unfinished = await Promise.all(
+                claimed.data.existing.map(async row => {
+                    const image = requested.get(row.imageId);
+                    if (!image || image.mimeType !== row.mimeType) return undefined;
+                    if (await BucketService.objectExists(row.key)) return undefined;
+                    return { key: row.key, mimeType: row.mimeType, size: image.size };
+                })
+            );
 
-        if (!presignedUrls.success) {
-            logger.error({ message: presignedUrls.message }, "Failed to generate presigned URLs");
-            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: presignedUrls.message });
-        }
+            const presignedUrls = await BucketService.generateMultiplePresignedUrlsForWrite([
+                ...added,
+                ...unfinished.filter(isDefined),
+            ]);
 
-        return presignedUrls.data;
-    }),
+            if (!presignedUrls.success) {
+                logger.error(
+                    { message: presignedUrls.message },
+                    "Failed to generate presigned URLs"
+                );
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Could not prepare the image upload",
+                });
+            }
+
+            return presignedUrls.data;
+        }),
     getPresignedUrlsByImageIds: publicProcedure
-        .input(z.object({ imageIds: z.string().array() }))
+        .input(z.object({ imageIds: ImageIdSchema.array().max(1000) }))
         .query(async ({ input }) => {
             const { imageIds } = input;
             logger.trace({ imageIds }, "Getting presigned URLs for images");
