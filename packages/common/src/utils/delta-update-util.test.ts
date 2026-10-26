@@ -124,7 +124,6 @@ describe("applyToBoard", () => {
             deltaUpdate: {
                 excalidrawElements: [element("a", 2, { label: "moved" })],
                 order: ["a"],
-                clientId: "00000000-0000-4000-8000-000000000000",
             },
         });
 

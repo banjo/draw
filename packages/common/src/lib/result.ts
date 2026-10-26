@@ -2,6 +2,7 @@ import { createResultWithErrorData } from "@banjoanton/utils";
 
 type ResultErrorMap = {
     Unauthorized: undefined;
+    Conflict: undefined;
 };
 
 type DefaultError = "DefaultError";

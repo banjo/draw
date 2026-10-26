@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useGlobal } from "@/contexts/global-context";
-import { SaveDrawing } from "@/features/draw/hooks/base/use-drawing";
+import { CreateDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useExport } from "@/features/draw/hooks/base/use-export";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
@@ -18,12 +18,12 @@ import { Icons, ResponsiveIcon } from "ui";
 
 type In = {
     slug: Maybe<string>;
-    saveDrawing: SaveDrawing;
+    createDrawing: CreateDrawing;
     toggleSidebar: () => void;
     uploadImagesOnCanvas: () => Promise<boolean>;
 };
 
-export const useMenu = ({ slug, saveDrawing, toggleSidebar, uploadImagesOnCanvas }: In) => {
+export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanvas }: In) => {
     const { excalidrawApi } = useGlobal();
     const navigate = useNavigate();
 
@@ -37,26 +37,24 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar, uploadImagesOnCanvas
 
     const { exportToPng, exportToSvg } = useExport();
 
-    const saveDrawingToDatabase = useCallback(
-        async (createNewDrawing = false) => {
-            if (!excalidrawApi) return;
+    /** Create a new drawing from what's on the canvas, and return its slug. */
+    const createDrawingFromCanvas = useCallback(async () => {
+        if (!excalidrawApi) return;
 
-            if (!slug) {
-                const isUploaded = await uploadImagesOnCanvas();
-                if (!isUploaded) return;
-            }
+        if (!slug) {
+            const isUploaded = await uploadImagesOnCanvas();
+            if (!isUploaded) return;
+        }
 
-            const elements = excalidrawApi.getSceneElementsIncludingDeleted();
-            const order = elements.map(e => e.id);
-            return await saveDrawing(elements, order, createNewDrawing);
-        },
-        [excalidrawApi, saveDrawing, slug, uploadImagesOnCanvas]
-    );
+        const elements = excalidrawApi.getSceneElementsIncludingDeleted();
+        const order = elements.map(e => e.id);
+        return await createDrawing(elements, order);
+    }, [excalidrawApi, createDrawing, slug, uploadImagesOnCanvas]);
 
     const onShareDrawing = useCallback(async () => {
         if (!excalidrawApi) return;
 
-        const updatedSlug = await saveDrawingToDatabase();
+        const updatedSlug = await createDrawingFromCanvas();
         if (!updatedSlug) return;
 
         copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
@@ -65,13 +63,13 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar, uploadImagesOnCanvas
         if (slug !== updatedSlug) {
             navigate(`/draw/${updatedSlug}`);
         }
-    }, [excalidrawApi, slug, saveDrawingToDatabase]);
+    }, [excalidrawApi, slug, createDrawingFromCanvas]);
 
     const saveToCollection = async () => {
         let currentSlug = slug;
         if (!currentSlug) {
             // TODO: fix this possible race condition bug
-            currentSlug = await saveDrawingToDatabase();
+            currentSlug = await createDrawingFromCanvas();
         }
 
         if (!currentSlug) {
@@ -97,7 +95,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar, uploadImagesOnCanvas
     };
 
     const copyToNewDrawing = useCallback(async () => {
-        const newSlug = await saveDrawingToDatabase(true);
+        const newSlug = await createDrawingFromCanvas();
         if (newSlug) {
             toast.success("Drawing copied to new drawing");
             navigate(`/draw/${newSlug}`);
@@ -106,7 +104,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar, uploadImagesOnCanvas
 
     const createNewDrawing = useCallback(async () => {
         if (!excalidrawApi) return;
-        const newSlug = await saveDrawing([], [], true);
+        const newSlug = await createDrawing([], []);
         toast.success("New drawing created");
         if (newSlug) {
             navigate(`/draw/${newSlug}`);

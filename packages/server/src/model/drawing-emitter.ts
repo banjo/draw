@@ -31,7 +31,8 @@ type Session = {
  * Holds open drawings in memory. Changes are applied here and sent to everyone on the
  * drawing, and the board is saved every minute and when the last person leaves.
  *
- * Listen to changes for one drawing with `on(DrawingEmitter.updateEvent(slug), listener)`.
+ * Listen to changes for one drawing with `on(DrawingEmitter.updateEvent(slug), listener)`,
+ * which gets the change and the connection that sent it.
  */
 export class DrawingEmitter extends EventEmitter {
     private sessions = new Map<Slug, Session>();
@@ -80,13 +81,14 @@ export class DrawingEmitter extends EventEmitter {
         }
     }
 
-    async update(slug: Slug, deltaUpdate: BoardDeltaUpdate) {
+    /** `origin` is the connection that sent the change, which doesn't need it back. */
+    async update(slug: Slug, deltaUpdate: BoardDeltaUpdate, origin?: string) {
         const session = await this.load(slug);
         if (!session) return Result.error("Drawing not found");
 
         session.board = DeltaUpdateUtil.applyToBoard({ board: session.board, deltaUpdate });
         session.dirty = true;
-        this.emit(DrawingEmitter.updateEvent(slug), deltaUpdate);
+        this.emit(DrawingEmitter.updateEvent(slug), deltaUpdate, origin);
 
         // Changed without anyone subscribed, so save it and free the memory later
         if (session.subscribers === 0 && !session.evictTimer) {

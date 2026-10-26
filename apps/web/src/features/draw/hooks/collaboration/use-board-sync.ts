@@ -10,7 +10,6 @@ const RETRY_DELAY = 1000;
 
 type In = {
     slug: Maybe<string>;
-    clientId: string;
     excalidrawApi: Maybe<ExcalidrawApi>;
 };
 
@@ -30,7 +29,7 @@ const getSyncableElements = (excalidrawApi: ExcalidrawApi) =>
  * the scene with what the server already has (by version), so nothing is lost when changes
  * come quickly, and elements edited in place are picked up too.
  */
-export const useBoardSync = ({ slug, clientId, excalidrawApi }: In) => {
+export const useBoardSync = ({ slug, excalidrawApi }: In) => {
     const utils = trpc.useUtils();
 
     // Element id → version the server has, and the order it has
@@ -77,7 +76,6 @@ export const useBoardSync = ({ slug, clientId, excalidrawApi }: In) => {
                     // Copy, as Excalidraw changes elements in place before a queued message is sent
                     excalidrawElements: structuredClone(changed),
                     order: orderChanged ? order : undefined,
-                    clientId,
                 },
             })
             .catch(error => {

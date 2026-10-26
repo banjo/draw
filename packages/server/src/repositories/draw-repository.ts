@@ -79,60 +79,47 @@ const saveDrawingFromBoard = async (slug: string, board: Board) => {
     }
 };
 
-const saveDrawingFromDeltaUpdate = async (
+/** Create a new drawing. Fails with a Conflict if the slug is taken, so it can't overwrite one. */
+const createDrawing = async (
     slug: string,
     elements: ExcalidrawSimpleElement[],
     order: string[],
     userId?: number
 ) => {
-    // Deleted elements only matter for collaboration, not when saving a drawing from scratch
+    // Deleted elements only matter for collaboration, not when creating a drawing
     const toSave = elements.filter(element => !element.isDeleted);
     const savedIds = new Set(toSave.map(element => element.id.toString()));
-    const savedOrder = order.filter(id => savedIds.has(id));
-    const toRows = (drawingId: number) =>
-        toSave.map(element => ({
-            data: element as Prisma.InputJsonValue,
-            elementId: element.id.toString(),
-            version: element.version,
-            drawingId,
-        }));
 
     try {
-        const drawingId = await prisma.$transaction(async tx => {
+        const created = await prisma.$transaction(async tx => {
             const existing = await tx.drawing.findUnique({ where: { slug } });
+            if (existing) return undefined;
 
-            if (existing) {
-                await tx.drawingElement.deleteMany({
-                    where: {
-                        drawingId: existing.id,
-                        elementId: { in: elements.map(element => element.id.toString()) },
-                    },
-                });
-                await tx.drawingElement.createMany({ data: toRows(existing.id) });
-                await tx.drawing.update({
-                    where: { id: existing.id },
-                    data: { order: savedOrder },
-                });
-
-                return existing.id;
-            }
-
-            const created = await tx.drawing.create({
+            return await tx.drawing.create({
                 data: {
                     slug,
-                    order: savedOrder,
+                    order: order.filter(id => savedIds.has(id)),
                     owner: userId ? { connect: { id: userId } } : undefined,
+                    elements: {
+                        create: toSave.map(element => ({
+                            data: element as Prisma.InputJsonValue,
+                            elementId: element.id.toString(),
+                            version: element.version,
+                        })),
+                    },
                 },
             });
-            await tx.drawingElement.createMany({ data: toRows(created.id) });
-
-            return created.id;
         });
 
-        return Result.ok(drawingId);
+        if (!created) {
+            logger.error({ slug }, "Drawing already exists");
+            return Result.error("Drawing already exists", { type: "Conflict" });
+        }
+
+        return Result.ok(created.id);
     } catch (error) {
-        logger.error({ error, slug }, `Error saving drawing: ${slug}`);
-        return Result.error("Error saving drawing");
+        logger.error({ error, slug }, `Error creating drawing: ${slug}`);
+        return Result.error("Error creating drawing");
     }
 };
 
@@ -297,7 +284,7 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
 
 export const DrawRepository = {
     getDrawingBySlug,
-    saveDrawingFromDeltaUpdate,
+    createDrawing,
     saveDrawingFromBoard,
     saveToCollection,
     getCollection,

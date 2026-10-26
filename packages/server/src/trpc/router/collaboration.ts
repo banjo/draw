@@ -6,14 +6,15 @@ import {
     BoardUpdateResponse,
     Cause,
     Collaborator,
-    CollaboratorSchema,
+    CollaboratorUpdateSchema,
+    ExistingSlugSchema,
 } from "common";
 import { z } from "zod";
 import { createContextLogger } from "../../lib/context-logger";
 import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
 import { DrawingEmitter } from "../../model/drawing-emitter";
 import { collaboratorsEmitter, drawingEmitter } from "../../model/emitters";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, TRPCContext } from "../trpc";
 
 const logger = createContextLogger("collaboration-router");
 
@@ -24,65 +25,86 @@ const drawingNotFound = () =>
         cause: Cause.DRAWING_NOT_FOUND,
     });
 
+/** Collaboration identifies each browser tab by its WebSocket connection. */
+const getConnectionId = (ctx: TRPCContext) => {
+    if (!ctx.connectionId) {
+        throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Collaboration only works over WebSocket",
+        });
+    }
+    return ctx.connectionId;
+};
+
+const randomAvatar = (seed: string) => `https://robohash.org/${seed}.png`;
+
 export const collaborationRouter = createTRPCRouter({
     updateCollaborator: publicProcedure
-        .input(
-            z.object({
-                collaborator: CollaboratorSchema,
-                slug: z.string(),
-            })
-        )
-        .mutation(async ({ input }) => {
+        .input(z.object({ collaborator: CollaboratorUpdateSchema, slug: ExistingSlugSchema }))
+        .mutation(async ({ input, ctx }) => {
             const { collaborator, slug } = input;
-            collaboratorsEmitter.update(slug, collaborator);
+            const id = getConnectionId(ctx);
+
+            // The name and avatar come from the session, never from the client
+            collaboratorsEmitter.update(slug, {
+                id,
+                x: collaborator.x,
+                y: collaborator.y,
+                name: ctx.user?.name ?? collaborator.name,
+                avatarUrl: ctx.user?.avatarUrl ?? randomAvatar(id),
+            });
         }),
     updateBoard: publicProcedure
-        .input(
-            z.object({
-                deltaBoardUpdate: BoardDeltaUpdateSchema,
-                slug: z.string(),
-            })
-        )
-        .mutation(async ({ input }) => {
+        .input(z.object({ deltaBoardUpdate: BoardDeltaUpdateSchema, slug: ExistingSlugSchema }))
+        .mutation(async ({ input, ctx }) => {
             const { deltaBoardUpdate, slug } = input;
+            const origin = getConnectionId(ctx);
             logger.trace({ slug }, "Updating board");
-            const result = await drawingEmitter.update(slug, deltaBoardUpdate);
+
+            const result = await drawingEmitter.update(slug, deltaBoardUpdate, origin);
 
             if (!result.success) {
                 throw drawingNotFound();
             }
         }),
     onCollaboratorChange: publicProcedure
-        .input(z.object({ slug: z.string(), clientId: z.string() }))
-        .subscription(({ input }) => {
-            const { slug, clientId } = input;
+        .input(z.object({ slug: ExistingSlugSchema }))
+        .subscription(({ input, ctx }) => {
+            const { slug } = input;
+            const id = getConnectionId(ctx);
             const event = CollaboratorsEmitter.changeEvent(slug);
 
             return observable<Collaborator[]>(emit => {
-                const onChange = (collaborators: Collaborator[]) => emit.next(collaborators);
+                // Everyone except yourself
+                const onChange = (collaborators: Collaborator[]) =>
+                    emit.next(collaborators.filter(c => c.id !== id));
 
                 collaboratorsEmitter.on(event, onChange);
-                emit.next(collaboratorsEmitter.get(slug));
+                onChange(collaboratorsEmitter.get(slug));
 
                 return () => {
                     collaboratorsEmitter.off(event, onChange);
                     // Remove the cursor for everyone else
-                    collaboratorsEmitter.remove(slug, clientId);
+                    collaboratorsEmitter.remove(slug, id);
                 };
             });
         }),
     onBoardChange: publicProcedure
-        .input(z.object({ slug: z.string() }))
-        .subscription(({ input }) => {
+        .input(z.object({ slug: ExistingSlugSchema }))
+        .subscription(({ input, ctx }) => {
             const { slug } = input;
+            const connectionId = getConnectionId(ctx);
             const event = DrawingEmitter.updateEvent(slug);
 
             return observable<BoardUpdateResponse>(emit => {
                 let joined = false;
                 let closed = false;
 
-                const onUpdate = (deltaUpdate: BoardDeltaUpdate) =>
+                const onUpdate = (deltaUpdate: BoardDeltaUpdate, origin?: string) => {
+                    // The sender already has its own change
+                    if (origin === connectionId) return;
                     emit.next(BoardUpdateResponse.from(deltaUpdate));
+                };
 
                 drawingEmitter
                     .join(slug)

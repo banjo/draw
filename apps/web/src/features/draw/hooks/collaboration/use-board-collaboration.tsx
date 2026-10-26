@@ -3,7 +3,6 @@ import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
-import { useClientIdStore } from "@/stores/use-client-id-store";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { isDefined, Maybe } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
@@ -36,12 +35,10 @@ const getBusyElementIds = (appState: AppState) =>
     );
 
 export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elements }: In) => {
-    const clientId = useClientIdStore(s => s.clientId);
     const navigate = useNavigate();
     const { handleError } = useError();
     const { schedule, setSynced, markSynced } = useBoardSync({
         slug,
-        clientId,
         excalidrawApi,
     });
     const { pathname } = useLocation();
@@ -71,8 +68,6 @@ export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elemen
                 setIsLoading(false);
                 return;
             }
-
-            if (update.delta.clientId === clientId) return;
 
             // Merge into the live scene, which also has local changes that aren't sent yet
             const before = excalidrawApi.getSceneElementsIncludingDeleted();

@@ -1,6 +1,4 @@
-import { useAuth } from "@/contexts/auth-context";
 import { trpc } from "@/lib/trpc";
-import { useClientIdStore } from "@/stores/use-client-id-store";
 import { isDefined, Maybe } from "@banjoanton/utils";
 import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
 import { useThrottle } from "@uidotdev/usehooks";
@@ -25,30 +23,26 @@ const DEFAULT_MOUSE_POSITION: CollaboratorPointer = {
     tool: "pointer",
 };
 
-const randomAvatar = (hash: string) => `https://robohash.org/${hash}.png`;
-
 const collaborators = new Map<string, Collaborator>();
 const MOUSE_THROTTLE_TIME = 30;
 
 export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
-    const clientId = useClientIdStore(s => s.clientId);
-    const { name, avatarUrl } = useAuth();
-
-    const displayName = useMemo(() => name ?? generateName(), []);
-    const avatar = useMemo(() => avatarUrl ?? randomAvatar(clientId), []);
+    // Shown when not signed in. Signed-in users get their name from the server.
+    const anonymousName = useMemo(() => generateName(), []);
     const [isCollaborating, setIsCollaborating] = useState(false);
 
-    const input = { slug: slug ?? "", clientId };
+    const input = { slug: slug ?? "" };
     trpc.collaboration.onCollaboratorChange.useSubscription(input, {
         enabled: isDefined(slug),
-        onData: externalCollaborators => {
+        // Everyone else on the drawing, without yourself
+        onData: otherCollaborators => {
             if (!slug || !excalidrawApi) return;
 
-            if (externalCollaborators.length <= 1 && !isCollaborating) {
+            if (otherCollaborators.length === 0 && !isCollaborating) {
                 return;
             }
 
-            if (externalCollaborators.length <= 1) {
+            if (otherCollaborators.length === 0) {
                 setIsCollaborating(false);
                 collaborators.clear();
                 excalidrawApi.updateScene({
@@ -59,13 +53,12 @@ export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
 
             setIsCollaborating(true);
 
-            const filtered = externalCollaborators.filter(c => c.clientId !== clientId);
             collaborators.clear();
-            filtered.forEach(c => {
-                collaborators.set(c.clientId, {
+            otherCollaborators.forEach(c => {
+                collaborators.set(c.id, {
                     avatarUrl: c.avatarUrl,
                     username: c.name,
-                    id: c.clientId,
+                    id: c.id,
                     pointer: {
                         tool: "pointer",
                         x: c.x,
@@ -99,10 +92,7 @@ export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
 
         updateCollaborator.mutate({
             collaborator: {
-                userId: clientId, // TODO:: get from auth
-                avatarUrl: avatar,
-                clientId,
-                name: displayName,
+                name: anonymousName,
                 x: debouncedMousePosition.x,
                 y: debouncedMousePosition.y,
             },

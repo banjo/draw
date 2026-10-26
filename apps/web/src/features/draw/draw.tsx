@@ -53,9 +53,7 @@ export const Draw = ({ slug }: DrawProps) => {
             setElements,
         });
 
-    const { saveDrawing } = useDrawing({
-        slug,
-    });
+    const { createDrawing } = useDrawing();
 
     const { renderSidebar, renderSidebarButton, toggleSidebar, initialOpenSidebar } = useSidebar({
         slug,
@@ -65,7 +63,7 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const { renderMenu } = useMenu({
         slug,
-        saveDrawing,
+        createDrawing,
         toggleSidebar,
         uploadImagesOnCanvas,
     });

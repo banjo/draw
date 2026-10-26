@@ -33,7 +33,6 @@ const element = (id: string, version = 1, props: Record<string, unknown> = {}) =
 
 const delta = (...elements: ReturnType<typeof element>[]): BoardDeltaUpdate => ({
     excalidrawElements: elements,
-    clientId: "00000000-0000-4000-8000-000000000000",
 });
 
 // Rows as the repository returns them, of which the emitter only reads `data`
@@ -95,15 +94,15 @@ describe("loading", () => {
 });
 
 describe("updates", () => {
-    it("only notifies listeners of the same drawing", async () => {
+    it("only notifies listeners of the same drawing, with the sender", async () => {
         const onS = vi.fn();
         const onOther = vi.fn();
         emitter.on(DrawingEmitter.updateEvent("s"), onS);
         emitter.on(DrawingEmitter.updateEvent("other"), onOther);
 
-        await emitter.update("s", delta(element("b")));
+        await emitter.update("s", delta(element("b")), "connection-1");
 
-        expect(onS).toHaveBeenCalledTimes(1);
+        expect(onS).toHaveBeenCalledWith(delta(element("b")), "connection-1");
         expect(onOther).not.toHaveBeenCalled();
     });
 });

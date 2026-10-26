@@ -2,8 +2,8 @@ import { Collaborator, Slug } from "common";
 import EventEmitter from "node:events";
 
 /**
- * Holds the cursors of the people on each drawing. Listen to changes for one drawing with
- * `on(CollaboratorsEmitter.changeEvent(slug), listener)`, which gets the current list.
+ * Holds the cursors of the people on each drawing, by WebSocket connection. Listen to changes for
+ * one drawing with `on(CollaboratorsEmitter.changeEvent(slug), listener)`, which gets the list.
  */
 export class CollaboratorsEmitter extends EventEmitter {
     private collaboratorsMap = new Map<Slug, Collaborator[]>();
@@ -20,7 +20,7 @@ export class CollaboratorsEmitter extends EventEmitter {
 
     update(slug: Slug, collaborator: Collaborator) {
         const collaborators = this.collaboratorsMap.get(slug) ?? [];
-        const index = collaborators.findIndex(c => c.clientId === collaborator.clientId);
+        const index = collaborators.findIndex(c => c.id === collaborator.id);
         if (index === -1) {
             collaborators.push(collaborator);
         } else {
@@ -30,11 +30,11 @@ export class CollaboratorsEmitter extends EventEmitter {
         this.emit(CollaboratorsEmitter.changeEvent(slug), collaborators);
     }
 
-    remove(slug: Slug, clientId: string) {
+    remove(slug: Slug, id: string) {
         const collaborators = this.collaboratorsMap.get(slug);
         if (!collaborators) return;
 
-        const remaining = collaborators.filter(c => c.clientId !== clientId);
+        const remaining = collaborators.filter(c => c.id !== id);
         if (remaining.length === collaborators.length) return;
 
         if (remaining.length === 0) {

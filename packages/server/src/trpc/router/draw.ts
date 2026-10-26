@@ -1,5 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { Cause, ExcalidrawSimpleElementSchema, Result } from "common";
+import {
+    Cause,
+    ExcalidrawSimpleElementSchema,
+    ExistingSlugSchema,
+    Result,
+    SlugSchema,
+} from "common";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { createContextLogger } from "../../lib/context-logger";
@@ -8,31 +14,38 @@ import { DrawRepository } from "../../repositories/draw-repository";
 const logger = createContextLogger("draw-router");
 
 export const drawRouter = createTRPCRouter({
-    getDrawing: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ input }) => {
-        const { slug } = input;
-        logger.trace({ slug }, "Getting drawing by slug");
-        const drawing = await DrawRepository.getDrawingBySlug(slug);
+    getDrawing: publicProcedure
+        .input(z.object({ slug: ExistingSlugSchema }))
+        .query(async ({ input }) => {
+            const { slug } = input;
+            logger.trace({ slug }, "Getting drawing by slug");
+            const drawing = await DrawRepository.getDrawingBySlug(slug);
 
-        if (!drawing.success) {
-            logger.error({ slug, message: drawing.message }, "Failed to get drawing");
-            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: drawing.message });
-        }
+            if (!drawing.success) {
+                logger.error({ slug, message: drawing.message }, "Failed to get drawing");
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: drawing.message,
+                    cause: Cause.DRAWING_NOT_FOUND,
+                });
+            }
 
-        return drawing.data.map(e => e.data);
-    }),
+            return drawing.data.map(e => e.data);
+        }),
+    /** Create a new drawing. Existing drawings change through collaboration only. */
     saveDrawing: publicProcedure
         .input(
             z.object({
-                slug: z.string(),
+                slug: SlugSchema,
                 elements: ExcalidrawSimpleElementSchema.array(),
                 order: z.string().array(),
             })
         )
         .mutation(async ({ input, ctx }) => {
             const { slug, elements, order } = input;
-            logger.trace({ slug }, `Saving drawing`);
+            logger.trace({ slug }, `Creating drawing`);
 
-            const drawingResult = await DrawRepository.saveDrawingFromDeltaUpdate(
+            const drawingResult = await DrawRepository.createDrawing(
                 slug,
                 elements,
                 order,
@@ -40,18 +53,18 @@ export const drawRouter = createTRPCRouter({
             );
 
             if (!drawingResult.success) {
-                logger.error({ slug, message: drawingResult.message }, "Failed to save drawing");
+                logger.error({ slug, message: drawingResult.message }, "Failed to create drawing");
                 throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
+                    code: drawingResult.type === "Conflict" ? "CONFLICT" : "INTERNAL_SERVER_ERROR",
                     message: drawingResult.message,
                 });
             }
 
-            logger.info({ slug }, "Drawing saved");
+            logger.info({ slug }, "Drawing created");
             return drawingResult.data;
         }),
     saveToCollection: protectedProcedure
-        .input(z.object({ slug: z.string() }))
+        .input(z.object({ slug: ExistingSlugSchema }))
         .mutation(async ({ input, ctx }) => {
             const { slug } = input;
             const { userId } = ctx;
@@ -98,7 +111,7 @@ export const drawRouter = createTRPCRouter({
         return collection.data;
     }),
     deleteFromCollection: protectedProcedure
-        .input(z.object({ slug: z.string() }))
+        .input(z.object({ slug: ExistingSlugSchema }))
         .mutation(async ({ input, ctx }) => {
             const { slug } = input;
             const { userId } = ctx;
@@ -126,7 +139,7 @@ export const drawRouter = createTRPCRouter({
             return Result.ok();
         }),
     updateDrawingName: protectedProcedure
-        .input(z.object({ slug: z.string(), name: z.string() }))
+        .input(z.object({ slug: ExistingSlugSchema, name: z.string().max(200) }))
         .mutation(async ({ input, ctx }) => {
             const { slug, name } = input;
             const { userId } = ctx;

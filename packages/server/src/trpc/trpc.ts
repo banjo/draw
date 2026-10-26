@@ -1,30 +1,52 @@
 import { uuid } from "@banjoanton/utils";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import { CreateWSSContextFnOptions } from "@trpc/server/adapters/ws";
 import { Cause } from "common";
+import { User } from "lucia";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { createContextLogger } from "../lib/context-logger";
+import { lucia } from "../lib/lucia";
 import { NodeContext } from "../lib/node-context";
 
 const logger = createContextLogger("auth-middleware");
 
-export const createTRPCContext = async ({ req, res }: CreateExpressContextOptions) => {
-    const createResponse = (userId?: number, expired = false) => ({
-        req,
-        res,
-        userId,
-        expired,
-    });
+export type TRPCContext = {
+    userId?: number;
+    user?: User;
+    expired: boolean;
+    /** Set over WebSocket only. One per connection, which is one per browser tab. */
+    connectionId?: string;
+};
 
-    const { user } = res.locals;
+export const createTRPCContext = async ({
+    res,
+}: CreateExpressContextOptions): Promise<TRPCContext> => {
+    const user: User | null = res.locals.user;
     if (user) {
         NodeContext.setUserId(user.id);
     }
-    return createResponse(user?.id);
+
+    return { userId: user?.id, user: user ?? undefined, expired: false };
 };
 
-const t = initTRPC.context<typeof createTRPCContext>().create({
+/** The context of a WebSocket connection, signed in with the session cookie of the upgrade. */
+export const createWSContext = async ({ req }: CreateWSSContextFnOptions): Promise<TRPCContext> => {
+    const connectionId = uuid();
+    const sessionId = lucia.readSessionCookie(req.headers.cookie ?? "");
+    if (!sessionId) return { expired: false, connectionId };
+
+    try {
+        const { user } = await lucia.validateSession(sessionId);
+        return { userId: user?.id, user: user ?? undefined, expired: false, connectionId };
+    } catch (error) {
+        logger.error({ error }, "Could not validate WebSocket session");
+        return { expired: false, connectionId };
+    }
+};
+
+const t = initTRPC.context<TRPCContext>().create({
     transformer: superjson,
     errorFormatter({ shape, error }) {
         const cause = Cause.fromServerError(error);
