@@ -1,0 +1,502 @@
+# Fix list
+
+From a code review in October 2026. Fix these in order. Steps 1 to 3 are about losing or
+wiping drawings, and matter most. Steps 1 and 2 should go in one release, because step 2
+changes how changes are merged on both the client and the server.
+
+## 1. Switching drawings can wipe the new one
+
+`/` and `/draw/:slug` render the same `<DrawContainer />` (`apps/web/src/routes/root.tsx`),
+so `Draw` isn't remounted when the slug changes. Two bugs come from that.
+
+**The last change is sent to the next drawing.** In `use-delta-mutation.ts`, `deltaUpdate`
+is never reset after it's sent, and the send effect depends on `slug`. When you go from
+drawing A to drawing B (sidebar card, "New drawing", "Create copy"), A's last change is sent
+to B. If it has an `order` (any add or delete sets one), `DeltaUpdateUtil.applyToBoard`
+rebuilds B from A's order and drops everything else. The server then saves that, and the
+other people on B get it too.
+
+**Errors overwrite the offline drawing.** When the board subscription fails,
+`use-board-collaboration.tsx` calls `navigate("/")`. `slug` becomes `undefined` while
+`elements` still holds `[]` or the remote drawing, and the effect in `use-elements-state.ts`
+writes that to `drawing-base` in localStorage. The offline drawing is gone.
+
+**Fix**
+
+- [x] Add `key={slug ?? "local"}` on `<Draw>` in `draw-container.tsx`, so all drawing state
+      resets when the slug changes. The key is on a `GlobalContextProvider` moved there from
+      `app.tsx`, so each drawing also gets a fresh `excalidrawApi`.
+- [x] Reset the pending change after sending it. Not needed anymore: the slug can't change
+      within one `Draw`, so the old change can't be re-sent. Step 2 rewrites this hook anyway.
+- [x] Only write to localStorage once the local drawing has actually loaded. Covered by the
+      remount: on `/`, `elements` starts from localStorage.
+- [x] Create the router once at module level in `root.tsx`.
+- [x] Keep the collection sidebar open across the remount (`use-sidebar-store.ts`, passed as
+      `initialData.appState.openSidebar`).
+- [x] Upload the images of an offline drawing before Share or Save to collection. This used to
+      happen only because `Draw` survived the navigation.
+- [x] "Offline mode" uses `navigate("/")` instead of a full reload.
+- [x] Disconnect the old toolbar `ResizeObserver` when the toolbar is set up again.
+- [x] Only subscribe to the board once `excalidrawApi` is set. Otherwise the full board can
+      be dropped and the loading overlay stays up (seen once on reload while testing).
+- [x] Test in the browser (Oct 26, local API + DB, Chrome): switching drawings, error → offline
+      drawing, offline mode, sharing an offline drawing, sharing with an image (fails cleanly
+      with dummy R2 credentials), the sidebar open and docked, and the add-element button.
+      On the old code, New drawing sent A's last change and A's elements as deletions to B.
+- [x] Test a successful image upload. Done against a local S3 (S3Proxy in
+      `docker/docker-compose.yml`, `CLOUDFLARE_ENDPOINT`): sharing an offline drawing uploads
+      the image, and the shared drawing loads it from the bucket after a reload.
+
+## 2. Collaboration loses changes
+
+**The throttle drops changes.** Each `BoardDeltaUpdate` only holds the elements that changed
+since the previous `onChange`. `useThrottle` keeps only the newest value, so two changes
+within 30 ms that touch different elements lose the first one for good. This happens for
+text inside a box, duplicating, and adding then deleting.
+
+**The merge deletes other people's new elements.**
+`packages/common/src/utils/delta-update-util.ts` rebuilds the board from `deltaUpdate.order`
+only. If B sends a change before receiving A's new element X, X is missing from B's order
+and disappears for everyone. Also:
+
+- On the client (`isOnClient: true`), remote elements always replace local ones, without
+  comparing `version`, so clients drift apart.
+- When `order` is missing, elements in `added` are dropped.
+- `order` ids are strings while element ids can be numbers, so `===` can miss.
+- `added.find` and `updatedBoardElements.find` inside a map are O(n·m).
+
+**Code block edits aren't synced or saved.** `code-editor.tsx` and `code-editor-menu.tsx`
+change elements in place through `UpdateElementUtil.mutateElement`, which only bumps
+`version`. Excalidraw never fires `onChange`, so nothing is sent or saved, and a reload loses
+the code. The next remote change is applied on top of the React `elements` state, which
+doesn't have the edit, so it's overwritten.
+
+**Fix**
+
+- [x] Collect changes instead of replacing them: `use-board-sync.ts` diffs the live scene
+      against the versions the server has, on a 30 ms timer, so nothing is lost and elements
+      changed in place are picked up. It also sends what's left when the drawing unmounts.
+- [x] In `applyToBoard`, never drop elements that aren't in `order`; add them at the end.
+      (Fractional indices need a newer Excalidraw, see step 12.)
+- [x] Merge by `version`, with the lower `versionNonce` winning a tie (Excalidraw's rule), on
+      the server and the client (`DeltaUpdateUtil.mergeElements`). Deleted elements are kept
+      as tombstones, so an older copy can't bring them back.
+- [x] Handle a missing `order` (keep `added`), compare ids as strings, and use a `Map` by id.
+- [x] Code blocks: typing changes the scene's copy and tells Excalidraw (debounced), and the
+      menu updates the element through `updateScene`.
+- [x] Apply remote changes to `excalidrawApi.getSceneElementsIncludingDeleted()`, and leave
+      the element being edited, dragged, resized, or typed in alone.
+- [x] Stop the echo on load: the full board is marked as synced.
+- [x] Code block language and font size are read from `element.customData`.
+- [x] The client id is per tab (sessionStorage). It was shared through localStorage, so two
+      tabs in the same browser ignored each other's changes.
+- [x] `UpdateElementUtil` sets a new `versionNonce` with each version, like Excalidraw.
+- [x] Tests for the merge in `packages/common` (`pnpm --filter common test`).
+- [x] Tested in Chrome with two tabs (Oct 26): two changes 5 ms apart both arrive, loading
+      sends nothing back, code, language, and font size sync and reach the database, a
+      change right before switching drawings is sent, and a stale order from another client
+      keeps the elements it didn't list.
+
+## 3. The server's in-memory boards and saves
+
+**`DrawingEmitter` has races** (`packages/server/src/model/drawing-emitter.ts`):
+
+- Two `update()` calls for a board that isn't in memory both load it from the database and
+  apply their change to separate copies. The second `boardsMap.set` wins and the first change
+  is lost. `get()` racing with `update()` does the same.
+- `get()` does `this.saveIntervalMap.delete(slug)` without `clearInterval`, so a second
+  subscriber leaks the first interval. The interval clears itself with
+  `clearInterval(this.saveIntervalMap.get(slug))` instead of its own handle, so a leaked one
+  runs every minute forever.
+- `complete()` always clears the board after 30 seconds, even if someone rejoined. Changes
+  that arrive during the final save are dropped, and the next load reads old data.
+- A board loaded by `update()` alone gets no save interval.
+- If the drawing doesn't exist, `update()` returns `undefined` and the mutation succeeds.
+
+**Leaving doesn't work.** `collaboratorsEmitter.remove()` is never called. The teardown in
+`collaboration.ts` removes the collaborator from the shared array but only emits to the
+closing subscriber, so everyone else keeps a ghost cursor and the map never shrinks. Board
+cleanup runs only when `activeCollaborators(slug) === 0`, which doesn't count viewers who
+never moved their pointer, and depends on teardown order.
+
+**Saves aren't atomic.** `DrawRepository.saveDrawingFromDeltaUpdate` runs `deleteMany`,
+`createMany`, and `drawing.update` with no transaction (there's a `// TODO`). A failure
+halfway leaves the drawing empty, and two saves at once fail on
+`@@unique([drawingId, elementId])`. It ignores element `version`, and the new-drawing branch
+inserts deleted elements too. In `saveDrawingFromBoard`, the create branch uses
+`prisma.drawing.create` instead of `tx.drawing.create`.
+
+**Two writers.** The server saves from memory every minute, and the client calls
+`saveDrawing` on its own (`use-drawing.ts`). Whichever runs last wins.
+
+**Shutdown loses edits.** On SIGTERM only `wss.close()` runs. Boards in memory aren't saved,
+so a deploy can lose up to a minute of edits. `uncaughtException` only logs and keeps the
+process running.
+
+**Fix**
+
+- [x] Keep a `Map<Slug, Promise<...>>` for loading, so concurrent callers share one fetch.
+- [x] One session per open drawing with its own save interval, cleared when the session ends.
+- [x] One cancellable eviction timer per drawing, cancelled when someone joins. After the last
+      save it checks again for subscribers and new changes before removing the drawing.
+- [x] Count board subscribers per drawing (`join`/`leave`), separately from cursors. The
+      subscription joins inside the observable, so closing it while loading can't leak.
+- [x] Call `collaboratorsEmitter.remove(slug, clientId)` in teardown, so everyone's cursor list
+      updates, and delete empty drawings from the map.
+- [x] Return NOT_FOUND from `updateBoard` when the drawing doesn't exist.
+- [x] Saves of a drawing run one after the other, and a failed save is retried. Both
+      repository saves run in one transaction, with `tx` everywhere.
+- [x] ~~Pick one writer while collaborating.~~ Not an issue: the client only saves new
+      drawings (Share, Create copy, New drawing). Existing ones are saved by the server only.
+- [x] On SIGTERM, SIGINT, and `uncaughtException`, save every open drawing (10 s limit), then
+      exit.
+- [x] Events per drawing (`update:<slug>`, `change:<slug>`), with no listener limit.
+- [x] Remove elements deleted more than a day ago when saving (`updated` is now set by
+      `UpdateElementUtil` too).
+- [x] Tests for `DrawingEmitter` in `packages/server` (`pnpm --filter server test`).
+- [x] Tested locally (Oct 26): a closed tab's cursor disappears for the others, restarting the
+      API right after a change saves it first and the page reconnects, and leaving a drawing
+      saves it and frees the memory after 30 s.
+
+## 4. Anyone with a link can change any drawing
+
+`saveDrawing` and every procedure in `collaboration.ts` are `publicProcedure`. The WebSocket
+context in `apps/api/src/lib/ws.ts` never reads the session (`// TODO: auth does not work
+with ws for now`). `Drawing.access` (`public` / `private` / `restricted`) is never checked.
+Only renaming checks `ownerId`. So anyone who knows a slug can change or delete every element
+of a drawing. (Before step 2, a single change with `order: []` emptied it.) `saveDrawing` on
+an existing slug also overwrites the database copy while the drawing may be open in memory,
+and the next save from memory overwrites it back. The app only calls it for new slugs.
+
+`updateCollaborator` takes `name`, `avatarUrl`, `userId`, and `clientId` from the client, so
+anyone can add fake cursors, take over another client's cursor, or make everyone's browser
+load any image URL.
+
+**Fix**
+
+Decided (Oct 26): keep "anyone with the link can edit", like excalidraw.com. Signed-out users
+can create drawings, and `private`/`restricted` wait until there's a feature that needs them.
+
+- [x] Decide the rules first (see above).
+- [x] Read the Lucia session cookie in the WebSocket `createContext` (`createWSContext`), which
+      also gives each connection an id.
+- [ ] ~~Check `access` and `ownerId`~~ Not needed with the link model. If private drawings are
+      added later: owner-only, behind a toggle, and drop `restricted`.
+- [x] Cursors are keyed by WebSocket connection and get their name and avatar from the session
+      on the server. Anonymous users send only a name (max 50 characters). The client id is
+      gone, and the server doesn't send a change back to the connection that sent it.
+- [x] New slugs must be UUIDs (`SlugSchema`). Lookups accept any string up to 100 characters
+      (`ExistingSlugSchema`), in case production has older slugs.
+- [x] `saveDrawing` only creates drawings and returns CONFLICT for an existing slug.
+- [x] `getDrawing` returns NOT_FOUND.
+- [x] Collaboration calls only work over WebSocket.
+- [x] Tested against the local API (Oct 26): a guessable slug, overwriting a drawing, a cursor
+      over HTTP, and a too-long name are rejected, a fake avatar and ids are ignored, a
+      signed-in WebSocket gets the account's name and avatar, and in Chrome two tabs, New
+      drawing, Create copy, and Share work.
+
+## 5. Image uploads
+
+**Anyone can overwrite any image.** `saveImagesByPresignedUrl` (`packages/server/src/trpc/
+router/file.ts`) is public. `FileRepository.savePresignedImageFiles` skips existing ids for
+the database insert, but `BucketService.createFileImageKeys(images)` still creates upload
+URLs for all of them. Image ids are in the drawing data, and the key
+`image/<ext>/<id>.<ext>` isn't scoped to a drawing, so replacing one replaces it everywhere.
+
+**No limits.** `mimeType` is any string, so `mime.extension()` can give `html` or `exe`. The
+upload URL doesn't limit size or content type. The API has no `maxBodySize`, the WebSocket
+server allows 100 MB messages, and the element arrays have no `.max()`.
+
+**`BucketFile` has no unique id or owner.** `imageId` isn't unique or indexed, the
+check-then-insert can create duplicates, and rows are written before the upload happens. There
+is no link to a drawing or user, so images can't be checked or cleaned up.
+
+**The client uploads the same image many times.** `use-images.ts` runs on every `elements`
+change, and the "already uploaded" list is only updated after the upload finishes. Dragging a
+pasted image starts a new upload on every change. Completions overwrite each other through
+the stale `uploadedImages`, failures retry and show an error toast on every change, and the
+`fetchImages` and IndexedDB calls aren't caught. After switching drawing, the old drawing's
+images are uploaded under the new slug.
+
+**Fix**
+
+Decided with step 4: no session needed (signed-out users share drawings with images), and keys
+stay global so "Create copy" can reuse the images. Instead, an uploaded image can't be
+replaced.
+
+- [x] Only create upload URLs for images that aren't in the bucket yet: new rows, or rows
+      whose upload never finished (checked with `HeadObject`), so a failed upload can retry.
+- [ ] ~~Require a session and scope keys by drawing~~ See above.
+- [x] Allow only image types (`IMAGE_MIME_TYPES` in `common`), and sign `ContentType` and
+      `ContentLength` into the upload URL, so the bucket rejects any other upload (403). Max
+      5 MB, checked in the browser first.
+- [x] Validate `imageId` (`ImageIdSchema`, `/^[\w-]{1,128}$/`).
+- [x] `maxBodySize` (10 MB) on the tRPC Express middleware, `maxPayload` (10 MB) on the
+      WebSocket server, and `.max()` on element, order, and image arrays.
+- [x] `BucketFile.imageId` is unique (migration removes duplicates first), and new rows use
+      `createMany({ skipDuplicates: true })`.
+- [x] On the client, each image is saved or loaded once at a time, failures wait 30 s before
+      the next try, errors are caught, and a failure toasts once. Images loaded from the
+      bucket aren't uploaded again.
+- [x] `LocalImageService` waits for the database before every call. The unused single-image
+      methods, including the broken `loadImage`, are gone.
+- [x] Tested against the local API and S3 (Oct 26): wrong type, bad id, too large, and too
+      many images are rejected, an upload with another size or type gets 403, an uploaded
+      image gets no new URL, and an unfinished one can retry. In Chrome: an image dragged
+      10 times uploads once, loads after a reload, an 8.6 MB image toasts once without a
+      request, offline images survive a reload and are removed when deleted, and sharing
+      uploads once.
+- [ ] Not tested against real R2: that it enforces the signed `Content-Length`.
+- [ ] Rate-limit `saveDrawing` and `saveImagesByPresignedUrl` per IP. Without sign-in, that's
+      what keeps someone from filling the database and bucket.
+
+## 6. Login
+
+- **Google accounts can be taken over.** `callback.ts` links accounts by email, and
+  `google.ts` parses `email_verified` but never checks it.
+- **Google ids get corrupted.** `id: Number.parseInt(googleUser.sub)` loses digits, since
+  Google ids are about 21 digits. Two users can get the same `providerUserId`, and the second
+  one can't sign up.
+- **GitHub users with a private email can't log in.** No scopes are requested, `/user` returns
+  `email: null`, and `OauthUserInfo.parse` in `github.ts` throws outside `wrapAsync`.
+- **Errors hang requests.** Express 4 doesn't catch rejected async handlers. A database error
+  in `lucia.validateSession`, an expired or reused OAuth code in
+  `validateAuthorizationCode`, or a failed `createSession` leaves the request hanging.
+- **Logs leak secrets.** The "Invalid state" log includes `code` and `codeVerifier`, and
+  emails are logged at `info`. Prisma and S3 error messages are sent to the client.
+- The state and verifier cookies are never cleared, `/logout` is a GET, and emails are
+  compared case-sensitively.
+- Renaming someone else's drawing returns `INTERNAL_SERVER_ERROR`.
+  `updateDrawingName` returns `Result.error("...")` without `{ type: "Unauthorized" }`, so the
+  router's check never matches.
+- All requests share one log context. `node-context.ts` passes the same module-level `store`
+  to `context.run` for every request, so request ids and user ids get mixed up in the logs.
+
+**Fix**
+
+- [x] Sign in with a known provider account first (`findOrCreateUser`). Link by email, or
+      create a user, only when the provider verified the email (Google `email_verified`,
+      GitHub's primary email `verified`). Unverified emails get a 401.
+- [x] `OauthUserInfo.id` is a string, and Google's `sub` is used as is. A user whose stored
+      Google id is wrong is matched by their verified email on the next login, and the old
+      account row is replaced (`linkOauthAccount`).
+- [x] Request `user:email` from GitHub and use the primary email from `/user/emails`.
+- [x] `handleErrors` wraps the async Express handlers and the auth middleware, and
+      `errorMiddleware` answers 500. An invalid or reused OAuth code is caught and gets a 401.
+- [x] No `code`, `codeVerifier`, or emails in logs, and generic error messages to clients.
+- [x] OAuth cookies are cleared after the callback, logout is a POST (the client reloads
+      after it, so the WebSocket loses the session), and emails are lowercased and compared
+      without case.
+- [x] `updateDrawingName` returns `{ type: "Unauthorized" }`, sent as FORBIDDEN.
+- [x] A new log context per request (`NodeContext.run`), in Express and tRPC.
+- [x] Tests for `findOrCreateUser` in `packages/server`.
+- [x] Tested against the local API (Oct 26): GitHub asks for `user:email`, the OAuth cookies
+      are `SameSite=Lax` and cleared after the callback, a bad state or code gets a 401 in
+      under a second (it used to hang), the database being down gets a 500 instead of a hang,
+      `GET /logout` is gone and `POST /logout` ends the session, renaming someone else's
+      drawing gets FORBIDDEN, and the logs only have flags. Signing out works in Chrome.
+- [ ] Not tested: a real Google or GitHub login, which needs real OAuth apps locally. Try
+      both after deploying, including a GitHub account with a private email.
+- [ ] Lucia is deprecated. Plan a move to the copy-the-code version of Lucia or to Better Auth,
+      and update `arctic`.
+
+## 7. Database indexes and foreign keys
+
+`schema.prisma` uses `relationMode = "prisma"` on Postgres, so there are no foreign keys and
+no indexes on relation fields. `Session.userId`, `OauthAccount.userId`, and `Drawing.ownerId`
+have no indexes, and nothing stops orphaned rows.
+
+**Fix**
+
+- [ ] Remove `relationMode = "prisma"` (it's meant for PlanetScale) so Postgres creates real
+      foreign keys. Clean up orphaned rows first, or the migration fails.
+- [ ] Or keep it and add `@@index([userId])` on `Session` and `OauthAccount`, and
+      `@@index([ownerId])` on `Drawing`.
+- [ ] Add `onDelete: Cascade` on `DrawingElement.drawing` and `OauthAccount.user`.
+- [ ] Remove the unused `Drawing.data` column.
+- [x] In `draw-repository.ts`, build a `Map` of elements by id before ordering them (step 3).
+
+## 8. Local setup
+
+- `apps/api/.env.example` is missing `DATABASE_URL`, `GOOGLE_CLIENT_ID`,
+  `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI`, which `ServerEnvSchema` requires, so the
+  API doesn't start. It still has `WS_PORT`, which nothing reads.
+- Empty values like `LOG_LEVEL=` and `VITE_LOCAL_DEVELOPMENT=` load as `""` and fail the
+  `z.enum(...).optional()` checks.
+- `pnpm db:reset` fails at the last step: `db:seed` runs `esno`, which isn't installed.
+- With `VITE_LOCAL_DEVELOPMENT=true`, the app is stuck on "Loading...". `AuthService`
+  notifies listeners in the constructor, before any exist, and
+  `checkIfUserIsAuthenticated()` returns early without notifying.
+- `turbo.json`: `typecheck` doesn't depend on `db:generate`, `outputs` is `dist` instead of
+  `dist/**`, `.env` files aren't hashed, and `dev` isn't `persistent`.
+- `vite.config.ts` sets port 3000 but the script uses `--port 3005`, sets `host: "0.0.0.0"`,
+  and externalises `ui/styles/globals.css`, which doesn't exist.
+
+**Fix**
+
+- [ ] Add the missing variables to `apps/api/.env.example`, remove `WS_PORT` and `VITE_DEV`,
+      and document `VITE_LOG_LEVEL`. Comment out optional keys, or turn `""` into `undefined`
+      in the env schema.
+- [ ] Change `seed` to `tsx src/seed.ts` and add `tsx` to the db package.
+- [ ] Call `this.notifyListeners()` before the early return in `AuthService`.
+- [ ] Fix `turbo.json` as above.
+- [ ] Clean up `vite.config.ts`.
+- [ ] Ignore `.env.*` (except `.env.example`) in `.gitignore`.
+
+## 9. Deployment
+
+**Old Dokku files.** `Procfile` runs `dist/http-server.cjs` and `dist/ws-server.cjs`, but
+tsup only builds `dist/server.cjs`, and `ws-server.ts` never calls `listen`. The nginx `/ws`
+upstream falls back to a 502. These files are left over from before the move to one process
+on Coolify.
+
+**`Dockerfile.web` can't build.** It copies `apps/web/nginx.conf`, which doesn't exist, passes
+no `VITE_*` build args, and uses Node 18. The web app is on Vercel anyway.
+
+**`Dockerfile.api`:**
+
+- It runs as root.
+- It ships every dev dependency (`--prod=false`), and the workspace symlinks point nowhere.
+- It uses `node:20-alpine3.17`, which is end-of-life, and installs the latest pnpm and turbo
+  instead of the repo's versions. `turbo prune --scope` is deprecated.
+- `.dockerignore` only excludes `node_modules`, so `.git` and local `.env` files are sent to
+  the build.
+- Migrations never run on deploy, and `dts: true` in tsup builds type files for an app.
+
+**WebSockets have no keep-alive**, so proxies can drop idle collaboration connections.
+
+**Fix**
+
+- [ ] Delete `Procfile`, `nginx.conf.sigil`, `scripts/deploy.sh`, `scripts/logs.sh`,
+      `apps/api/src/http-server.ts`, `apps/api/src/ws-server.ts`, and the `deploy:api` and
+      `logs:api` scripts.
+- [ ] Delete `docker/Dockerfile.web`.
+- [ ] In `Dockerfile.api`: add `USER node`, set `NODE_ENV=production`, use
+      `pnpm --filter api deploy --prod` (or copy only Prisma and pino), use a current Node
+      LTS, pin pnpm with corepack and turbo to the repo version, and use
+      `turbo prune api --docker`.
+- [ ] Add `.git`, `**/.env*`, `!**/.env.example`, `**/dist`, and `**/.turbo` to
+      `.dockerignore`.
+- [ ] Run `prisma migrate deploy` before the API starts, and add a `HEALTHCHECK` on
+      `/health`.
+- [ ] Set `dts: false` in `apps/api/tsup.config.ts`.
+- [ ] Turn on `keepAlive` in `applyWSSHandler`. Open the client WebSocket lazily
+      (`lazy: { enabled: true }`), so offline users don't connect.
+
+## 10. Performance
+
+**Collaborating re-renders everything on every mouse move.**
+`use-pointer-collaboration.tsx` sets state on every pointer move, and the two `useMutation`
+hooks re-render `Draw` on every status change. `draw.tsx` passes new `renderMenu()` and
+`renderSidebar()` children each time, which breaks Excalidraw's `memo`, so Excalidraw
+re-renders and calls `onChange`. Each `onChange` deep-compares and `structuredClone`s the whole
+scene in `DrawingUtil.getChanges`, even when nothing changed. Each remote pointer calls
+`updateScene` with all elements.
+
+**localStorage is parsed on every render.** `useLocalStorage` from `@uidotdev/usehooks`
+parses JSON on every render, and offline mode stringifies the whole scene on every change.
+
+**Export.** `export-modal.tsx` depends on `exportToCanvas`, which is new on every render, so it
+re-runs html2canvas at 3x for each code block while the modal is open. `use-export.ts` mutates
+the live `appState` and calls `addFiles` with a new random id per code block per export. The
+SVG object URL is never revoked.
+
+**Bundle.** The code editor imports every Prism language, `html2canvas` loads up front, and
+nothing is lazy-loaded. `index.html` blocks rendering on ten Open Sans weights that aren't
+used. `lucide-react` ships twice (0.368 and 0.279).
+
+**Fix**
+
+- [ ] Keep the pointer in a ref and send it with a throttled
+      `utils.client.collaboration.updateCollaborator.mutate`. Same for `updateBoard`. Skip
+      sending when not collaborating.
+- [ ] Memoise the menu and sidebar children.
+- [ ] Skip `onChange` work when `getSceneVersion(elements)` hasn't changed, and only clone
+      when something did.
+- [ ] Pass only `collaborators` to `updateScene` for pointer updates.
+- [ ] Read localStorage once, and write with a debounce only when there's no slug.
+- [ ] In the export: depend on `[useDarkMode, exportBackground]`, copy `appState` instead of
+      mutating it, pass temporary files to `exportToCanvas` instead of `addFiles`, and revoke
+      the object URL.
+- [ ] Lazy-load the export modal, the code editor, and `html2canvas`. Use the code editor's
+      `nohighlight` entry with a few Prism languages.
+- [ ] Remove the Open Sans link, and use one `lucide-react` version.
+
+## 11. Smaller UI bugs
+
+- [ ] **Shortcuts while typing:** `use-keyboard.ts` doesn't check `event.target`. Tab, ⌘+arrows,
+      ⌘+Enter, and `+` fire inside the code editor and the rename field. Return early for
+      inputs, textareas, and `contentEditable`, and require no modifiers for `+`. Shortcuts
+      only check `metaKey`, so they don't work with Ctrl on Windows or Linux.
+- [ ] **Stuck ⌘ key:** if the window loses focus while ⌘ is held, `keyup` never arrives and
+      the shadow elements stay. Reset on `window` `blur`.
+- [ ] **Silent save errors:** `use-drawing.ts` calls `handleError` without `toast: true`.
+      Share in `use-menu.tsx` copies `/draw/undefined` and says "Link copied" when the save
+      fails. "New drawing created" also shows before checking the result. Return early on
+      failure, and await and catch the clipboard write.
+- [ ] **Clicks become drags:** `use-drag.ts` registers handlers that hold the previous
+      `startPosition`, so the first pixel of movement starts a drag. Listeners are added twice
+      and removed with the wrong references. Use refs and stable handlers.
+- [ ] **Add-element search:** it searches the already filtered list, so shapes don't come back
+      after backspace. Keyboard navigation goes through 10 items while only 5 are shown.
+      Search `DEFAULT_SHAPES`, navigate only visible items, and handle 0 items in
+      `use-keyboard-navigation.ts`.
+- [ ] **Loading never ends:** if the board never arrives, or arrives before `excalidrawApi` is
+      set, the overlay stays forever. Enable the subscription only when the API is ready, and
+      add a timeout.
+- [ ] **System theme:** `draw.tsx` maps `system` to dark, and the first `onChange` saves
+      `dark`. The theme provider also doesn't listen for OS theme changes.
+- [ ] **Drawing card:** clicking the edit icon also opens the drawing, and blur keeps the
+      unsaved name on screen.
+- [ ] **Double toast:** `use-error.ts` is missing a `return` after the custom message toast.
+- [ ] **Leaks:** `waitForElement` polls forever when the element never appears, the help menu
+      adds its listener twice, and the `ResizeObserver` in `native-toolbar.ts` is never
+      disconnected. The toolbar button can't close the add-element menu because it reads a
+      stale `showAddElement`.
+- [ ] **Smart copy dialog:** `use-smart-copy-key-dialog.ts` doesn't multiply `height` by zoom.
+- [ ] **Avatars:** anonymous cursors use a `robohash.org` avatar (set by the server since step
+      4, from the connection id), so every browser loads it from a third party. Consider a
+      local avatar.
+
+## 12. Dependencies
+
+- [ ] Update Express (4.19.2 has CVEs, as do `path-to-regexp` 0.1.7 and `body-parser` 1.20.2)
+      and `cookie` to `^0.7`.
+- [ ] Update Vite from 4.5.3 (dev server CVEs).
+- [ ] Move `@trpc/*` from `11.0.0-rc.417` to stable v11, and update `superjson`.
+- [ ] Use one Node LTS in `.nvmrc`, the Dockerfile, and `engines`. Move from pnpm 8, which is
+      end-of-life.
+- [ ] Fix peer mismatches: `@lucia-auth/adapter-prisma` pulls in `@prisma/client@5.22.0` next
+      to 5.15.1. (The `react-dom@19` next to React 18 in `ui` was fixed by the lockfile update
+      in step 2.)
+- [ ] Update `@excalidraw/excalidraw` from 0.17.6. Expect the DOM injection in
+      `models/native/*` and `use-code-block-element.tsx` to break, since it relies on
+      Excalidraw's internal class names.
+- [ ] Remove unused packages: `jwt-decode`, `change-case`, `npm-run-all`, `@axiomhq/pino`,
+      `vitest` in api, `api` in web, and `@excalidraw/excalidraw` as a runtime dependency of
+      api and common.
+- [ ] Fix ESLint plugin versions: `@tanstack/eslint-plugin-query@^4` with React Query v5, and
+      `eslint-plugin-react-hooks@^4` with ESLint 9.
+
+## 13. Cleanup, CI, and tests
+
+- [ ] **CI:** add a GitHub Actions workflow that runs `pnpm install --frozen-lockfile`,
+      typecheck, lint, and build. Add Renovate or Dependabot.
+- [ ] **Tests:** `packages/common` (merge) and `packages/server` (`DrawingEmitter`) have vitest
+      and tests. Add a root `test` script and run it in CI.
+- [ ] **Lint:** only `apps/web` has a `lint` script.
+- [ ] **Dead code:** `utils/token.ts`, `config/site.ts`, `DrawingUtil.isOnlyMouseChange`,
+      `debouncedSaveDrawing`, `BucketService.listAllBuckets`/`listAllFiles`,
+      `BucketKey.parseString`, `runtime.ts`, `apps/api/src/utils.ts`, and unused `ui`
+      components (`Animated`, `Dropdown`, `Card`, `Dialog`, `RadioGroup`). Run `knip` for
+      more.
+- [ ] **Naming:** `SmartCopyKeyDialog` lives in `change-element-key-dialog.tsx` and the other
+      way around.
+- [ ] **Imports:** `drawing-emitter.ts` imports `../../../common/src/...` instead of `common`.
+- [ ] **Logger:** `pino-pretty` runs in production, and `context-logger.ts` spreads an array
+      into `"0"`, `"1"` keys.
+- [ ] **Small fixes:** `apps/api/package.json` has `"main": "src/index.ts"` (doesn't exist) and
+      a `run` script with a wrong tsx command. `scripts/db.mjs` checks for `localhost` in the
+      URL to decide it's safe. `.prettierignore` doesn't list `pnpm-lock.yaml`.
+- [ ] **License:** root and api say ISC, the packages say MIT, and there's no `LICENSE` file.
+      Pick one, add the file, and add it to the README.
