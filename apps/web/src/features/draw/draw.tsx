@@ -57,17 +57,19 @@ export const Draw = ({ slug }: DrawProps) => {
         slug,
     });
 
-    const { renderSidebar, renderSidebarButton, toggleSidebar } = useSidebar({
+    const { renderSidebar, renderSidebarButton, toggleSidebar, initialOpenSidebar } = useSidebar({
         slug,
     });
+
+    const { uploadImagesOnCanvas } = useImages({ elements, slug });
 
     const { renderMenu } = useMenu({
         slug,
         saveDrawing,
         toggleSidebar,
+        uploadImagesOnCanvas,
     });
 
-    useImages({ elements, slug });
     useHistory({ slug });
 
     const {
@@ -136,7 +138,10 @@ export const Draw = ({ slug }: DrawProps) => {
                         elements,
                         scrollToContent: true,
                         libraryItems: library,
-                        appState: { theme: theme === "light" ? "light" : "dark" },
+                        appState: {
+                            theme: theme === "light" ? "light" : "dark",
+                            openSidebar: initialOpenSidebar,
+                        },
                     }}
                     UIOptions={{
                         dockedSidebarBreakpoint: 0,

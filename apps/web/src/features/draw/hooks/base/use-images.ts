@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { localImageService } from "@/services/local-image-service";
 import { logger } from "@/utils/logger";
 import { isDefined, isEmpty, wrapAsync } from "@banjoanton/utils";
+import { BinaryFileData, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElements } from "common";
 import { ofetch } from "ofetch";
 import { useEffect, useState } from "react";
@@ -34,6 +35,16 @@ type In = {
     elements: ExcalidrawElements;
     slug?: string;
 };
+
+const getImagesOnCanvas = (files: BinaryFiles, elements: ExcalidrawElements) =>
+    Object.values(files)
+        .filter(file => file.mimeType.startsWith("image/"))
+        .filter(image =>
+            elements?.some(element => {
+                if (!ExcalidrawUtil.isImageElement(element)) return false;
+                return element.fileId === image.id && element.isDeleted !== true;
+            })
+        );
 
 export const useImages = ({ elements, slug }: In) => {
     const { excalidrawApi } = useGlobal();
@@ -85,6 +96,59 @@ export const useImages = ({ elements, slug }: In) => {
         excalidrawApi.addFiles(files);
     };
 
+    const uploadImagesToBucket = async (images: BinaryFileData[]) => {
+        if (isEmpty(images)) return true;
+
+        const [fileData, error] = await wrapAsync(
+            async () =>
+                await utils.client.file.saveImagesByPresignedUrl.mutate({
+                    images: images.map(image => ({
+                        imageId: image.id,
+                        mimeType: image.mimeType,
+                    })),
+                })
+        );
+
+        if (error) {
+            await handleError(error, { toast: true, errorMessage: "Failed to save images" });
+            return false;
+        }
+
+        const uploadPromises = images.map(async image => {
+            const url = fileData.find(r => r.key.includes(image.id));
+            if (!url) return;
+
+            const uploadResult = await FileUtil.uploadToBucket(image, url.presignedUrl);
+
+            if (!uploadResult.success) {
+                throw new Error("Failed to upload image to bucket");
+            }
+        });
+
+        const [_, uploadError] = await wrapAsync(() => Promise.all(uploadPromises));
+
+        if (uploadError) {
+            await handleError(uploadError, {
+                toast: true,
+                errorMessage: "Failed to upload images",
+            });
+            return false;
+        }
+
+        return true;
+    };
+
+    // Images in an offline drawing only exist in this browser, so upload them before it gets a link
+    const uploadImagesOnCanvas = async () => {
+        if (!excalidrawApi) return false;
+
+        const images = getImagesOnCanvas(
+            excalidrawApi.getFiles(),
+            excalidrawApi.getSceneElements()
+        );
+        return await uploadImagesToBucket(images);
+    };
+
     // get images on load or when new images are added
     useEffect(() => {
         if (!elements || !excalidrawApi) return;
@@ -108,14 +172,7 @@ export const useImages = ({ elements, slug }: In) => {
     useEffect(() => {
         if (!excalidrawApi) return;
 
-        const files = excalidrawApi.getFiles();
-        const images = Object.values(files).filter(file => file.mimeType.startsWith("image/"));
-        const imagesReferencedOnCanvas = images.filter(image =>
-            elements?.some(element => {
-                if (!ExcalidrawUtil.isImageElement(element)) return false;
-                return element.fileId === image.id && element.isDeleted !== true;
-            })
-        );
+        const imagesReferencedOnCanvas = getImagesOnCanvas(excalidrawApi.getFiles(), elements);
 
         const notUploadedImages = imagesReferencedOnCanvas.filter(
             image => !uploadedImages.includes(image.id)
@@ -160,41 +217,8 @@ export const useImages = ({ elements, slug }: In) => {
                 return;
             }
 
-            const [fileData, error] = await wrapAsync(
-                async () =>
-                    await utils.client.file.saveImagesByPresignedUrl.mutate({
-                        images: notUploadedImages.map(image => ({
-                            imageId: image.id,
-                            mimeType: image.mimeType,
-                        })),
-                    })
-            );
-
-            if (error) {
-                await handleError(error, { toast: true, errorMessage: "Failed to save images" });
-                return;
-            }
-
-            const uploadPromises = notUploadedImages.map(async image => {
-                const url = fileData.find(r => r.key.includes(image.id));
-                if (!url) return;
-
-                const uploadResult = await FileUtil.uploadToBucket(image, url.presignedUrl);
-
-                if (!uploadResult.success) {
-                    throw new Error("Failed to upload image to bucket");
-                }
-            });
-
-            const [_, uploadError] = await wrapAsync(() => Promise.all(uploadPromises));
-
-            if (uploadError) {
-                await handleError(uploadError, {
-                    toast: true,
-                    errorMessage: "Failed to upload images",
-                });
-                return;
-            }
+            const isUploaded = await uploadImagesToBucket(notUploadedImages);
+            if (!isUploaded) return;
 
             const uploadedImageIds = notUploadedImages.map(image => image.id);
 
@@ -203,4 +227,8 @@ export const useImages = ({ elements, slug }: In) => {
 
         saveImages();
     }, [excalidrawApi, elements, uploadedImages, slug]);
+
+    return {
+        uploadImagesOnCanvas,
+    };
 };

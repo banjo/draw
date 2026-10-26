@@ -3,11 +3,11 @@ import { useGlobal } from "@/contexts/global-context";
 import { DrawingCard } from "@/features/draw/components/drawing-card";
 import { useIsScrollable } from "@/features/draw/hooks/utils/use-is-scrollable";
 import { trpc } from "@/lib/trpc";
+import { useSidebarStore } from "@/stores/use-sidebar-store";
 import { Maybe } from "@banjoanton/utils";
 import { Sidebar } from "@excalidraw/excalidraw";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { BrushIcon } from "lucide-react";
-import { useState } from "react";
 import { cn, ResponsiveIcon } from "ui";
 
 type In = {
@@ -15,11 +15,14 @@ type In = {
 };
 
 const KEY_DOCKED_STATE = "banjo-docked-state";
+const SIDEBAR_NAME = "user";
 
 export const useSidebar = ({ slug: currentSlug }: In) => {
     const { excalidrawApi } = useGlobal();
     const [docked, setDocked] = useLocalStorage(KEY_DOCKED_STATE, false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // Kept in a store, so the sidebar stays open when the drawing remounts
+    const isSidebarOpen = useSidebarStore(s => s.isSidebarOpen);
+    const setIsSidebarOpen = useSidebarStore(s => s.setIsSidebarOpen);
     const { isAuthenticated } = useAuth();
 
     const { data, isLoading } = trpc.draw.getCollection.useQuery(undefined, {
@@ -30,14 +33,16 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
         dependencies: [isSidebarOpen, data?.length],
     });
 
-    const toggleSidebar = () => excalidrawApi?.toggleSidebar({ name: "user" });
+    const toggleSidebar = () => excalidrawApi?.toggleSidebar({ name: SIDEBAR_NAME });
+
+    const initialOpenSidebar = isAuthenticated && isSidebarOpen ? { name: SIDEBAR_NAME } : null;
 
     const renderSidebar = () => {
         if (!isAuthenticated) return null;
 
         return (
             <Sidebar
-                name="user"
+                name={SIDEBAR_NAME}
                 docked={docked}
                 onDock={setDocked}
                 className="h-screen"
@@ -90,5 +95,6 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
         renderSidebar,
         renderSidebarButton,
         toggleSidebar,
+        initialOpenSidebar,
     };
 };

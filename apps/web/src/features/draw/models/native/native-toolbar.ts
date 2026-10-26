@@ -8,6 +8,7 @@ type AddNewButtonProps = {
 
 class NativeToolbarClass {
     private element: HTMLDivElement | null = null;
+    private resizeObserver: ResizeObserver | null = null;
     private querySelector = ".App-toolbar";
     private stackQuerySelector = ".Stack";
 
@@ -81,11 +82,13 @@ class NativeToolbarClass {
         }
         const debounced = debounce(callback, debounceTime);
 
-        const observer = new ResizeObserver(() => {
+        // The toolbar is recreated when the drawing remounts, so only keep the latest observer
+        this.resizeObserver?.disconnect();
+        this.resizeObserver = new ResizeObserver(() => {
             debounced();
         });
 
-        observer.observe(document.body);
+        this.resizeObserver.observe(document.body);
     }
 }
 

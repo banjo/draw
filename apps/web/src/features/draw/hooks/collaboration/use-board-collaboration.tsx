@@ -44,7 +44,8 @@ export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elemen
 
     const input = { slug: slug ?? "" };
     trpc.collaboration.onBoardChange.useSubscription(input, {
-        enabled: isDefined(slug),
+        // The full board is dropped without the API, which would leave the loading overlay up
+        enabled: isDefined(slug) && isDefined(excalidrawApi),
         onData: update => {
             if (!slug || !excalidrawApi) return;
 

@@ -20,9 +20,10 @@ type In = {
     slug: Maybe<string>;
     saveDrawing: SaveDrawing;
     toggleSidebar: () => void;
+    uploadImagesOnCanvas: () => Promise<boolean>;
 };
 
-export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
+export const useMenu = ({ slug, saveDrawing, toggleSidebar, uploadImagesOnCanvas }: In) => {
     const { excalidrawApi } = useGlobal();
     const navigate = useNavigate();
 
@@ -37,27 +38,34 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     const { exportToPng, exportToSvg } = useExport();
 
     const saveDrawingToDatabase = useCallback(
-        (createNewDrawing = false) => {
+        async (createNewDrawing = false) => {
             if (!excalidrawApi) return;
+
+            if (!slug) {
+                const isUploaded = await uploadImagesOnCanvas();
+                if (!isUploaded) return;
+            }
 
             const elements = excalidrawApi.getSceneElementsIncludingDeleted();
             const order = elements.map(e => e.id);
-            return saveDrawing(elements, order, createNewDrawing);
+            return await saveDrawing(elements, order, createNewDrawing);
         },
-        [excalidrawApi, saveDrawing]
+        [excalidrawApi, saveDrawing, slug, uploadImagesOnCanvas]
     );
 
     const onShareDrawing = useCallback(async () => {
         if (!excalidrawApi) return;
 
         const updatedSlug = await saveDrawingToDatabase();
+        if (!updatedSlug) return;
+
         copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
         toast.success("Link copied to clipboard");
 
-        if (updatedSlug && slug !== updatedSlug) {
+        if (slug !== updatedSlug) {
             navigate(`/draw/${updatedSlug}`);
         }
-    }, [excalidrawApi, slug]);
+    }, [excalidrawApi, slug, saveDrawingToDatabase]);
 
     const saveToCollection = async () => {
         let currentSlug = slug;
@@ -106,8 +114,7 @@ export const useMenu = ({ slug, saveDrawing, toggleSidebar }: In) => {
     }, [excalidrawApi]);
 
     const goToLocalDrawing = () => {
-        // TODO: improve this, some strange logic with using local storage elements
-        window.location.href = "/";
+        navigate("/");
     };
 
     const renderMenu = () => (

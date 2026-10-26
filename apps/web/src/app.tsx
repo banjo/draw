@@ -1,5 +1,4 @@
 import { AuthProvider } from "@/contexts/auth-context";
-import { GlobalContextProvider } from "@/contexts/global-context";
 import { GlobalLoadingProvider } from "@/providers/global-loading-provider";
 import { TrpcProvider } from "@/providers/trpc-provider";
 import { Root } from "@/routes/root";
@@ -16,10 +15,8 @@ export const App: FC = () => (
             <TrpcProvider>
                 <ThemeProvider>
                     <GlobalLoadingProvider>
-                        <GlobalContextProvider>
-                            <Toaster />
-                            <Root />
-                        </GlobalContextProvider>
+                        <Toaster />
+                        <Root />
                     </GlobalLoadingProvider>
                 </ThemeProvider>
             </TrpcProvider>
