@@ -13,5 +13,26 @@ services:
         volumes:
             - banjo-data:/var/lib/postgresql/data
 
+    # Local stand-in for Cloudflare R2. Set CLOUDFLARE_ENDPOINT=http://localhost:9000 in apps/api/.env
+    s3:
+        image: andrewgaul/s3proxy:4.1.1
+        environment:
+            S3PROXY_AUTHORIZATION: aws-v2-or-v4
+            S3PROXY_IDENTITY: local-access-key
+            S3PROXY_CREDENTIAL: local-secret-key
+            S3PROXY_CORS_ALLOW_ALL: "true"
+        # Buckets are folders, so create the one the API expects
+        entrypoint:
+            [
+                "sh",
+                "-c",
+                "mkdir -p /data/banjodraw && exec /usr/bin/dumb-init -- /opt/s3proxy/run-docker-container.sh",
+            ]
+        ports:
+            - "9000:80"
+        volumes:
+            - banjo-s3:/data
+
 volumes:
     banjo-data:
+    banjo-s3:

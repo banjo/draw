@@ -47,6 +47,8 @@ const ServerEnvSchema = z.object({
     CLOUDFLARE_ACCESS_KEY_ID: z.string(),
     CLOUDFLARE_SECRET_ACCESS_KEY: z.string(),
     CLOUDFLARE_BUCKET_NAME: z.string(),
+    // Local S3 stand-in instead of R2, e.g. http://localhost:9000 (see docker/docker-compose.yml)
+    CLOUDFLARE_ENDPOINT: z.string().url().optional(),
     // AXIOM_DATASET: z.string(),
     // AXIOM_TOKEN: z.string(),
 });
