@@ -6,10 +6,11 @@ import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
+import { useFeaturesModalStore } from "@/features/features-intro/stores/use-features-modal-store";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
-import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
+import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon, Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ type In = {
 
 export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanvas }: In) => {
     const { excalidrawApi } = useGlobal();
+    const showFeatures = useFeaturesModalStore(s => s.show);
     const navigate = useNavigate();
 
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
@@ -197,6 +199,12 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                 <MainMenu.DefaultItems.Export />
                 <MainMenu.Separator />
                 <MainMenu.DefaultItems.ToggleTheme />
+                <MainMenu.Item
+                    onSelect={() => showFeatures("all")}
+                    icon={<ResponsiveIcon Icon={Sparkles} />}
+                >
+                    Features
+                </MainMenu.Item>
                 <MainMenu.DefaultItems.Help />
             </MainMenu>
         ),

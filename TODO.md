@@ -668,3 +668,23 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       dark mode, live sync between two tabs, no image uploads or browser storage for code
       blocks, the export dialog, add-element, Tab to change a shape, smart copy, and a
       reload.
+
+## 15. Features dialog
+
+- [x] A dialog with what BanjoDraw adds to Excalidraw, in
+      `features/features-intro/models/features.ts`. Each feature has a fixed id, and the ids a
+      browser has seen are saved in localStorage (`banjo-seen-features`).
+      - First visit: "Welcome to BanjoDraw" with every feature, on the start page only. Opening
+        a shared link doesn't show it, as that visitor came for the drawing.
+      - A feature added later shows on its own as "What's new", on any page.
+      - "Features" in the menu shows them all.
+      - The ⌘/Ctrl shown follows the platform, also in the smart copy hint.
+- [x] Bento design: a grid with the first feature as the big card and the second wide. One to
+      three features (What's new) sit side by side with their full description. Each feature
+      has a hand-drawn illustration, drawn with rough.js (what Excalidraw draws with) in
+      `illustrations.ts`, and dark mode uses Excalidraw's filter. Bricolage Grotesque and
+      Hanken Grotesk are self-hosted with Fontsource. The dialog, its fonts, and rough.js load
+      only when it opens.
+- [x] Tested (Oct 27): first visit, "Start drawing", "Got it", and Escape marking features as
+      seen, no dialog after a reload, two new features as What's new, no welcome on a first
+      visit through a shared link, the menu item, light and dark, and a narrow window.

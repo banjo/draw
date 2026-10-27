@@ -13,6 +13,7 @@ import { ExcalidrawApi } from "common";
 import React, { KeyboardEventHandler, useEffect, useRef, useState } from "react";
 import { NativeToolbarAddElementButton } from "../../models/native/native-toolbar-add-element-button";
 import { CustomDataUtil } from "../../utils/custom-data-util";
+import { IS_MAC } from "@/utils/platform";
 
 type In = {
     handleChangeElementDialogClick: Callback;
@@ -21,7 +22,6 @@ type In = {
 export const ARROW_KEYS = ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"] as const;
 export type ArrowKey = (typeof ARROW_KEYS)[number];
 
-const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform);
 // ⌘ on macOS, Ctrl elsewhere, like Excalidraw's own shortcuts
 const MODIFIER_KEY = IS_MAC ? "Meta" : "Control";
 const isModifierPressed = (event: { metaKey: boolean; ctrlKey: boolean }) =>
