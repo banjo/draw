@@ -3,7 +3,7 @@
     "display": "App",
     "compilerOptions": {
         "verbatimModuleSyntax": false,
-        "lib": ["ES2023", "DOM"]
+        "lib": ["ES2023", "DOM", "DOM.Iterable"]
     },
     "extends": ["./base.json", "@total-typescript/tsconfig/bundler/dom/app"]
 }

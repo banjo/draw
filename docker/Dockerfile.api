@@ -1,6 +1,6 @@
 # Build context: the repository root
 ARG NODE_VERSION=24
-ARG TURBO_VERSION=2.0.4
+ARG TURBO_VERSION=2.11.10
 
 FROM node:${NODE_VERSION}-alpine AS base
 # Prisma's engines need OpenSSL
@@ -29,7 +29,7 @@ RUN pnpm exec turbo build --filter=api...
 
 # The bundle, its production dependencies, and the Prisma schema and migrations. Hoisted
 # deploys come out empty, so this folder uses pnpm's default layout.
-RUN pnpm --filter api deploy --prod --config.node-linker=isolated /prod/api \
+RUN pnpm --filter api deploy --legacy --prod --config.node-linker=isolated /prod/api \
     && cp -r apps/api/dist /prod/api/dist \
     && cp -r packages/db/prisma /prod/api/prisma \
     && cd /prod/api \

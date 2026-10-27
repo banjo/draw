@@ -581,23 +581,45 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 
 ## 12. Dependencies
 
-- [ ] Update Express (4.19.2 has CVEs, as do `path-to-regexp` 0.1.7 and `body-parser` 1.20.2)
-      and `cookie` to `^0.7`.
-- [ ] Update Vite from 4.5.3 (dev server CVEs).
-- [ ] Move `@trpc/*` from `11.0.0-rc.417` to stable v11, and update `superjson`.
-- [ ] Use one Node LTS in `.nvmrc`, the Dockerfile, and `engines`. Move from pnpm 8, which is
-      end-of-life.
-- [ ] Fix peer mismatches: `@lucia-auth/adapter-prisma` pulls in `@prisma/client@5.22.0` next
+- [x] Update Express (4.19.2 has CVEs, as do `path-to-regexp` 0.1.7 and `body-parser` 1.20.2)
+      and `cookie` to `^0.7`. Now Express 4.22.3 and cookie 0.7.2. Newer types showed that
+      the API listened for `error` on the Express app, which never emits it; it's on the
+      HTTP server now.
+- [x] Update Vite from 4.5.3 (dev server CVEs). Now Vite 8 and plugin-react 6. The CommonJS
+      and tsconfig paths plugins are gone (Vite handles both).
+- [x] Move `@trpc/*` from `11.0.0-rc.417` to stable v11, and update `superjson`. Now 11.19
+      and superjson 2.
+- [x] Use one Node LTS in `.nvmrc`, the Dockerfile, and `engines`. Move from pnpm 8, which is
+      end-of-life. Node 24 everywhere, pnpm 10.34.9. pnpm 10 only runs allowed install
+      scripts (`onlyBuiltDependencies`), and the Dockerfile uses `pnpm deploy --legacy`.
+      Turbo 2.11. `hoks` (git hooks) was removed, as it failed without git.
+- [x] Fix peer mismatches: `@lucia-auth/adapter-prisma` pulls in `@prisma/client@5.22.0` next
       to 5.15.1. (The `react-dom@19` next to React 18 in `ui` was fixed by the lockfile update
-      in step 2.)
-- [ ] Update `@excalidraw/excalidraw` from 0.17.6. Expect the DOM injection in
+      in step 2.) Prisma is 5.22.0 everywhere, `@types/node` 24, `tsx` 4. Lucia, its adapter,
+      `arctic`, and `oslo` are deprecated upstream; replacing them is separate work.
+- [x] Update `@excalidraw/excalidraw` from 0.17.6. Expect the DOM injection in
       `models/native/*` and `use-code-block-element.tsx` to break, since it relies on
-      Excalidraw's internal class names.
-- [ ] Remove unused packages: `jwt-decode`, `change-case`, `npm-run-all`, `@axiomhq/pino`,
+      Excalidraw's internal class names. Now 0.18.1, and the DOM injection still works.
+      - Renamed state: `draggingElement` is `newElement` (and `selectionElement` for the
+        selection box), `editingElement` is `editingTextElement`, `commitToHistory` is
+        `captureUpdate`. The CSS is imported, and the fonts are served from the app instead
+        of Excalidraw's CDN (copied in by a Vite plugin).
+      - Excalidraw now has ⌘/Ctrl+arrow itself (flowcharts), so both versions added a shape.
+        Ours runs in the capture phase and stops the event. ⌘+arrow no longer moves the
+        selection, so the code that moved it back is gone.
+      - Elements get a fractional `index`. The first client to open an older drawing adds
+        it and syncs every element once.
+- [x] Remove unused packages: `jwt-decode`, `change-case`, `npm-run-all`, `@axiomhq/pino`,
       `vitest` in api, `api` in web, and `@excalidraw/excalidraw` as a runtime dependency of
-      api and common.
-- [ ] Fix ESLint plugin versions: `@tanstack/eslint-plugin-query@^4` with React Query v5, and
-      `eslint-plugin-react-hooks@^4` with ESLint 9.
+      api and common. (`utils/token.ts` went with `jwt-decode`; common keeps Excalidraw as a
+      dev dependency for its types.)
+- [x] Fix ESLint plugin versions: `@tanstack/eslint-plugin-query@^4` with React Query v5, and
+      `eslint-plugin-react-hooks@^4` with ESLint 9. Neither was used: linting goes through
+      `@banjoanton/eslint-config`, so web's ESLint plugins were removed.
+- [x] Tested (Oct 27): typecheck, tests, lint, the API Docker image (migrations, tRPC), the
+      Vite dev server, and in Chrome: loading, sync both ways, local sign-in and the
+      collection, image upload, export, add-element, every shortcut, the extend buttons, the
+      context menu, and theme. Remote drag at 2,000 shapes costs the same as before.
 
 ## 13. Cleanup, CI, and tests
 
@@ -606,7 +628,7 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 - [ ] **Tests:** `packages/common` (merge) and `packages/server` (`DrawingEmitter`) have vitest
       and tests. Add a root `test` script and run it in CI.
 - [ ] **Lint:** only `apps/web` has a `lint` script.
-- [ ] **Dead code:** `utils/token.ts`, `config/site.ts`, `DrawingUtil.isOnlyMouseChange`,
+- [ ] **Dead code:** `config/site.ts`, `DrawingUtil.isOnlyMouseChange`,
       `debouncedSaveDrawing`, `BucketService.listAllBuckets`/`listAllFiles`,
       `BucketKey.parseString`, `runtime.ts`, `apps/api/src/utils.ts`, and unused `ui`
       components (`Animated`, `Dropdown`, `Card`, `Dialog`, `RadioGroup`). Run `knip` for

@@ -27,12 +27,12 @@
         "seed": "tsx src/seed.ts"
     },
     "dependencies": {
-        "@prisma/client": "^5.15.1"
+        "@prisma/client": "5.22.0"
     },
     "devDependencies": {
-        "@types/node": "^20.14.8",
-        "prisma": "^5.15.1",
+        "@types/node": "^24.0.0",
+        "prisma": "5.22.0",
         "tsconfig": "workspace:*",
-        "tsx": "^3.14.0"
+        "tsx": "^4.23.15"
     }
 }
