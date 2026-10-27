@@ -5,7 +5,14 @@ import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import { IPoint } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { DEFAULT_CODE_EDITOR_LANGUAGE } from "@/features/selected-element-visuals/models/code-editor-langauges";
+import {
+    CodeBlockContent,
+    CodeBlockImage,
+} from "@/features/selected-element-visuals/models/code-block-image";
+import {
+    DEFAULT_CODE_EDITOR_FONT_SIZE,
+    DEFAULT_CODE_EDITOR_LANGUAGE,
+} from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { FileId } from "@excalidraw/excalidraw/element/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import {
@@ -96,39 +103,6 @@ const createElement = ({ base, props, callback, customElementType }: CreateEleme
     return createdElement;
 };
 
-type CreateCodeBlockElementProps = {
-    base: ElementBase;
-    code: string;
-    props?: Partial<ExcalidrawElementSkeleton>;
-    callback?: UpdateCallback<ExcalidrawElement>;
-};
-const createCodeBlock = ({ base, callback, props, code }: CreateCodeBlockElementProps) => {
-    const customData = CustomData.createCodeblock({
-        code,
-        shadow: false,
-        language: DEFAULT_CODE_EDITOR_LANGUAGE,
-        fontSize: 14,
-    });
-
-    return createElement({
-        base: {
-            ...base,
-            type: "rectangle",
-        },
-        props: {
-            ...props,
-            backgroundColor: "#ffffff",
-            fillStyle: "solid",
-            strokeWidth: 1,
-            roughness: 0,
-            roundness: null,
-            strokeColor: "transparent",
-            customData,
-        },
-        callback,
-    });
-};
-
 type CreateImageElementProps = {
     base: ElementBase;
     fileId: string;
@@ -163,6 +137,29 @@ const createImage = ({
     }
 
     return createdElement;
+};
+
+type CreateCodeBlockElementProps = {
+    base: BasePosition;
+    code: string;
+};
+/** A code block: an image of the highlighted code, with the code on the element */
+const createCodeBlock = ({ base, code }: CreateCodeBlockElementProps) => {
+    const content: CodeBlockContent = {
+        code,
+        language: DEFAULT_CODE_EDITOR_LANGUAGE,
+        fontSize: DEFAULT_CODE_EDITOR_FONT_SIZE,
+    };
+    const { width, height } = CodeBlockImage.getNaturalSize(content);
+
+    return createImage({
+        base: { x: base.x, y: base.y, width, height },
+        fileId: CodeBlockImage.getFileId(content),
+        callback: element => {
+            element.customData = CustomData.createCodeblock({ ...content, shadow: false });
+            return element;
+        },
+    });
 };
 
 const createText = (
@@ -402,17 +399,7 @@ type CreateElementFromElementProps = {
 };
 const createElementsFromElement = ({ element, newValues, type }: CreateElementFromElementProps) => {
     if (type === "codeblock") {
-        return toArray(
-            createCodeBlock({
-                base: {
-                    x: element.x,
-                    y: element.y,
-                    width: element.width,
-                    height: element.height,
-                },
-                code: "",
-            })
-        );
+        return toArray(createCodeBlock({ base: { x: element.x, y: element.y }, code: "" }));
     }
 
     if (type === "model") {
@@ -431,17 +418,7 @@ const createElementsFromElement = ({ element, newValues, type }: CreateElementFr
 
 const createElementFromType = (type: CustomElementType, base: BasePosition) => {
     if (type === "codeblock") {
-        return toArray(
-            createCodeBlock({
-                base: {
-                    x: base.x,
-                    y: base.y,
-                    width: ELEMENT_WIDTH,
-                    height: 150,
-                },
-                code: "",
-            })
-        );
+        return toArray(createCodeBlock({ base, code: "" }));
     }
 
     if (type === "model") {

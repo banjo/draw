@@ -5,12 +5,11 @@ import { useError } from "@/hooks/use-error";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
-import { useExportModalStore } from "@/stores/use-export-modal-store";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { copyToClipboard } from "@/utils/clipboard";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
-import { BrushIcon, CopyIcon, FileDown, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
+import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -28,7 +27,6 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
     const navigate = useNavigate();
 
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
-    const setShowExportModal = useExportModalStore(s => s.setShowExportModal);
 
     const { isAuthenticated } = useAuth();
     const { handleError } = useError();
@@ -195,24 +193,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                     </>
                 ) : null}
 
-                <MainMenu.Item
-                    onSelect={() => {
-                        setShowExportModal(true);
-                    }}
-                    icon={<ResponsiveIcon Icon={FileDown} />}
-                >
-                    Export
-                </MainMenu.Item>
-
-                {/* TODO: USE ImageDown WHEN IT WORKS  */}
-                {/* <MainMenu.Item onSelect={exportToPng} icon={<ResponsiveIcon Icon={FileDown} />}> */}
-                {/*     Export as PNG */}
-                {/* </MainMenu.Item> */}
-                {/**/}
-                {/* <MainMenu.Item onSelect={exportToSvg} icon={<ResponsiveIcon Icon={FileDown} />}> */}
-                {/*     Export as SVG */}
-                {/* </MainMenu.Item> */}
-
+                <MainMenu.DefaultItems.SaveAsImage />
                 <MainMenu.DefaultItems.Export />
                 <MainMenu.Separator />
                 <MainMenu.DefaultItems.ToggleTheme />

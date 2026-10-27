@@ -4,6 +4,8 @@ import { NativeContainer } from "@/features/draw/models/native/native-container"
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
+import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
+import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { FileUtil } from "@/features/draw/utils/file-util";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { shapes } from "@/models/shapes";
@@ -108,6 +110,10 @@ export const AddElementContainer = () => {
             });
 
             onClose();
+
+            // A new code block is for typing code in
+            const codeBlock = newElements.find(CustomDataUtil.isCodeBlockElement);
+            if (codeBlock) useCodeEditorStore.getState().setEditingElementId(codeBlock.id);
         },
         [excalidrawApi, onClose]
     );

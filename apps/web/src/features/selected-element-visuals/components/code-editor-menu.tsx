@@ -1,13 +1,16 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
-import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
+import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
+import { ElementUtil } from "@/features/draw/utils/element-util";
+import { CodeBlockImage } from "@/features/selected-element-visuals/models/code-block-image";
 import {
     CODE_EDITOR_LANGUAGES,
     CodeEditorLanguage,
     getCodeBlockSettings,
 } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { parseNumber } from "@banjoanton/utils";
-import { CustomData, ExcalidrawElement } from "common";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
+import { ExcalidrawElement } from "common";
 import { createPortal } from "react-dom";
 
 type Props = {
@@ -33,16 +36,18 @@ const CodeEditorMenu = ({ element }: Props) => {
     const updateCodeblock = (props: { language?: CodeEditorLanguage; fontSize?: number }) => {
         if (!excalidrawApi) return;
 
-        const elements = excalidrawApi.getSceneElementsIncludingDeleted().map(current => {
-            if (current.id !== element.id) return current;
+        const elements = excalidrawApi.getSceneElementsIncludingDeleted();
+        const current = elements.find(e => e.id === element.id);
+        if (!current) return;
 
-            return UpdateElementUtil.updateElement(current, draft => {
-                draft.customData = CustomData.updateCodeblock(draft.customData, props);
-                return draft;
-            });
+        const updated = CodeBlockUtil.updateContent(current, props);
+        excalidrawApi.addFiles([
+            CodeBlockImage.createFile({ ...updated, fileId: CodeBlockUtil.getFileId(updated) }),
+        ]);
+        excalidrawApi.updateScene({
+            elements: ElementUtil.mergeElements(elements, [updated]),
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
-
-        excalidrawApi.updateScene({ elements });
     };
 
     const updateFontSize = (value: string) => {

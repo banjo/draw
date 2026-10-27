@@ -87,3 +87,8 @@
 .excalidraw .HelpDialog .HelpDialog__header {
     display: none;
 }
+
+/* Set while a code block is selected, as the hint is about cropping images */
+.code-block-selected .excalidraw .HintViewer {
+    display: none;
+}

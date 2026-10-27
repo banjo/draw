@@ -1,5 +1,4 @@
 import { useGlobal } from "@/contexts/global-context";
-import { useContextMenu } from "@/features/draw/hooks/base/use-context-menu";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
 import { useHistory } from "@/features/draw/hooks/base/use-history";
@@ -13,24 +12,18 @@ import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
 import { useTheme } from "@/providers/theme-provider";
-import { useExportModalStore } from "@/stores/use-export-modal-store";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw, getSceneVersion } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { useAddElement } from "../add-element/hooks/use-add-element";
 import { SignInModal } from "./components/sign-in-modal";
 import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useOnPaste } from "./hooks/utils/use-on-paste";
-
-// Loaded when it's first opened
-const ExportModal = lazy(() =>
-    import("@/features/draw/components/export-modal").then(m => ({ default: m.ExportModal }))
-);
 
 type DrawProps = {
     slug?: string;
@@ -66,9 +59,6 @@ export const Draw = ({ slug }: DrawProps) => {
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
     const showSignInModal = useSignInModalStore(s => s.showSignInModal);
 
-    const setShowExportModal = useExportModalStore(s => s.setShowExportModal);
-    const showExportModal = useExportModalStore(s => s.showExportModal);
-
     useInit({ slug });
 
     const { onLibraryChange, library } = useLibrary();
@@ -99,14 +89,12 @@ export const Draw = ({ slug }: DrawProps) => {
         handleChangeElementDialogClick,
     } = useSelectedElementVisuals();
 
-    const { codeBlocks, updateCodeBlockElements } = useCodeBlockElement();
+    const { codeBlocks, updateCodeBlockElements, onDoubleClickCapture } = useCodeBlockElement();
     const { render: renderAddElement } = useAddElement();
 
     const { handleKeyDown, handleKeyDownCapture, handleKeyUp } = useKeyboard({
         handleChangeElementDialogClick,
     });
-
-    const { onContextMenu } = useContextMenu();
 
     const { cleanup } = useCleanup();
     const { handleOnPaste } = useOnPaste();
@@ -191,17 +179,13 @@ export const Draw = ({ slug }: DrawProps) => {
             {showSignInModal ? (
                 <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
             ) : null}
-            {showExportModal ? (
-                <Suspense fallback={null}>
-                    <ExportModal setShow={setShowExportModal} show={showExportModal} />
-                </Suspense>
-            ) : null}
             <div
-                style={{ height: "100dvh" }}
+                // Hidden overflow, so the code editor can't scroll the page
+                style={{ height: "100dvh", overflow: "hidden" }}
                 onKeyDown={handleKeyDown}
                 onKeyDownCapture={handleKeyDownCapture}
                 onKeyUp={handleKeyUp}
-                onContextMenu={onContextMenu}
+                onDoubleClickCapture={onDoubleClickCapture}
             >
                 {codeBlocks}
                 {renderSelectedElementVisuals()}

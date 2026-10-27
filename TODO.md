@@ -643,3 +643,28 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       URL to decide it's safe. `.prettierignore` doesn't list `pnpm-lock.yaml`.
 - [ ] **License:** root and api say ISC, the packages say MIT, and there's no `LICENSE` file.
       Pick one, add the file, and add it to the README.
+
+## 14. Code blocks and export
+
+- [x] **Code blocks:** they were HTML editors laid over rectangles, moved after every change.
+      They trailed when panning, sat on top of everything, scrolled the page when focused,
+      and needed `html2canvas` screenshots to export. Now a code block is an Excalidraw
+      image of the highlighted code (SVG), with the code, language, and font size on the
+      element.
+      - Layering, undo, copy, export, and collaboration work like for any element. The
+        image follows the canvas theme: it's light, and dark mode inverts it.
+      - Images aren't uploaded: every browser makes them from the code. The file id is a
+        hash of the code, language, and font size.
+      - Double-click or Enter opens an editor over the block, and a new block opens it
+        right away. Collaborators see the code 200 ms after typing stops, and the whole
+        edit is one undo step. Escape or clicking away closes it.
+      - Resizing scales the code, and edits keep that scale.
+      - Old code blocks are converted to images when a drawing loads.
+- [x] **Export:** the export modal, the context menu override, and `html2canvas` are gone.
+      The menu opens Excalidraw's own export dialog, which has a preview, scale, dark mode,
+      only selected, and embed scene.
+- [x] Tested (Oct 27): conversion of old blocks (offline and shared), editing, undo and
+      redo, Enter and double-click, the language and font size menu with a resized block,
+      dark mode, live sync between two tabs, no image uploads or browser storage for code
+      blocks, the export dialog, add-element, Tab to change a shape, smart copy, and a
+      reload.

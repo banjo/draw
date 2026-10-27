@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
 import { useError } from "@/hooks/use-error";
@@ -7,7 +8,13 @@ import { localImageService } from "@/services/local-image-service";
 import { logger } from "@/utils/logger";
 import { isDefined, isEmpty, uniq, wrapAsync } from "@banjoanton/utils";
 import { BinaryFileData, BinaryFiles } from "@excalidraw/excalidraw/types";
-import { ExcalidrawElements, ImageUpload, ImageUtil, MAX_IMAGE_SIZE } from "common";
+import {
+    ExcalidrawElement,
+    ExcalidrawElements,
+    ImageUpload,
+    ImageUtil,
+    MAX_IMAGE_SIZE,
+} from "common";
 import { useRef } from "react";
 import toast from "react-hot-toast";
 
@@ -18,12 +25,16 @@ type In = {
     slug?: string;
 };
 
+/** Images that are files, not code blocks: those are made from their code in every browser */
+const isFileImage = (element: ExcalidrawElement) =>
+    ExcalidrawUtil.isImageElement(element) && !CustomDataUtil.isCodeBlockElement(element);
+
 const getImagesOnCanvas = (files: BinaryFiles, elements: ExcalidrawElements) =>
     Object.values(files)
         .filter(file => file.mimeType.startsWith("image/"))
         .filter(image =>
             elements?.some(element => {
-                if (!ExcalidrawUtil.isImageElement(element)) return false;
+                if (!isFileImage(element) || !ExcalidrawUtil.isImageElement(element)) return false;
                 return element.fileId === image.id && element.isDeleted !== true;
             })
         );
@@ -214,6 +225,7 @@ export const useImages = ({ slug }: In) => {
     const loadMissingImages = (elements: ExcalidrawElements, files: BinaryFiles) => {
         const missing = uniq(
             elements
+                .filter(isFileImage)
                 .filter(ExcalidrawUtil.isImageElement)
                 .filter(element => element.fileId && !element.isDeleted)
                 .map(element => element.fileId as string)

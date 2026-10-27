@@ -2,3 +2,15 @@
 .core-guide-indent {
     display: none !important;
 }
+
+/* No wrapping, like the image: the editor grows to the longest line */
+.code-block-editor {
+    width: max-content;
+}
+
+.code-block-editor .w-tc-editor-text,
+.code-block-editor .w-tc-editor-preview {
+    white-space: pre !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+}

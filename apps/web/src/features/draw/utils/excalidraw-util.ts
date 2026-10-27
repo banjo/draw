@@ -32,7 +32,7 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     "model-line": "rectangle", // wont happen
     "model-title": "rectangle", // wont happen
     model: "rectangle",
-    codeblock: "rectangle",
+    codeblock: "rectangle", // wont happen, code blocks are images
     diamond: "diamond",
     ellipse: "ellipse",
     rectangle: "rectangle",

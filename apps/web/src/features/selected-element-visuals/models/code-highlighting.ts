@@ -76,3 +76,30 @@ const PRISM_NAMES: Partial<Record<CodeEditorLanguage, string>> = {
 
 export const toPrismLanguage = (language: CodeEditorLanguage) =>
     PRISM_NAMES[language] ?? language.toLowerCase();
+
+type HighlightNode = {
+    type: string;
+    value?: string;
+    properties?: { className?: unknown };
+    children?: HighlightNode[];
+};
+
+/** The code as pieces of text, each with its token types from the innermost out */
+export const highlightCode = (code: string, language: CodeEditorLanguage) => {
+    const prismLanguage = toPrismLanguage(language);
+    if (!refractor.registered(prismLanguage)) return [{ text: code, types: [] as string[] }];
+
+    const pieces: { text: string; types: string[] }[] = [];
+    const visit = (node: HighlightNode, types: string[]) => {
+        if (node.type === "text") {
+            pieces.push({ text: node.value ?? "", types });
+            return;
+        }
+        const className = node.properties?.className;
+        const own = Array.isArray(className) ? className.filter(name => name !== "token") : [];
+        node.children?.forEach(child => visit(child, [...own.map(String), ...types]));
+    };
+
+    visit(refractor.highlight(code, prismLanguage) as HighlightNode, []);
+    return pieces;
+};

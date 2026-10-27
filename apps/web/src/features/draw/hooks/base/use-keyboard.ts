@@ -39,6 +39,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const setMetaKeyIsDown = useVisualElementStore(state => state.setMetaKeyIsDown);
     const setShowAddElementMenu = useAddElementStore(state => state.setShowAddElementMenu);
     const isEditingCode = useCodeEditorStore(state => state.editingElementId !== undefined);
+    const setEditingCodeBlockId = useCodeEditorStore(state => state.setEditingElementId);
 
     // The latest shadow, for the blur listener
     const shadowRef = useRef(shadowElements);
@@ -49,13 +50,30 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         isEditingCode ||
         isTypingTarget(event.target);
 
+    /** Enter edits a selected code block, like text, instead of cropping its image */
+    const openSelectedCodeBlock = (event: React.KeyboardEvent, api: ExcalidrawApi) => {
+        const selected = ElementUtil.getSelectedElements(api.getAppState(), api.getSceneElements());
+        const codeBlock = selected.length === 1 ? selected[0] : undefined;
+        if (!codeBlock || !CustomDataUtil.isCodeBlockElement(codeBlock)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        setEditingCodeBlockId(codeBlock.id);
+    };
+
     /**
      * ⌘/Ctrl+arrow shows where the selection would extend to. Handled before Excalidraw sees
      * the key, as its own version (flowcharts) would add a second shape.
      */
     const handleKeyDownCapture: KeyboardEventHandler<HTMLDivElement> = event => {
-        if (!excalidrawApi || !isModifierPressed(event) || !includes(ARROW_KEYS, event.key)) return;
-        if (isTyping(event, excalidrawApi)) return;
+        if (!excalidrawApi || isTyping(event, excalidrawApi)) return;
+
+        if (event.key === "Enter" && !isModifierPressed(event) && !event.shiftKey) {
+            openSelectedCodeBlock(event, excalidrawApi);
+            return;
+        }
+
+        if (!isModifierPressed(event) || !includes(ARROW_KEYS, event.key)) return;
 
         event.preventDefault();
         event.stopPropagation();
