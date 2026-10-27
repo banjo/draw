@@ -24,7 +24,7 @@
         "db:full-reset": "pnpm run db:reset && pnpm run db:push && pnpm run db:generate && pnpm run db:seed"
     },
     "prisma": {
-        "seed": "esno src/seed.ts"
+        "seed": "tsx src/seed.ts"
     },
     "dependencies": {
         "@prisma/client": "^5.15.1"
@@ -32,6 +32,7 @@
     "devDependencies": {
         "@types/node": "^20.14.8",
         "prisma": "^5.15.1",
-        "tsconfig": "workspace:*"
+        "tsconfig": "workspace:*",
+        "tsx": "^3.14.0"
     }
 }

@@ -345,6 +345,9 @@ importers:
       tsconfig:
         specifier: workspace:*
         version: link:../tsconfig
+      tsx:
+        specifier: ^3.14.0
+        version: 3.14.0
 
   packages/scripts:
     dependencies:
@@ -7070,12 +7073,6 @@ packages:
       resolve-pkg-maps: 1.0.0
     dev: true
 
-  /get-tsconfig@4.7.5:
-    resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
-    dependencies:
-      resolve-pkg-maps: 1.0.0
-    dev: true
-
   /git-install-hook@0.0.10:
     resolution: {integrity: sha512-r0fN/Cu0xDQCtjbx9+xZHotKefDR+JoWORWaEVPq1rnetQqEhybfdSHGYI39r28MFt+/8QFbne8eK9gAWqHbNA==}
     hasBin: true
@@ -10204,7 +10201,7 @@ packages:
     hasBin: true
     dependencies:
       esbuild: 0.18.20
-      get-tsconfig: 4.7.5
+      get-tsconfig: 4.10.0
       source-map-support: 0.5.21
     optionalDependencies:
       fsevents: 2.3.3
