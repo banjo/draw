@@ -53,9 +53,9 @@ importers:
 
   apps/api:
     dependencies:
-      '@excalidraw/excalidraw':
-        specifier: ^0.17.6
-        version: 0.17.6(react-dom@18.3.1)(react@18.3.1)
+      '@prisma/client':
+        specifier: 5.15.1
+        version: 5.15.1(prisma@5.15.1)
       '@trpc/server':
         specifier: 11.0.0-rc.417
         version: 11.0.0-rc.417
@@ -68,6 +68,15 @@ importers:
       express:
         specifier: ^4.19.2
         version: 4.19.2
+      pino:
+        specifier: ^8.21.0
+        version: 8.21.0
+      pino-pretty:
+        specifier: ^10.3.1
+        version: 10.3.1
+      prisma:
+        specifier: 5.15.1
+        version: 5.15.1
       ws:
         specifier: ^8.17.1
         version: 8.17.1
@@ -78,6 +87,9 @@ importers:
       '@banjoanton/utils':
         specifier: ^0.1.93
         version: 0.1.93
+      '@excalidraw/excalidraw':
+        specifier: ^0.17.6
+        version: 0.17.6(react-dom@18.3.1)(react@18.3.1)
       '@types/cors':
         specifier: ^2.8.17
         version: 2.8.17
@@ -387,7 +399,7 @@ importers:
         version: 3.609.0
       '@lucia-auth/adapter-prisma':
         specifier: ^4.0.1
-        version: 4.0.1(@prisma/client@5.22.0)(lucia@3.2.0)
+        version: 4.0.1(@prisma/client@5.15.1)(lucia@3.2.0)
       '@trpc/client':
         specifier: 11.0.0-rc.417
         version: 11.0.0-rc.417(@trpc/server@11.0.0-rc.417)
@@ -2095,7 +2107,6 @@ packages:
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-    dev: false
 
   /@floating-ui/core@1.6.2:
     resolution: {integrity: sha512-+2XpQV9LLZeanU4ZevzRnGFg2neDeKHgFLjP6YLW+tly0IvrhqT4u8enLGjLH3qeh85g19xY5rsAusfwTdn5lg==}
@@ -2182,13 +2193,13 @@ packages:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
 
-  /@lucia-auth/adapter-prisma@4.0.1(@prisma/client@5.22.0)(lucia@3.2.0):
+  /@lucia-auth/adapter-prisma@4.0.1(@prisma/client@5.15.1)(lucia@3.2.0):
     resolution: {integrity: sha512-3SztRhj1RAHbbhI/0aB7YC5zl6Z6aktPhkWpn2CHhiB03B9x/+A+M6pqJuAt1usU8PzkjVilgRPhrPymMar66A==}
     peerDependencies:
       '@prisma/client': ^4.2.0 || ^5.0.0
       lucia: 3.x
     dependencies:
-      '@prisma/client': 5.22.0
+      '@prisma/client': 5.15.1(prisma@5.15.1)
       lucia: 3.2.0
     dev: false
 
@@ -2553,17 +2564,6 @@ packages:
         optional: true
     dependencies:
       prisma: 5.15.1
-    dev: false
-
-  /@prisma/client@5.22.0:
-    resolution: {integrity: sha512-M0SVXfyHnQREBKxCgyo7sffrKttwE6R8PMq330MIUF0pTwjUhLbW84pFDlf06B27XyCR++VtjugEnIHdr07SVA==}
-    engines: {node: '>=16.13'}
-    requiresBuild: true
-    peerDependencies:
-      prisma: '*'
-    peerDependenciesMeta:
-      prisma:
-        optional: true
     dev: false
 
   /@prisma/debug@5.15.1:
@@ -9023,7 +9023,6 @@ packages:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
-    dev: false
 
   /react-error-boundary@4.0.13(react@18.3.1):
     resolution: {integrity: sha512-b6PwbdSv8XeOSYvjt8LpgpKrZ0yGdtZokYwkwV2wlcZbxgopHX/hgPl5VgpnoVOWd868n1hktM8Qm4b+02MiLQ==}
@@ -9445,7 +9444,6 @@ packages:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
     dependencies:
       loose-envify: 1.4.0
-    dev: false
 
   /secure-json-parse@2.7.0:
     resolution: {integrity: sha512-6aU+Rwsezw7VR8/nyvKTx8QpWH9FrcYiXXlqC4z5d5XQBDRqtbfsRjnwGyqbi3gddNtWHuEk9OANUotL26qKUw==}
