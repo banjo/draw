@@ -201,6 +201,12 @@ importers:
       react-router-dom:
         specifier: ^6.23.1
         version: 6.23.1(react-dom@18.3.1)(react@18.3.1)
+      refractor:
+        specifier: ^4.8.1
+        version: 4.8.1
+      rehype-prism-plus:
+        specifier: ^1.6.3
+        version: 1.6.3
       sillyname:
         specifier: ^0.1.0
         version: 0.1.0
@@ -510,8 +516,8 @@ importers:
         specifier: ^10.18.0
         version: 10.18.0(react-dom@18.3.1)(react@18.3.1)
       lucide-react:
-        specifier: 0.279.0
-        version: 0.279.0(react@18.3.1)
+        specifier: 0.368.0
+        version: 0.368.0(react@18.3.1)
       tailwind-merge:
         specifier: ^1.14.0
         version: 1.14.0
@@ -8072,14 +8078,6 @@ packages:
     resolution: {integrity: sha512-eXMxXwk6hqtjRTj4W/x3EnTUtAztLPm0p2N2TEBMDEbakDLXiYnDQ9z/qahjPdPdhPguQc+vwO0/88zIWxlpuw==}
     dependencies:
       oslo: 1.2.0
-    dev: false
-
-  /lucide-react@0.279.0(react@18.3.1):
-    resolution: {integrity: sha512-LJ8g66+Bxc3t3x9vKTeK3wn3xucrOQGfJ9ou9GsBwCt2offsrT2BB90XrTrIzE1noYYDe2O8jZaRHi6sAHXNxw==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0
-    dependencies:
-      react: 18.3.1
     dev: false
 
   /lucide-react@0.368.0(react@18.3.1):
