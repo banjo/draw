@@ -1,6 +1,7 @@
 import { Modal } from "@/components/modal";
 import { authService } from "@/services/auth-service";
-import { Chrome, Github } from "lucide-react";
+import { isLocalDevelopment } from "@/utils/runtime";
+import { Chrome, Github, Laptop } from "lucide-react";
 import { Button } from "ui";
 import { NativeContainer } from "../models/native/native-container";
 
@@ -41,6 +42,16 @@ export const SignInModal = ({ setShow, show }: SignInModalProps) => {
                         <Github className="h-5 w-5 mr-2" />
                         Sign in with GitHub
                     </Button>
+                    {isLocalDevelopment() && (
+                        <Button
+                            onClick={() => authService.signInLocally()}
+                            variant="outline"
+                            className="w-full"
+                        >
+                            <Laptop className="h-5 w-5 mr-2" />
+                            Sign in locally
+                        </Button>
+                    )}
                 </Modal.Body>
             </Modal.Content>
         </Modal.Container>

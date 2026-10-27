@@ -344,14 +344,34 @@ have no indexes, and nothing stops orphaned rows.
 
 **Fix**
 
-- [ ] Add the missing variables to `apps/api/.env.example`, remove `WS_PORT` and `VITE_DEV`,
-      and document `VITE_LOG_LEVEL`. Comment out optional keys, or turn `""` into `undefined`
-      in the env schema.
-- [ ] Change `seed` to `tsx src/seed.ts` and add `tsx` to the db package.
-- [ ] Call `this.notifyListeners()` before the early return in `AuthService`.
-- [ ] Fix `turbo.json` as above.
-- [ ] Clean up `vite.config.ts`.
-- [ ] Ignore `.env.*` (except `.env.example`) in `.gitignore`.
+- [x] `.env.example` files have every variable the schemas need, with working local values
+      (Docker Postgres and S3). `WS_PORT`, `VITE_DEV`, the unused `DEVELOPMENT_UID` and
+      `VITE_DEVELOPMENT_UID`, and the Axiom-only `packages/common/.env.example` are gone.
+      `VITE_LOG_LEVEL` and `LOG_LEVEL` are documented.
+- [x] Empty values (`KEY=`) count as unset in `Env.server()` and `Env.client()`, and the
+      logger falls back to `info` for an empty level.
+- [x] `seed` runs `tsx src/seed.ts`, and `tsx` is a db dev dependency.
+- [x] Local development mode was half gone: the web app faked a signed-in user, but the server
+      side was removed in the Lucia move, so signed-in calls failed. It's now a real sign-in:
+      "Sign in locally" calls `/login/local`, which creates a session for `local@example.com`.
+      The route only exists with `NODE_ENV=development`, `LOCAL_DEVELOPMENT=true`, and a
+      database on localhost. `VITE_LOCAL_DEVELOPMENT=true` shows the button. The fake state
+      and the early return that left the app on "Loading..." are gone.
+- [x] `turbo.json`: `typecheck` depends on `db:generate`, outputs are `dist/**`, `build`
+      hashes `.env*`, and `dev` is `persistent`.
+- [x] `vite.config.ts`: port 3005 with `strictPort` (the script no longer passes `--port`),
+      no `host: "0.0.0.0"`, and no external for the missing `globals.css`.
+- [x] `.env.*` is ignored, except `.env.example`.
+- [x] README: copy the three `.env.example` files, then `pnpm db:reset` and `pnpm dev`.
+- [x] `pnpm typecheck` passes for all 8 packages. `packages/scripts/migrate-to-bucket.ts`
+      still called `savePresignedImageFiles`, renamed in step 5; it's a finished one-off
+      migration, so it gets a `@ts-ignore` like the rest of the file.
+- [x] Tested locally (Oct 26): `db:full-reset` on a scratch database applies all 17
+      migrations and runs the seed. An API started from `.env.example` starts, and
+      `/login/local` redirects with a session; it's 404 with `LOCAL_DEVELOPMENT=false`,
+      `NODE_ENV=production`, a remote `DATABASE_URL`, or an empty `LOCAL_DEVELOPMENT=`.
+      In Chrome: "Sign in locally" signs in, `getCollection` works, and signing out works.
+      The web build passes.
 
 ## 9. Deployment
 

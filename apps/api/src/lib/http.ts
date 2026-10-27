@@ -6,16 +6,19 @@ import express from "express";
 import { createServer } from "http";
 import {
     appRouter,
+    createContextLogger,
     createTRPCContext,
     errorMiddleware,
     GithubAuthProvider,
     GoogleAuthProvider,
     handleErrors,
+    isLocalDevelopment,
     NodeContext,
     OauthCoreProvider,
 } from "server";
 
 const app = express();
+const logger = createContextLogger("http");
 const url = Env.server().CLIENT_URL;
 const PORT = Number(Env.server().PORT) || 3003;
 
@@ -46,6 +49,12 @@ app.get("/login/google/callback", handleErrors(GoogleAuthProvider.callback));
 app.get("/login/google", handleErrors(GoogleAuthProvider.login));
 app.get("/login/github/callback", handleErrors(GithubAuthProvider.callback));
 app.get("/login/github", handleErrors(GithubAuthProvider.login));
+
+if (isLocalDevelopment()) {
+    logger.warn("Local sign-in is on at /login/local");
+    app.get("/login/local", handleErrors(OauthCoreProvider.localLogin));
+}
+
 // A POST, so a link or image on another site can't sign you out
 app.post("/logout", handleErrors(OauthCoreProvider.logout));
 app.get("/auth", OauthCoreProvider.authCheck);

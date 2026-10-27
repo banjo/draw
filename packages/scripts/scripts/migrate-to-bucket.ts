@@ -50,6 +50,7 @@ const main = async () => {
     }));
 
     console.log("Saving to database");
+    // @ts-ignore - migration already done, saved for reference
     const uploadedToBucket = await FileRepository.savePresignedImageFiles(imageFiles);
 
     if (!uploadedToBucket.success) {

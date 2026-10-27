@@ -1,4 +1,3 @@
-import { isLocalDevelopment } from "@/utils/runtime";
 import { attemptAsync } from "@banjoanton/utils";
 import { AuthInfo, CoreResponse, Env } from "common";
 import toast from "react-hot-toast";
@@ -20,24 +19,9 @@ class AuthService {
 
     constructor() {
         this.authState = emptyAuthState;
-        this.setupDevelopment();
-    }
-
-    private setupDevelopment() {
-        if (isLocalDevelopment()) {
-            this.authState = {
-                isAuthenticated: true,
-                email: "local@local.com",
-            };
-            this.notifyListeners();
-        }
     }
 
     public async checkIfUserIsAuthenticated() {
-        if (isLocalDevelopment()) {
-            return;
-        }
-
         const authUrl = `${env.VITE_API_URL}/auth`;
 
         const response = await attemptAsync<CoreResponse<AuthInfo>>(
@@ -65,6 +49,11 @@ class AuthService {
 
     public signInWithGoogle() {
         window.location.href = `${env.VITE_API_URL}/login/google`;
+    }
+
+    /** Only works when the API runs with `LOCAL_DEVELOPMENT=true` */
+    public signInLocally() {
+        window.location.href = `${env.VITE_API_URL}/login/local`;
     }
 
     public async signOut() {

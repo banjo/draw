@@ -6,14 +6,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react(), tsconfigPaths(), viteCommonjs()],
-    build: {
-        rollupOptions: {
-            external: ["ui/styles/globals.css"],
-        },
-    },
     server: {
-        host: "0.0.0.0",
-        port: 3000,
+        port: 3005,
+        strictPort: true,
     },
     define: {
         "process.env.IS_PREACT": JSON.stringify("true"),

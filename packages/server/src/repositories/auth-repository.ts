@@ -115,8 +115,27 @@ const linkOauthAccount = async (
     return Result.ok(oauth);
 };
 
+/** A user without a provider account, for the local sign-in. */
+const getOrCreateUser = async ({ email, name }: { email: string; name?: string }) => {
+    const [user, error] = await wrapAsync(async () =>
+        prisma.user.upsert({
+            where: { email },
+            update: {},
+            create: { email, name },
+        })
+    );
+
+    if (error) {
+        logger.error({ error }, "Error getting or creating user");
+        return Result.error("Error getting or creating user");
+    }
+
+    return Result.ok(user);
+};
+
 export const AuthRepository = {
     createOauthUser,
+    getOrCreateUser,
     getOauthByProvider,
     getUserByEmail,
     linkOauthAccount,

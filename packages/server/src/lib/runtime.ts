@@ -1,12 +1,20 @@
-import { raise } from "@banjoanton/utils";
 import { Env } from "common";
 
 const env = Env.server();
 
-export const isLocalDevelopment = () =>
-    env.NODE_ENV === "development" && env.LOCAL_DEVELOPMENT === "true";
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-export const getLocalDevelopmentId = () => {
-    const id = env.DEVELOPMENT_UID ?? raise("No development UID");
-    return Number(id);
+const isLocalDatabase = () => {
+    try {
+        return LOCAL_HOSTS.has(new URL(env.DATABASE_URL).hostname);
+    } catch {
+        return false;
+    }
 };
+
+/**
+ * Local sign-in without OAuth. It needs all three, so a stray `LOCAL_DEVELOPMENT` in
+ * production can't turn it on.
+ */
+export const isLocalDevelopment = () =>
+    env.NODE_ENV === "development" && env.LOCAL_DEVELOPMENT === "true" && isLocalDatabase();

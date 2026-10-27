@@ -4,12 +4,14 @@
         "build": {
             "dependsOn": ["^db:generate"],
             "env": ["DATABASE_URL"],
-            "outputs": ["dist", ".vercel/**"]
+            "inputs": ["$TURBO_DEFAULT$", ".env*"],
+            "outputs": ["dist/**", ".vercel/**"]
         },
         "lint": {},
         "dev": {
             "dependsOn": ["^db:generate"],
-            "cache": false
+            "cache": false,
+            "persistent": true
         },
         "db:generate": {
             "cache": false
@@ -18,6 +20,7 @@
             "cache": false
         },
         "typecheck": {
+            "dependsOn": ["^db:generate", "db:generate"],
             "cache": false
         }
     }

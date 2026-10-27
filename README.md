@@ -32,11 +32,15 @@ To run it yourself, you need [Node.js](https://nodejs.org) (see `.nvmrc`),
 
 ```bash
 pnpm install
-pnpm db:local:start    # Start Postgres in Docker.
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+cp packages/db/.env.example packages/db/.env
+pnpm db:reset          # Start Postgres and S3 in Docker, and create the tables.
 pnpm dev               # Run the web app and the API.
 ```
 
-Each app and package has a `.env.example` to copy to `.env` first.
+Open [localhost:3005](http://localhost:3005) and use "Sign in locally" to sign in without
+OAuth.
 
 ## Development
 
