@@ -27,7 +27,11 @@ export const DrawingCard = ({ cardSlug, currentSlug, initialName, isOwner }: Pro
     const { handleError } = useError();
 
     const editableLabelRef = useRef<EditableLabelRef>(null);
-    const startEditing = () => editableLabelRef.current?.startEditing();
+    const startEditing = (e: React.MouseEvent) => {
+        // Don't open the drawing
+        e.stopPropagation();
+        editableLabelRef.current?.startEditing();
+    };
     const setLabelText = (text: string) => editableLabelRef.current?.setText(text);
 
     const updateDrawingName = async (slug: string, name: string) => {

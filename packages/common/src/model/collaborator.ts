@@ -7,7 +7,8 @@ export const CollaboratorSchema = z.object({
     x: z.number(),
     y: z.number(),
     name: z.string(),
-    avatarUrl: z.string(),
+    /** Signed-in users only. Excalidraw shows initials without one. */
+    avatarUrl: z.string().optional(),
 });
 
 export type Collaborator = z.infer<typeof CollaboratorSchema>;

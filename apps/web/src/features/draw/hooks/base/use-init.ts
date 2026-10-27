@@ -6,14 +6,12 @@ import { isEmpty, Maybe } from "@banjoanton/utils";
 import { elementsOverlappingBBox } from "@excalidraw/excalidraw";
 import { useEffect } from "react";
 import { ElementPositionUtil } from "../../utils/element-position-util";
-import { useHelpMenu } from "./use-help-menu";
 
 type Props = {
     slug: Maybe<string>;
 };
 
 export const useInit = ({ slug }: Props) => {
-    useHelpMenu();
     const { excalidrawApi } = useGlobal();
     const isLoading = useGlobalLoadingStore(state => state.isLoading);
 

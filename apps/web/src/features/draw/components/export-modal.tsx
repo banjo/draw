@@ -15,9 +15,9 @@ type ExportModalProps = {
 export const ExportModal = ({ setShow, show }: ExportModalProps) => {
     const { exportToPng, exportToSvg, exportToClipboard, getPng } = useExport();
 
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
     const [png, setPng] = useState<string | undefined>();
-    const [useDarkMode, setUseDarkMode] = useState(() => theme === "dark");
+    const [useDarkMode, setUseDarkMode] = useState(() => resolvedTheme === "dark");
     const [exportBackground, setExportBackground] = useState(false);
 
     // The preview only changes with the options. Rendering code blocks to images is slow.

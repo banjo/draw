@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import React from "react";
 
 type In = {
@@ -11,10 +11,13 @@ type In = {
 export const EditableLabel = forwardRef(({ initialText, onChange, allowEditing }: In, ref) => {
     const [isEditing, setIsEditing] = useState(false);
     const [text, setText] = useState(initialText);
+    // Enter saves; the blur that may follow when the field is removed must not undo it
+    const committed = useRef(false);
 
     useImperativeHandle(ref, () => ({
         startEditing: () => {
             if (!allowEditing) return;
+            committed.current = false;
             setIsEditing(true);
         },
         stopEditing: () => {
@@ -28,6 +31,7 @@ export const EditableLabel = forwardRef(({ initialText, onChange, allowEditing }
 
     const handleDoubleClick = () => {
         if (!allowEditing) return;
+        committed.current = false;
         setIsEditing(true);
     };
 
@@ -38,6 +42,7 @@ export const EditableLabel = forwardRef(({ initialText, onChange, allowEditing }
     const handleKeyDown = (event: React.KeyboardEvent) => {
         const { key } = event;
         if (key === "Enter") {
+            committed.current = true;
             setIsEditing(false);
             onChange?.(text);
         } else if (key === "Escape") {
@@ -46,7 +51,9 @@ export const EditableLabel = forwardRef(({ initialText, onChange, allowEditing }
         }
     };
 
+    // Leaving the field without Enter discards the change
     const handleBlur = () => {
+        if (!committed.current) setText(initialText);
         setIsEditing(false);
     };
 
@@ -65,6 +72,8 @@ export const EditableLabel = forwardRef(({ initialText, onChange, allowEditing }
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
+                // A click in the field shouldn't reach what's around it, like a card
+                onClick={event => event.stopPropagation()}
                 autoFocus
             />
         );

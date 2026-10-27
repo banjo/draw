@@ -12,7 +12,10 @@ import {
     ExcalidrawSimpleElement,
 } from "common";
 import { useEffect } from "react";
+import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
+
+const LOAD_TIMEOUT = 20_000;
 
 type In = {
     slug?: string;
@@ -45,7 +48,21 @@ export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
         // do not load drawing when navigating to local
         if (pathname === "/") return;
         setIsLoading(true, "Loading drawing...");
+        // Don't leave the overlay up for the next drawing
+        return () => setIsLoading(false);
     }, [slug]);
+
+    // The board may never arrive, e.g. when the API is down, so don't load forever
+    useEffect(() => {
+        if (!slug || !isLoading) return;
+
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+            toast.error("Could not load the drawing. Check your connection and try again.");
+            navigate("/");
+        }, LOAD_TIMEOUT);
+        return () => clearTimeout(timer);
+    }, [slug, isLoading]);
 
     const input = { slug: slug ?? "" };
     trpc.collaboration.onBoardChange.useSubscription(input, {

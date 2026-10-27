@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import React from "react";
 
 export type DragPosition = {
@@ -15,105 +15,70 @@ type Props = {
     clickThreshold?: number;
 };
 
+/**
+ * Mouse dragging. A drag starts once the mouse moves more than `clickThreshold` pixels from
+ * where it went down; otherwise releasing it counts as a click.
+ *
+ * The listeners stay until the mouse is released, even if the component unmounts: the
+ * extend buttons are hidden as soon as an arrow is dragged out of them, and the drag
+ * still has to finish.
+ */
 export const useDrag = (props?: Props) => {
-    const {
-        onDragStart,
-        onDrag,
-        onDragEnd,
-        onClick,
-        relativeToStart,
-        clickThreshold = 5,
-    } = props ?? {};
+    // The listeners live on the document for the whole drag, so they read the latest props
+    const latest = useRef(props);
+    latest.current = props;
 
-    const [startPosition, setStartPosition] = useState<DragPosition>({ x: 0, y: 0 });
+    const startPosition = useRef<DragPosition>({ x: 0, y: 0 });
+    const isDraggingRef = useRef(false);
+    const [isDragging, setIsDragging] = useState(false);
     const [dragPosition, setDragPosition] = useState<DragPosition>({ x: 0, y: 0 });
 
-    // Use a ref for the isDragging state to ensure up-to-date access in event listeners
-    const isDraggingRef = useRef(false);
-    // Additionally, keep isDragging in state if you need to trigger re-renders or effects based on its value
-    const [isDragging, setIsDragging] = useState(false);
+    const getPosition = (e: MouseEvent): DragPosition =>
+        latest.current?.relativeToStart
+            ? { x: e.clientX - startPosition.current.x, y: e.clientY - startPosition.current.y }
+            : { x: e.clientX, y: e.clientY };
 
-    // update ref when props change
-    useEffect(() => {
-        isDraggingRef.current = isDragging;
-    }, [isDragging]);
-
-    const handleMouseMove = (e: React.MouseEvent | MouseEvent) => {
+    const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!isDraggingRef.current) {
-            const moveX = Math.abs(e.clientX - startPosition.x);
-            const moveY = Math.abs(e.clientY - startPosition.y);
-            if (moveX > clickThreshold || moveY > clickThreshold) {
-                setIsDragging(true);
-                onDragStart?.(startPosition);
-            }
+            const threshold = latest.current?.clickThreshold ?? 5;
+            const moveX = Math.abs(e.clientX - startPosition.current.x);
+            const moveY = Math.abs(e.clientY - startPosition.current.y);
+            if (moveX <= threshold && moveY <= threshold) return;
+
+            isDraggingRef.current = true;
+            setIsDragging(true);
+            latest.current?.onDragStart?.(startPosition.current);
         }
 
-        if (isDraggingRef.current) {
-            const newDragPosition: DragPosition = relativeToStart
-                ? {
-                      x: e.clientX - startPosition.x,
-                      y: e.clientY - startPosition.y,
-                  }
-                : {
-                      x: e.clientX,
-                      y: e.clientY,
-                  };
+        const position = getPosition(e);
+        setDragPosition(position);
+        latest.current?.onDrag?.(position);
+    }, []);
 
-            setDragPosition(newDragPosition);
-            onDrag?.(newDragPosition);
-        }
-    };
-
-    const handleMouseUp = (e: React.MouseEvent | MouseEvent) => {
+    const handleMouseUp = useCallback((e: MouseEvent) => {
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
 
         if (isDraggingRef.current) {
+            isDraggingRef.current = false;
             setIsDragging(false);
-
-            const newDragPosition = relativeToStart
-                ? {
-                      x: e.clientX - startPosition.x,
-                      y: e.clientY - startPosition.y,
-                  }
-                : {
-                      x: e.clientX,
-                      y: e.clientY,
-                  };
-            onDragEnd?.(newDragPosition);
+            latest.current?.onDragEnd?.(getPosition(e));
         } else {
-            onClick?.();
+            latest.current?.onClick?.();
         }
-    };
+    }, []);
 
-    const onMouseDown = (e: React.MouseEvent | MouseEvent) => {
-        setStartPosition({
-            x: e.clientX,
-            y: e.clientY,
-        });
-
-        // Make sure to clear isDraggingRef state in case it was left in an inconsistent state
+    const onMouseDown = useCallback((e: React.MouseEvent | MouseEvent) => {
+        startPosition.current = { x: e.clientX, y: e.clientY };
+        isDraggingRef.current = false;
         setIsDragging(false);
+
+        // Removed first, so a second mousedown can't add them twice
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
-    };
-
-    // Cleanup event listeners when the component unmounts
-    useEffect(
-        () => () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mouseup", handleMouseUp);
-        },
-        []
-    );
-
-    // event listener necessary for drag to work
-    useEffect(() => {
-        if (isDragging) {
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("mouseup", handleMouseUp);
-        }
-    }, [isDragging]);
+    }, []);
 
     return {
         isDragging,

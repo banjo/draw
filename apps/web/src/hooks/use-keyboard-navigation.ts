@@ -13,17 +13,19 @@ export const useKeyboardNavigation = <T>({ itemsToNavigate, onClick }: Props<T>)
     const resetSelectedIndex = () => setSelectedIndex(0);
 
     const handleKeyboardNavigation = (e: React.KeyboardEvent<Element>) => {
+        const count = itemsToNavigate.length;
+        if (count === 0) return;
         let newValue = 0;
 
         if (e.key === "ArrowUp") {
             e.preventDefault();
-            newValue = (selectedIndex - 1 + itemsToNavigate.length) % itemsToNavigate.length;
+            newValue = (selectedIndex - 1 + count) % count;
             setSelectedIndex(newValue);
         }
 
         if (e.key === "ArrowDown" || e.key === "Tab") {
             e.preventDefault();
-            newValue = (selectedIndex + 1) % itemsToNavigate.length;
+            newValue = (selectedIndex + 1) % count;
             setSelectedIndex(newValue);
         }
 

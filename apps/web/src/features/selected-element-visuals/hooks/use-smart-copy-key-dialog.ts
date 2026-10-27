@@ -35,7 +35,7 @@ export const useSmartCopyKeyDialog = () => {
         const dialogX = x + (width * appState.zoom.value) / 2 - dialogWidth / 2;
 
         // place dialog under the element
-        const dialogY = y + height + 50;
+        const dialogY = y + height * appState.zoom.value + 50;
 
         smartCopyKeyDialogRef.current?.setAttribute(
             "style",

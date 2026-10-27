@@ -10,11 +10,17 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
     theme: Theme;
+    /** The theme in use: "system" resolved to the OS theme */
+    resolvedTheme: "dark" | "light";
     setTheme: (theme: Theme) => void;
 };
 
+const darkQuery = () => window.matchMedia("(prefers-color-scheme: dark)");
+const getSystemTheme = (): "dark" | "light" => (darkQuery().matches ? "dark" : "light");
+
 const initialState: ThemeProviderState = {
     theme: "system",
+    resolvedTheme: "light",
     setTheme: () => null,
 };
 
@@ -30,25 +36,26 @@ export function ThemeProvider({
         () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
     );
 
+    const [systemTheme, setSystemTheme] = useState(getSystemTheme);
+    const resolvedTheme = theme === "system" ? systemTheme : theme;
+
+    // Follow the OS when it switches between light and dark
+    useEffect(() => {
+        const query = darkQuery();
+        const onChange = () => setSystemTheme(getSystemTheme());
+        query.addEventListener("change", onChange);
+        return () => query.removeEventListener("change", onChange);
+    }, []);
+
     useEffect(() => {
         const root = window.document.documentElement;
-
         root.classList.remove("light", "dark");
-
-        if (theme === "system") {
-            const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light";
-
-            root.classList.add(systemTheme);
-            return;
-        }
-
-        root.classList.add(theme);
-    }, [theme]);
+        root.classList.add(resolvedTheme);
+    }, [resolvedTheme]);
 
     const value = {
         theme,
+        resolvedTheme,
         setTheme: (theme: Theme) => {
             localStorage.setItem(storageKey, theme);
             setTheme(theme);

@@ -48,6 +48,7 @@ export const useError = () => {
 
         if (errorMessage && toast) {
             internalToast.error(errorMessage);
+            return;
         }
 
         if (toast) {

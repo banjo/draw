@@ -28,7 +28,7 @@ export const useDrawing = () => {
         );
 
         if (error) {
-            await handleError(error);
+            await handleError(error, { toast: true, errorMessage: "Could not save the drawing" });
             return;
         }
 

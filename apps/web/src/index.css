@@ -81,3 +81,9 @@
             "calt" 1;
     }
 }
+
+/* Excalidraw's links to its own docs, blog, and GitHub in the help dialog. More specific than
+   Excalidraw's own rule, which loads later. */
+.excalidraw .HelpDialog .HelpDialog__header {
+    display: none;
+}

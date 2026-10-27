@@ -527,39 +527,57 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 
 ## 11. Smaller UI bugs
 
-- [ ] **Shortcuts while typing:** `use-keyboard.ts` doesn't check `event.target`. Tab, ⌘+arrows,
+- [x] **Shortcuts while typing:** `use-keyboard.ts` doesn't check `event.target`. Tab, ⌘+arrows,
       ⌘+Enter, and `+` fire inside the code editor and the rename field. Return early for
       inputs, textareas, and `contentEditable`, and require no modifiers for `+`. Shortcuts
       only check `metaKey`, so they don't work with Ctrl on Windows or Linux.
-- [ ] **Stuck ⌘ key:** if the window loses focus while ⌘ is held, `keyup` never arrives and
-      the shadow elements stay. Reset on `window` `blur`.
-- [ ] **Silent save errors:** `use-drawing.ts` calls `handleError` without `toast: true`.
+      Fixed: shortcuts are skipped in inputs, textareas, selects, and `contentEditable`;
+      `+` needs no ⌘, Ctrl, or Alt (Shift is fine); ⌘ on macOS and Ctrl elsewhere.
+- [x] **Stuck ⌘ key:** if the window loses focus while ⌘ is held, `keyup` never arrives and
+      the shadow elements stay. Reset on `window` `blur`. Fixed: the key state resets and an
+      unfinished shadow is removed.
+- [x] **Silent save errors:** `use-drawing.ts` calls `handleError` without `toast: true`.
       Share in `use-menu.tsx` copies `/draw/undefined` and says "Link copied" when the save
       fails. "New drawing created" also shows before checking the result. Return early on
-      failure, and await and catch the clipboard write.
-- [ ] **Clicks become drags:** `use-drag.ts` registers handlers that hold the previous
+      failure, and await and catch the clipboard write. Fixed: a failed save toasts "Could
+      not save the drawing" once and stays put. The clipboard write is caught but not
+      awaited, as it can wait for focus; it toasts when it's done.
+- [x] **Clicks become drags:** `use-drag.ts` registers handlers that hold the previous
       `startPosition`, so the first pixel of movement starts a drag. Listeners are added twice
-      and removed with the wrong references. Use refs and stable handlers.
-- [ ] **Add-element search:** it searches the already filtered list, so shapes don't come back
+      and removed with the wrong references. Use refs and stable handlers. Fixed. A started
+      drag finishes even after the extend buttons unmount, which they do as soon as the arrow
+      is dragged out. The dragged arrow's id is a ref, cleared when the drag ends.
+- [x] **Add-element search:** it searches the already filtered list, so shapes don't come back
       after backspace. Keyboard navigation goes through 10 items while only 5 are shown.
       Search `DEFAULT_SHAPES`, navigate only visible items, and handle 0 items in
-      `use-keyboard-navigation.ts`.
-- [ ] **Loading never ends:** if the board never arrives, or arrives before `excalidrawApi` is
+      `use-keyboard-navigation.ts`. Fixed: all six shapes are searched (Model wasn't in the
+      default five), and navigation and Enter use the five shown items.
+- [x] **Loading never ends:** if the board never arrives, or arrives before `excalidrawApi` is
       set, the overlay stays forever. Enable the subscription only when the API is ready, and
-      add a timeout.
-- [ ] **System theme:** `draw.tsx` maps `system` to dark, and the first `onChange` saves
-      `dark`. The theme provider also doesn't listen for OS theme changes.
-- [ ] **Drawing card:** clicking the edit icon also opens the drawing, and blur keeps the
-      unsaved name on screen.
-- [ ] **Double toast:** `use-error.ts` is missing a `return` after the custom message toast.
-- [ ] **Leaks:** `waitForElement` polls forever when the element never appears, the help menu
+      add a timeout. The subscription part was done in step 1. After 20 s it toasts and goes
+      to the offline drawing, and leaving a drawing clears the overlay.
+- [x] **System theme:** `draw.tsx` maps `system` to dark, and the first `onChange` saves
+      `dark`. The theme provider also doesn't listen for OS theme changes. Fixed: the
+      provider has a `resolvedTheme` that follows the OS, and the theme is only saved when
+      it's toggled in Excalidraw.
+- [x] **Drawing card:** clicking the edit icon also opens the drawing, and blur keeps the
+      unsaved name on screen. Fixed, and clicks in the rename field don't open it either.
+- [x] **Double toast:** `use-error.ts` is missing a `return` after the custom message toast.
+- [x] **Leaks:** `waitForElement` polls forever when the element never appears, the help menu
       adds its listener twice, and the `ResizeObserver` in `native-toolbar.ts` is never
       disconnected. The toolbar button can't close the add-element menu because it reads a
-      stale `showAddElement`.
-- [ ] **Smart copy dialog:** `use-smart-copy-key-dialog.ts` doesn't multiply `height` by zoom.
-- [ ] **Avatars:** anonymous cursors use a `robohash.org` avatar (set by the server since step
+      stale `showAddElement`. Fixed: the help header is hidden with CSS, so
+      `waitForElement` and the help button code are gone. The observer was handled in step
+      1 (only the latest one lives). The toolbar button reads the store when clicked.
+- [x] **Smart copy dialog:** `use-smart-copy-key-dialog.ts` doesn't multiply `height` by zoom.
+- [x] **Avatars:** anonymous cursors use a `robohash.org` avatar (set by the server since step
       4, from the connection id), so every browser loads it from a third party. Consider a
-      local avatar.
+      local avatar. Fixed: anonymous users get no avatar URL, so Excalidraw shows their
+      initials on a colour.
+- [x] Tested in Chrome (Oct 27): every item above, plus a regression check of the extend
+      button drags against the old code, Share and New drawing with a failing save, the
+      loading timeout with a WebSocket that never connects, and the theme with the OS
+      emulated as dark and then light.
 
 ## 12. Dependencies
 

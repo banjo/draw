@@ -19,7 +19,7 @@ import { Maybe } from "@banjoanton/utils";
 import { Excalidraw, getSceneVersion } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
-import { lazy, Suspense, useCallback, useMemo, useRef } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { useAddElement } from "../add-element/hooks/use-add-element";
 import { SignInModal } from "./components/sign-in-modal";
@@ -109,9 +109,9 @@ export const Draw = ({ slug }: DrawProps) => {
     const { cleanup } = useCleanup();
     const { handleOnPaste } = useOnPaste();
 
-    const { setTheme, theme } = useTheme();
+    const { setTheme, resolvedTheme } = useTheme();
 
-    const lastChange = useRef<{ version: number; appState: unknown[] }>();
+    const lastChange = useRef<{ version: number; appState: unknown[]; theme: string }>();
 
     const handleOnChange = useLatestCallback(
         (_changeElements: ExcalidrawElements, appState: AppState, files: BinaryFiles) => {
@@ -128,9 +128,11 @@ export const Draw = ({ slug }: DrawProps) => {
             const appStateChanged =
                 !previous || relevantAppState.some((value, i) => value !== previous.appState[i]);
             if (!elementsChanged && !appStateChanged) return;
-            lastChange.current = { version, appState: relevantAppState };
+            lastChange.current = { version, appState: relevantAppState, theme: appState.theme };
 
-            if (theme !== appState.theme) {
+            // Only when the theme was toggled in Excalidraw, so "system" isn't saved as dark
+            const themeToggled = previous && previous.theme !== appState.theme;
+            if (themeToggled && appState.theme !== resolvedTheme) {
                 setTheme(appState.theme);
             }
 
@@ -145,6 +147,15 @@ export const Draw = ({ slug }: DrawProps) => {
             handleSelectedElementVisuals(elements, appState, files);
         }
     );
+    // With the "system" theme, follow the OS while the drawing is open
+    useEffect(() => {
+        if (excalidrawApi && excalidrawApi.getAppState().theme !== resolvedTheme) {
+            excalidrawApi.updateScene({
+                appState: { ...excalidrawApi.getAppState(), theme: resolvedTheme },
+            });
+        }
+    }, [excalidrawApi, resolvedTheme]);
+
     // Excalidraw is memoised and re-renders when any prop changes identity, so everything
     // passed to it is kept stable
     const onPaste = useLatestCallback(handleOnPaste);
@@ -207,7 +218,7 @@ export const Draw = ({ slug }: DrawProps) => {
                         scrollToContent: true,
                         libraryItems: library,
                         appState: {
-                            theme: theme === "light" ? "light" : "dark",
+                            theme: resolvedTheme,
                             openSidebar: initialOpenSidebar,
                         },
                     }}

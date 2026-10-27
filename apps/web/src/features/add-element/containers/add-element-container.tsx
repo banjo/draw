@@ -17,7 +17,9 @@ import { useIconsQuery } from "../queries/useIconsQuery";
 import { IconService } from "../services/icon-service";
 import { Modal } from "@/components/modal";
 
-const DEFAULT_SHAPES = shapes.slice(0, 5).map(ListItem.toShapeListItem);
+const ALL_SHAPES = shapes.map(ListItem.toShapeListItem);
+const DEFAULT_SHAPES = ALL_SHAPES.slice(0, 5);
+const MAX_ITEMS = 5;
 
 export const AddElementContainer = () => {
     const { excalidrawApi } = useGlobal();
@@ -31,8 +33,9 @@ export const AddElementContainer = () => {
 
     const [shapeListItems, setShapeListItems] = useState(() => DEFAULT_SHAPES);
 
-    const itemsToNavigate: ListItem[] = useMemo(
-        () => [...shapeListItems, ...iconListItems],
+    // Shapes first, then icons, and only what's shown can be navigated to
+    const visibleItems: ListItem[] = useMemo(
+        () => [...shapeListItems, ...iconListItems].slice(0, MAX_ITEMS),
         [shapeListItems, iconListItems]
     );
 
@@ -110,7 +113,7 @@ export const AddElementContainer = () => {
 
     const { refs, selectedIndex, handleKeyboardNavigation, resetSelectedIndex } =
         useKeyboardNavigation({
-            itemsToNavigate,
+            itemsToNavigate: visibleItems,
             onClick,
         });
 
@@ -123,14 +126,14 @@ export const AddElementContainer = () => {
             return;
         }
 
-        const results = fuzzysort.go(value, itemsToNavigate, {
+        // All shapes, so the ones filtered out come back when the search changes
+        const results = fuzzysort.go(value, ALL_SHAPES, {
             keys: ["title"],
             threshold: 0,
         });
         resetSelectedIndex();
 
-        const shapeResults = results.map(r => r.obj).filter(ListItem.filterByShape);
-        setShapeListItems(shapeResults);
+        setShapeListItems(results.map(r => r.obj));
     };
 
     const onComponentClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -139,24 +142,11 @@ export const AddElementContainer = () => {
     };
 
     const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => handleKeyboardNavigation(e);
-    const noResults = isEmpty(itemsToNavigate) && !isLoadingIcons;
+    const noResults = isEmpty(visibleItems) && !isLoadingIcons;
 
     useEffect(() => {
         inputRef.current?.focus();
     }, []);
-
-    // sort input items so that shapes are always on top
-    const sortedItems = itemsToNavigate.toSorted((a, b) => {
-        if (a.type === "shape" && b.type === "icon") {
-            return -1;
-        }
-
-        if (a.type === "icon" && b.type === "shape") {
-            return 1;
-        }
-
-        return 0;
-    });
 
     return (
         <Modal.Container onClose={onClose} onKeyDown={onKeyDown} setShow={setShowAddElementMenu}>
@@ -174,7 +164,7 @@ export const AddElementContainer = () => {
                 />
                 <AddElement.ListContainer>
                     {noResults ? <div className="text-gray-500">No results found</div> : null}
-                    {sortedItems.slice(0, 5).map((item, index) => (
+                    {visibleItems.map((item, index) => (
                         <AddElement.ListItemComponent
                             key={`${item.type}-${item.title}-${item.description}`}
                             title={item.title}

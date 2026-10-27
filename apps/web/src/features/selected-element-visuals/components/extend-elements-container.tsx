@@ -25,7 +25,7 @@ import {
     ArrowUpCircle,
     LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Props = {
     refs: ExtendElementRefSummary[];
@@ -41,13 +41,14 @@ const iconMap: Record<ArrowKey, LucideIcon> = {
 export const ExtendElementsContainer = ({ refs }: Props) => {
     const { excalidrawApi } = useGlobal();
     const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
-    const [arrowId, setArrowId] = useState<string | undefined>(undefined);
+    // The arrow being dragged out. A ref, as the drag handlers read it between renders.
+    const arrowIdRef = useRef<string>();
     const [direction, setDirection] = useState<Maybe<ArrowKey>>(undefined);
 
     const onDragStart = (pos: DragPosition) => {
         if (!excalidrawApi) return;
 
-        if (isDefined(arrowId)) {
+        if (isDefined(arrowIdRef.current)) {
             logger.error("Arrow id should be undefined");
             return;
         }
@@ -101,10 +102,11 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             elements: [...elements, arrow],
         });
 
-        setArrowId(arrow.id);
+        arrowIdRef.current = arrow.id;
     };
 
     const onDrag = (pos: DragPosition) => {
+        const arrowId = arrowIdRef.current;
         if (!excalidrawApi || !arrowId) return;
 
         const state = excalidrawApi.getAppState();
@@ -131,6 +133,8 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
     };
 
     const onDragEnd = (pos: DragPosition) => {
+        const arrowId = arrowIdRef.current;
+        arrowIdRef.current = undefined;
         if (!excalidrawApi || !arrowId) return;
 
         const state = excalidrawApi.getAppState();

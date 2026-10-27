@@ -12,8 +12,9 @@ export const useAddElement = () => {
     useEffect(() => {
         if (!excalidrawApi) return;
 
+        // Read when clicked, as this handler is set up once per drawing
         const onClick = () => {
-            setShowAddElement(!showAddElement);
+            setShowAddElement(!useAddElementStore.getState().showAddElementMenu);
         };
 
         AddElementService.init({ onClick });

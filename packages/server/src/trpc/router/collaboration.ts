@@ -36,8 +36,6 @@ const getConnectionId = (ctx: TRPCContext) => {
     return ctx.connectionId;
 };
 
-const randomAvatar = (seed: string) => `https://robohash.org/${seed}.png`;
-
 export const collaborationRouter = createTRPCRouter({
     updateCollaborator: publicProcedure
         .input(z.object({ collaborator: CollaboratorUpdateSchema, slug: ExistingSlugSchema }))
@@ -51,7 +49,7 @@ export const collaborationRouter = createTRPCRouter({
                 x: collaborator.x,
                 y: collaborator.y,
                 name: ctx.user?.name ?? collaborator.name,
-                avatarUrl: ctx.user?.avatarUrl ?? randomAvatar(id),
+                avatarUrl: ctx.user?.avatarUrl ?? undefined,
             });
         }),
     updateBoard: publicProcedure

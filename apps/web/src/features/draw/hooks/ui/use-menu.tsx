@@ -55,8 +55,13 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
         const updatedSlug = await createDrawingFromCanvas();
         if (!updatedSlug) return;
 
-        copyToClipboard(`${window.location.origin}/draw/${updatedSlug}`);
-        toast.success("Link copied to clipboard");
+        // Not awaited: a clipboard write can wait for focus, and shouldn't hold up the drawing
+        const link = `${window.location.origin}/draw/${updatedSlug}`;
+        void copyToClipboard(link).then(copied =>
+            copied
+                ? toast.success("Link copied to clipboard")
+                : toast.error("Could not copy the link, copy it from the address bar")
+        );
 
         if (slug !== updatedSlug) {
             navigate(`/draw/${updatedSlug}`);
@@ -64,16 +69,10 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
     });
 
     const saveToCollection = useLatestCallback(async () => {
-        let currentSlug = slug;
-        if (!currentSlug) {
-            // TODO: fix this possible race condition bug
-            currentSlug = await createDrawingFromCanvas();
-        }
+        const currentSlug = slug ?? (await createDrawingFromCanvas());
 
-        if (!currentSlug) {
-            toast.error("Error saving drawing");
-            return;
-        }
+        // Creating it already showed the error
+        if (!currentSlug) return;
 
         const [_, error] = await wrapAsync(
             async () => await utils.client.draw.saveToCollection.mutate({ slug: currentSlug })
@@ -103,10 +102,10 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
     const createNewDrawing = useLatestCallback(async () => {
         if (!excalidrawApi) return;
         const newSlug = await createDrawing([], []);
+        if (!newSlug) return;
+
         toast.success("New drawing created");
-        if (newSlug) {
-            navigate(`/draw/${newSlug}`);
-        }
+        navigate(`/draw/${newSlug}`);
     });
 
     const goToLocalDrawing = useLatestCallback(() => navigate("/"));
