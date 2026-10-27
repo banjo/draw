@@ -1,4 +1,5 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { MIN_ELEMENT_HEIGHT, MIN_ELEMENT_WIDTH } from "@/features/draw/models/constants";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
@@ -49,7 +50,7 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
 
         excalidrawApi.updateScene({
             elements: allElements,
-            commitToHistory: true,
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
             appState: updatedState,
         });
 
@@ -129,7 +130,7 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
 
     excalidrawApi.updateScene({
         elements: [...elements, ...allNewElements],
-        commitToHistory: true,
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         appState: updatedState,
     });
 };
@@ -139,8 +140,7 @@ export type ElementExtensionShadow = { arrowId: string; elementId: string; selec
 const createElementExtensionShadow = (
     direction: ArrowKey,
     excalidrawApi: ExcalidrawApi,
-    shadowElements: Maybe<ElementExtensionShadow>,
-    revertStep = true
+    shadowElements: Maybe<ElementExtensionShadow>
 ): Maybe<ElementExtensionShadow> => {
     const sceneElements = excalidrawApi.getSceneElements();
     const state = excalidrawApi.getAppState();
@@ -152,13 +152,6 @@ const createElementExtensionShadow = (
 
     const selectedElements = ElementUtil.getSelectedElements(state, elements);
     if (selectedElements.length === 0) return;
-
-    // move selected elements to original position as arrow keys adjust
-    if (revertStep) {
-        selectedElements.forEach(selected => {
-            UpdateElementUtil.mutateReverseStep(direction, selected);
-        });
-    }
 
     if (shadowElements) {
         selectedElements.forEach(selected => {
@@ -303,7 +296,7 @@ const createElementExtensionFromShadow = (
     updatedState.suggestedBindings = [];
 
     excalidrawApi.updateScene({
-        commitToHistory: true,
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         appState: updatedState,
         elements: allElements,
     });
@@ -328,7 +321,7 @@ const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: Cust
 
     excalidrawApi.updateScene({
         elements: [...updatedElements, ...newElements],
-        commitToHistory: true,
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         appState: updatedState,
     });
 };

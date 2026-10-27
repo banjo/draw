@@ -3,7 +3,7 @@ import {
     ExcalidrawImageElement as BaseExcalidrawImageElement,
     ExcalidrawLinearElement as BaseExcalidrawLinearElement,
     ExcalidrawTextElement as BaseExcalidrawTextElement,
-} from "@excalidraw/excalidraw/types/element/types";
+} from "@excalidraw/excalidraw/element/types";
 import { CustomData } from "./excalidraw-custom-data";
 
 type CustomElementData = {

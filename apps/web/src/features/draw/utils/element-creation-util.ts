@@ -1,4 +1,4 @@
-import { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/types/data/transform";
+import { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/data/transform";
 
 import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 
@@ -6,8 +6,8 @@ import { IPoint } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateCallback, UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { DEFAULT_CODE_EDITOR_LANGUAGE } from "@/features/selected-element-visuals/models/code-editor-langauges";
-import { FileId } from "@excalidraw/excalidraw/types/element/types";
-import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { FileId } from "@excalidraw/excalidraw/element/types";
+import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import {
     CustomData,
     CustomElementType,

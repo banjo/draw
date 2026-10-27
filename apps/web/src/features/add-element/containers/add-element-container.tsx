@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
@@ -86,7 +87,7 @@ export const AddElementContainer = () => {
                 excalidrawApi.updateScene({
                     elements: [...currentElements, imageElement],
                     appState: updatedState,
-                    commitToHistory: true,
+                    captureUpdate: CaptureUpdateAction.IMMEDIATELY,
                 });
 
                 onClose();
@@ -103,7 +104,7 @@ export const AddElementContainer = () => {
             excalidrawApi.updateScene({
                 elements: [...currentElements, ...newElements],
                 appState: updatedState,
-                commitToHistory: true,
+                captureUpdate: CaptureUpdateAction.IMMEDIATELY,
             });
 
             onClose();

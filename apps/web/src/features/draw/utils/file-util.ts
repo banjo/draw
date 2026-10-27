@@ -1,7 +1,7 @@
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { invariant } from "@banjoanton/utils";
-import { FileId } from "@excalidraw/excalidraw/types/element/types";
-import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
+import { FileId } from "@excalidraw/excalidraw/element/types";
+import { BinaryFileData } from "@excalidraw/excalidraw/types";
 
 type CreateImageFileProps = {
     id?: string | FileId | number;

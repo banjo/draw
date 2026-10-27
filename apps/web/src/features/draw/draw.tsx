@@ -17,7 +17,8 @@ import { useExportModalStore } from "@/stores/use-export-modal-store";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
 import { Excalidraw, getSceneVersion } from "@excalidraw/excalidraw";
-import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
+import "@excalidraw/excalidraw/index.css";
+import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
@@ -52,9 +53,10 @@ const getRelevantAppState = (appState: AppState) => [
     appState.selectedElementIds,
     appState.selectedGroupIds,
     appState.editingGroupId,
-    appState.draggingElement,
+    appState.newElement,
+    appState.selectionElement,
     appState.resizingElement,
-    appState.editingElement,
+    appState.editingTextElement,
 ];
 
 export const Draw = ({ slug }: DrawProps) => {
@@ -100,7 +102,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const { codeBlocks, updateCodeBlockElements } = useCodeBlockElement();
     const { render: renderAddElement } = useAddElement();
 
-    const { handleKeyDown, handleKeyUp } = useKeyboard({
+    const { handleKeyDown, handleKeyDownCapture, handleKeyUp } = useKeyboard({
         handleChangeElementDialogClick,
     });
 
@@ -197,6 +199,7 @@ export const Draw = ({ slug }: DrawProps) => {
             <div
                 style={{ height: "100dvh" }}
                 onKeyDown={handleKeyDown}
+                onKeyDownCapture={handleKeyDownCapture}
                 onKeyUp={handleKeyUp}
                 onContextMenu={onContextMenu}
             >

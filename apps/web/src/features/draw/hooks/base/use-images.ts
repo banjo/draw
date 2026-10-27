@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { localImageService } from "@/services/local-image-service";
 import { logger } from "@/utils/logger";
 import { isDefined, isEmpty, uniq, wrapAsync } from "@banjoanton/utils";
-import { BinaryFileData, BinaryFiles } from "@excalidraw/excalidraw/types/types";
+import { BinaryFileData, BinaryFiles } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElements, ImageUpload, ImageUtil, MAX_IMAGE_SIZE } from "common";
 import { useRef } from "react";
 import toast from "react-hot-toast";

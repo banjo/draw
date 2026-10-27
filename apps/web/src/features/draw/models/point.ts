@@ -1,6 +1,9 @@
-import { Point as IPoint } from "@excalidraw/excalidraw/types/types";
+import { ExcalidrawLinearElement } from "@excalidraw/excalidraw/element/types";
 
-const from = ({ x, y }: { x: number; y: number }): IPoint => [x, y];
+/** A point relative to its linear element */
+export type IPoint = ExcalidrawLinearElement["points"][number];
+
+const from = ({ x, y }: { x: number; y: number }) => [x, y] as IPoint;
 
 /**
  * Excalidraw point
@@ -8,5 +11,3 @@ const from = ({ x, y }: { x: number; y: number }): IPoint => [x, y];
 export const Point = {
     from,
 };
-
-export { type Point as IPoint } from "@excalidraw/excalidraw/types/types";

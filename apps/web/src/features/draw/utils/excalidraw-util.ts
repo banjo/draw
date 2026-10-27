@@ -1,7 +1,7 @@
 import { ElementType } from "@/features/draw/utils/element-creation-util";
 import { Maybe } from "@banjoanton/utils";
 import { getCommonBounds as getCommonBoundsOriginal } from "@excalidraw/excalidraw";
-import { ExcalidrawElement as ExcalidrawElementOriginal } from "@excalidraw/excalidraw/types/element/types";
+import { ExcalidrawElement as ExcalidrawElementOriginal } from "@excalidraw/excalidraw/element/types";
 import {
     CustomElementType,
     ExcalidrawElement,

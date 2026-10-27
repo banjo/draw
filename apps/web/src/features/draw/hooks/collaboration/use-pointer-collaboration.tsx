@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { logger } from "@/utils/logger";
 import { isDefined, Maybe } from "@banjoanton/utils";
-import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
+import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types";
 import { ExcalidrawApi } from "common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import generateName from "sillyname";

@@ -4,8 +4,8 @@ import { ARROW_LENGTH, ELEMENT_GAP } from "@/features/draw/models/constants";
 import { IPoint, Point } from "@/features/draw/models/point";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { Maybe } from "@banjoanton/utils";
-import { Bounds } from "@excalidraw/excalidraw/types/element/bounds";
-import { AppState } from "@excalidraw/excalidraw/types/types";
+import { Bounds } from "@excalidraw/excalidraw/element/bounds";
+import { AppState } from "@excalidraw/excalidraw/types";
 import {
     ElementBasicPosition,
     ElementMeasurement,
@@ -189,20 +189,6 @@ const getAddedElementOptions = (
     elementPosition: ElementMeasurement
 ) => addedElementOptionsMap[direction](arrowOptions, elementPosition);
 
-type ReverseStepHandler = (position: ElementBasicPosition, step?: number) => ElementBasicPosition;
-type ReverseStepMap = Record<ArrowKey, ReverseStepHandler>;
-
-const DEFAULT_STEP = 1;
-const reverseStepMap: ReverseStepMap = {
-    ArrowRight: ({ x, y }, step = DEFAULT_STEP) => ({ x: x - step, y }),
-    ArrowLeft: ({ x, y }, step = DEFAULT_STEP) => ({ x: x + step, y }),
-    ArrowUp: ({ x, y }, step = DEFAULT_STEP) => ({ x, y: y + step }),
-    ArrowDown: ({ x, y }, step = DEFAULT_STEP) => ({ x, y: y - step }),
-};
-
-const reverseStep = (direction: ArrowKey, position: ElementBasicPosition, step?: number) =>
-    reverseStepMap[direction](position, step);
-
 /**
  * Get position in the Window scope from an element.
  */
@@ -243,7 +229,6 @@ export const ElementPositionUtil = {
     getClosestElement,
     getArrowOptionsFromSourceElement,
     getAddedElementOptions,
-    reverseStep,
     getElementWindowPosition,
     getScenePositionFromWindowPosition,
     createBounds,

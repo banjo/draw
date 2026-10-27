@@ -44,22 +44,33 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const shadowRef = useRef(shadowElements);
     shadowRef.current = shadowElements;
 
-    /** ⌘/Ctrl+Enter copies the selection, ⌘/Ctrl+arrow shows where it would extend to */
-    const handleModifierShortcut = (event: React.KeyboardEvent, api: ExcalidrawApi) => {
-        if (event.key === "Enter") {
-            ElementVisualUtils.smartCopy(api);
-            return;
-        }
+    const isTyping = (event: React.KeyboardEvent, api: ExcalidrawApi) =>
+        Boolean(api.getAppState().editingTextElement) ||
+        isEditingCode ||
+        isTypingTarget(event.target);
 
-        if (!includes(ARROW_KEYS, event.key)) return;
+    /**
+     * ⌘/Ctrl+arrow shows where the selection would extend to. Handled before Excalidraw sees
+     * the key, as its own version (flowcharts) would add a second shape.
+     */
+    const handleKeyDownCapture: KeyboardEventHandler<HTMLDivElement> = event => {
+        if (!excalidrawApi || !isModifierPressed(event) || !includes(ARROW_KEYS, event.key)) return;
+        if (isTyping(event, excalidrawApi)) return;
 
-        const state = api.getAppState();
-        const selected = ElementUtil.getSelectedElements(state, api.getSceneElements());
+        event.preventDefault();
+        event.stopPropagation();
+
+        const state = excalidrawApi.getAppState();
+        const selected = ElementUtil.getSelectedElements(state, excalidrawApi.getSceneElements());
         // do not allow extensions on model elements
         if (CustomDataUtil.isModelElements(selected)) return;
 
         setShadowElements(
-            ElementVisualUtils.createElementExtensionShadow(event.key, api, shadowElements)
+            ElementVisualUtils.createElementExtensionShadow(
+                event.key,
+                excalidrawApi,
+                shadowElements
+            )
         );
     };
 
@@ -73,8 +84,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             setMetaKeyIsDown(true);
         }
 
-        const isEditingText = state.editingElement?.type === "text";
-        if (isEditingText || isEditingCode || isTypingTarget(event.target)) return;
+        if (isTyping(event, excalidrawApi)) return;
 
         // Shift is allowed, as "+" needs it on many keyboards
         const addElementKeybindingPressed =
@@ -96,8 +106,9 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             handleChangeElementDialogClick();
         }
 
-        if (isModifierPressed(event)) {
-            handleModifierShortcut(event, excalidrawApi);
+        // ⌘/Ctrl+Enter copies the selection
+        if (isModifierPressed(event) && event.key === "Enter") {
+            ElementVisualUtils.smartCopy(excalidrawApi);
         }
     };
 
@@ -141,10 +152,11 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
 
         window.addEventListener("blur", onBlur);
         return () => window.removeEventListener("blur", onBlur);
-    }, [excalidrawApi]);
+    }, [excalidrawApi, setMetaKeyIsDown, setShowVisualElements]);
 
     return {
         handleKeyDown,
+        handleKeyDownCapture,
         handleKeyUp,
     };
 };

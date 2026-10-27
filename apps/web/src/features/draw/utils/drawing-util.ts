@@ -1,6 +1,6 @@
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { isEqual } from "@banjoanton/utils";
-import { AppState } from "@excalidraw/excalidraw/types/types";
+import { AppState } from "@excalidraw/excalidraw/types";
 import { ElementMeasurement, ExcalidrawApi, ExcalidrawElements } from "common";
 
 type IsOnlyMouseChangeProps = {

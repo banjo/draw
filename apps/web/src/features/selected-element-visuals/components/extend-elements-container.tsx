@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { DragPosition, useDrag } from "@/features/draw/hooks/utils/use-drag";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
@@ -15,8 +16,8 @@ import { ExtendElementButton } from "@/features/selected-element-visuals/compone
 import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
 import { logger } from "@/utils/logger";
 import { first, isDefined, Maybe } from "@banjoanton/utils";
-import { ExcalidrawBindableElement } from "@excalidraw/excalidraw/types/element/types";
-import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { ExcalidrawBindableElement } from "@excalidraw/excalidraw/element/types";
+import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import { ExcalidrawLinearElement } from "common";
 import {
     ArrowDownCircle,
@@ -186,8 +187,8 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         });
 
         const stateAfterMouseDown = StateUtil.updateState(state, (draft, helpers) => {
-            draft.draggingElement = null;
-            draft.editingElement = null;
+            draft.newElement = null;
+            draft.editingTextElement = null;
             draft.cursorButton = "up";
             helpers.setActiveTool(draft, "selection");
             helpers.clearBindings(draft);
@@ -204,7 +205,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         excalidrawApi.updateScene({
             appState: updatedState,
             elements: mergedElements,
-            commitToHistory: true,
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
 
         DrawingUtil.focusCanvas();
@@ -216,8 +217,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
             position,
             excalidrawApi,
-            shadowElements,
-            false
+            shadowElements
         );
 
         if (!newActiveElements) return;
@@ -255,8 +255,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         const newActiveElements = ElementVisualUtils.createElementExtensionShadow(
             position,
             excalidrawApi,
-            shadowElements,
-            false
+            shadowElements
         );
         if (newActiveElements) {
             setShadowElements(newActiveElements);

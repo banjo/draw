@@ -2,7 +2,8 @@ import {
     AppState,
     Collaborator,
     ExcalidrawImperativeAPI,
-} from "@excalidraw/excalidraw/types/types";
+    SceneData,
+} from "@excalidraw/excalidraw/types";
 import { ExcalidrawElements } from "./excalidraw-element";
 
 // remove readonly from ExcalidrawImperativeAPI
@@ -15,7 +16,7 @@ export type ExcalidrawApi = Omit<
         elements?: ExcalidrawElements | null | undefined;
         appState?: AppState | null | undefined;
         collaborators?: Map<string, Collaborator>;
-        commitToHistory?: boolean;
+        captureUpdate?: SceneData["captureUpdate"];
     }) => void;
     getSceneElementsIncludingDeleted: () => ExcalidrawElements;
 };

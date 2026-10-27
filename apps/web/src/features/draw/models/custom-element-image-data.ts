@@ -1,7 +1,7 @@
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
 import { raise } from "@banjoanton/utils";
-import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
+import { BinaryFileData } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement } from "common";
 
 export type CustomElementImageData = {

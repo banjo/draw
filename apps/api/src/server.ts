@@ -1,13 +1,13 @@
 import { closeWss, wss } from "@app/lib/ws";
 import "dotenv/config";
 import { createContextLogger, drawingEmitter, startupLog } from "server";
-import { app, PORT, server } from "./lib/http";
+import { PORT, server } from "./lib/http";
 
 const logger = createContextLogger("prod-server");
 
 const SHUTDOWN_TIMEOUT = 10_000;
 
-app.on("error", error => {
+server.on("error", error => {
     logger.error({ error }, "HTTP Server error");
 });
 

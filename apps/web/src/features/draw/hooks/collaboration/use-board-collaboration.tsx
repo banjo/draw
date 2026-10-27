@@ -4,7 +4,7 @@ import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { isDefined, Maybe } from "@banjoanton/utils";
-import { AppState } from "@excalidraw/excalidraw/types/types";
+import { AppState } from "@excalidraw/excalidraw/types";
 import {
     BoardUpdateResponse,
     DeltaUpdateUtil,
@@ -26,8 +26,9 @@ type In = {
 const getBusyElementIds = (appState: AppState) =>
     new Set(
         [
-            appState.editingElement?.id,
-            appState.draggingElement?.id,
+            appState.editingTextElement?.id,
+            appState.editingLinearElement?.elementId,
+            appState.newElement?.id,
             appState.resizingElement?.id,
             useCodeEditorStore.getState().editingElementId,
         ].filter(isDefined)

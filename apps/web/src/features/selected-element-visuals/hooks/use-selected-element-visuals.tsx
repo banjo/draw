@@ -61,7 +61,8 @@ export const useSelectedElementVisuals = () => {
     const handleSelectedElementVisuals: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
 
-        const isDraggingElement = Boolean(appState.draggingElement);
+        // Drawing a new element or a selection box
+        const isDraggingElement = Boolean(appState.newElement ?? appState.selectionElement);
 
         if (isDraggingElement) {
             hideAllElements();
@@ -118,7 +119,7 @@ export const useSelectedElementVisuals = () => {
             return;
         }
 
-        if (appState.draggingElement) {
+        if (appState.newElement ?? appState.selectionElement) {
             hideAllElements();
             return;
         }

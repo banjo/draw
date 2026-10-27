@@ -1,7 +1,7 @@
 import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-utils";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { attempt, first, isDefined, Maybe, produce, randomString } from "@banjoanton/utils";
-import { AppState } from "@excalidraw/excalidraw/types/types";
+import { AppState } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement, ExcalidrawElements, ExcalidrawLinearElement } from "common";
 
 /**
@@ -35,9 +35,12 @@ const getLockedElementIds = (state: AppState) => {
     // include if you want to lock the selected elements
     // const selectedIds = Object.keys(state.selectedElementIds);
 
-    const editingElementsId: string[] = state.editingElement
-        ? // @ts-expect-error - wrong with type, it contains a containerId in some cases
-          [state.editingElement.id, state.editingElement?.containerId].filter(isDefined)
+    const editing = state.editingTextElement;
+    const editingElementsId: string[] = editing
+        ? // A text element in a shape has the shape as its container
+          [editing.id, "containerId" in editing ? editing.containerId : null].filter(
+              (id): id is string => Boolean(id)
+          )
         : [];
 
     return editingElementsId;
@@ -147,6 +150,7 @@ const createNewLinearElementSelection = (
             pointerDownState: {
                 prevSelectedPointsIndices: null,
                 lastClickedPoint: -1,
+                lastClickedIsEndPoint: false,
                 origin: null,
                 segmentMidpoint: {
                     value: null,
@@ -156,6 +160,7 @@ const createNewLinearElementSelection = (
             },
             hoverPointIndex: -1,
             segmentMidPointHoveredCoords: null,
+            elbowed: false,
         };
     });
 

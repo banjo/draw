@@ -2,7 +2,7 @@ import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_GAP } from "@/features/draw/models/constants";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { defaults, produce } from "@banjoanton/utils";
-import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
 
 type BoundElement = {
@@ -135,29 +135,9 @@ const mutateElements = <T extends ExcalidrawElement>(
     });
 };
 
-/**
- * Move an element in the opposite direction of the arrow key. It moves automatically by 1 step on any arrow key press.
- */
-const mutateReverseStep = (direction: ArrowKey, element: ExcalidrawElement) => {
-    const newSourcePosition = ElementPositionUtil.reverseStep(
-        direction,
-        {
-            x: element.x,
-            y: element.y,
-        },
-        1
-    );
-
-    mutateElement(element, (draft, helpers) => {
-        draft.x = newSourcePosition.x;
-        draft.y = newSourcePosition.y;
-    });
-};
-
 export const UpdateElementUtil = {
     updateElement,
     updateElements,
     mutateElements,
     mutateElement,
-    mutateReverseStep,
 };

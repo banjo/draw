@@ -1,6 +1,6 @@
 import { useGlobal } from "@/contexts/global-context";
 import { isDefined, isEmpty, Maybe, partition } from "@banjoanton/utils";
-import { ClipboardData } from "@excalidraw/excalidraw/types/clipboard";
+import { ClipboardData } from "@excalidraw/excalidraw/clipboard";
 import { CustomDataUtil } from "../../utils/custom-data-util";
 import { CustomData, ExcalidrawElement } from "common";
 import { ElementUtil } from "../../utils/element-util";

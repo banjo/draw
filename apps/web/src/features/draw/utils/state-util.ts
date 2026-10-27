@@ -1,6 +1,6 @@
 import { produce } from "@banjoanton/utils";
-import { AppState, ToolType } from "@excalidraw/excalidraw/types/types";
-import { Mutable } from "@excalidraw/excalidraw/types/utility-types";
+import { AppState, ToolType } from "@excalidraw/excalidraw/types";
+import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import { ExcalidrawElement } from "common";
 
 const clearBindings = (state: Mutable<AppState>) => {
@@ -33,11 +33,10 @@ const arrowActiveToolDefaultSettings = (state: Mutable<AppState>) => {
     state.currentItemTextAlign = "left";
 };
 
+/** Shows the element as being drawn, like a new arrow */
 const dragElement = (state: Mutable<AppState>, element: ExcalidrawElement) => {
-    // @ts-ignore
-    state.draggingElement = element;
-    // @ts-ignore
-    state.editingElement = element;
+    // @ts-expect-error - our element type has a different customData
+    state.newElement = element;
 };
 
 const helpers = { clearBindings, setActiveTool, arrowActiveToolDefaultSettings, dragElement };

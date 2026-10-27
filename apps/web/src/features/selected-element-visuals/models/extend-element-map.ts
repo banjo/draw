@@ -1,6 +1,6 @@
 import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import React from "react";
-import { AppState } from "@excalidraw/excalidraw/types/types";
+import { AppState } from "@excalidraw/excalidraw/types";
 
 const DISTANCE_FROM_LINE = 30;
 

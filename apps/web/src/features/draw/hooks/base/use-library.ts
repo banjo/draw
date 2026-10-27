@@ -1,5 +1,5 @@
 import { logger } from "@/utils/logger";
-import { LibraryItems } from "@excalidraw/excalidraw/types/types";
+import { LibraryItems } from "@excalidraw/excalidraw/types";
 import { useState } from "react";
 
 const KEY = "banjo-library";
