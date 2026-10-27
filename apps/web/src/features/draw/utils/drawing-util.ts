@@ -3,34 +3,6 @@ import { isEqual } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types/types";
 import { ElementMeasurement, ExcalidrawApi, ExcalidrawElements } from "common";
 
-type ApplyLocalDrawingChangesProps = {
-    newElements: ExcalidrawElements;
-    oldElements: ExcalidrawElements;
-    newState: AppState;
-};
-
-type ChangeResults = {
-    allNewElements: ExcalidrawElements;
-    allOldElements: ExcalidrawElements;
-};
-
-type Changes = {
-    elementsUpdated: boolean;
-} & ChangeResults;
-
-const getChanges = ({ newElements, oldElements }: ApplyLocalDrawingChangesProps): Changes => {
-    const allNewElements = ElementUtil.removeDeletedElements(newElements);
-    const allOldElements = ElementUtil.removeDeletedElements(oldElements);
-    const elementsUpdated = !isEqual(allNewElements, allOldElements);
-
-    return {
-        elementsUpdated,
-        // Only copied when something changed, as it's the whole scene
-        allNewElements: elementsUpdated ? structuredClone(allNewElements) : allNewElements,
-        allOldElements,
-    };
-};
-
 type IsOnlyMouseChangeProps = {
     elements: ExcalidrawElements;
     appState: AppState;
@@ -69,7 +41,6 @@ const isElementTooSmall = (element: ElementMeasurement, zoomLevel: number, min: 
 };
 
 export const DrawingUtil = {
-    getChanges,
     isOnlyMouseChange,
     focusCanvas,
     isElementTooSmall,

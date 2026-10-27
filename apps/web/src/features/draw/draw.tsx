@@ -58,7 +58,7 @@ const getRelevantAppState = (appState: AppState) => [
 ];
 
 export const Draw = ({ slug }: DrawProps) => {
-    const { elements, setElements } = useElementsState({ slug });
+    const { initialElements, onElementsChange } = useElementsState({ slug });
     const { setExcalidrawApi, excalidrawApi } = useGlobal();
 
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
@@ -72,8 +72,6 @@ export const Draw = ({ slug }: DrawProps) => {
     const { onLibraryChange, library } = useLibrary();
     const { onPointerUpdate, collabButton, isCollaborating, onDrawingChange } = useCollaboration({
         slug,
-        elements,
-        setElements,
     });
 
     const { createDrawing } = useDrawing();
@@ -82,7 +80,7 @@ export const Draw = ({ slug }: DrawProps) => {
         slug,
     });
 
-    const { uploadImagesOnCanvas } = useImages({ elements, slug });
+    const { uploadImagesOnCanvas, onElementsChange: checkImages } = useImages({ slug });
 
     const { menu } = useMenu({
         slug,
@@ -99,7 +97,7 @@ export const Draw = ({ slug }: DrawProps) => {
         handleChangeElementDialogClick,
     } = useSelectedElementVisuals();
 
-    const { render: renderCodeBlocks, updateCodeBlockElements } = useCodeBlockElement();
+    const { codeBlocks, updateCodeBlockElements } = useCodeBlockElement();
     const { render: renderAddElement } = useAddElement();
 
     const { handleKeyDown, handleKeyUp } = useKeyboard({
@@ -138,7 +136,9 @@ export const Draw = ({ slug }: DrawProps) => {
 
             const elements = excalidrawApi.getSceneElements(); // get elements from excalidraw api, changeElements is buggy
             if (elementsChanged) {
-                onDrawingChange(elements, appState);
+                onDrawingChange();
+                onElementsChange();
+                checkImages(elements);
                 cleanup(elements, appState, files);
             }
             updateCodeBlockElements(elements, appState, files);
@@ -189,7 +189,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 onKeyUp={handleKeyUp}
                 onContextMenu={onContextMenu}
             >
-                {renderCodeBlocks()}
+                {codeBlocks}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}
@@ -203,7 +203,7 @@ export const Draw = ({ slug }: DrawProps) => {
                     autoFocus
                     initialData={{
                         // @ts-ignore - better local typings
-                        elements,
+                        elements: initialElements,
                         scrollToContent: true,
                         libraryItems: library,
                         appState: {

@@ -8,14 +8,13 @@ import { logger } from "@/utils/logger";
 import { isDefined, isEmpty, uniq, wrapAsync } from "@banjoanton/utils";
 import { BinaryFileData, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElements, ImageUpload, ImageUtil, MAX_IMAGE_SIZE } from "common";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import toast from "react-hot-toast";
 
 // Wait this long before trying a failed image again
 const RETRY_DELAY = 30_000;
 
 type In = {
-    elements: ExcalidrawElements;
     slug?: string;
 };
 
@@ -53,7 +52,7 @@ const fetchBlob = async (url: string) => {
  * Keeps images in sync: saves new images on the canvas (to the bucket, or to the browser for
  * the offline drawing), and loads the ones the canvas shows but doesn't have yet.
  */
-export const useImages = ({ elements, slug }: In) => {
+export const useImages = ({ slug }: In) => {
     const { excalidrawApi } = useGlobal();
     const { handleError } = useError();
     const utils = trpc.useUtils();
@@ -212,10 +211,7 @@ export const useImages = ({ elements, slug }: In) => {
     };
 
     // Load images the canvas shows but doesn't have
-    useEffect(() => {
-        if (!excalidrawApi) return;
-
-        const files = excalidrawApi.getFiles();
+    const loadMissingImages = (elements: ExcalidrawElements, files: BinaryFiles) => {
         const missing = uniq(
             elements
                 .filter(ExcalidrawUtil.isImageElement)
@@ -225,13 +221,11 @@ export const useImages = ({ elements, slug }: In) => {
 
         if (missing.length === 0) return;
         void track(missing, () => loadImages(missing));
-    }, [excalidrawApi, elements, slug]);
+    };
 
     // Save new images on the canvas
-    useEffect(() => {
-        if (!excalidrawApi) return;
-
-        const onCanvas = getImagesOnCanvas(excalidrawApi.getFiles(), elements);
+    const saveNewImages = (elements: ExcalidrawElements, files: BinaryFiles) => {
+        const onCanvas = getImagesOnCanvas(files, elements);
         const onCanvasIds = new Set<string>(onCanvas.map(image => image.id));
 
         // Offline images taken off the canvas are removed from the browser too
@@ -253,9 +247,18 @@ export const useImages = ({ elements, slug }: In) => {
             if (!slug) return await saveImagesLocally(toSave);
             return (await uploadImagesToBucket(toSave)) ? ids : [];
         });
-    }, [excalidrawApi, elements, slug]);
+    };
+
+    /** Call when the elements changed */
+    const onElementsChange = (elements: ExcalidrawElements) => {
+        if (!excalidrawApi) return;
+        const files = excalidrawApi.getFiles();
+        loadMissingImages(elements, files);
+        saveNewImages(elements, files);
+    };
 
     return {
         uploadImagesOnCanvas,
+        onElementsChange,
     };
 };

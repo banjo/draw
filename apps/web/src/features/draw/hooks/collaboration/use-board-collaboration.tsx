@@ -1,5 +1,4 @@
 import { useBoardSync } from "@/features/draw/hooks/collaboration/use-board-sync";
-import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
@@ -10,7 +9,6 @@ import {
     BoardUpdateResponse,
     DeltaUpdateUtil,
     ExcalidrawApi,
-    ExcalidrawElements,
     ExcalidrawSimpleElement,
 } from "common";
 import { useEffect } from "react";
@@ -19,8 +17,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 type In = {
     slug?: string;
     excalidrawApi: Maybe<ExcalidrawApi>;
-    setElements: (elements: ExcalidrawElements) => void;
-    elements: ExcalidrawElements;
 };
 
 /** Elements the user is changing right now, which a remote update shouldn't overwrite */
@@ -34,7 +30,7 @@ const getBusyElementIds = (appState: AppState) =>
         ].filter(isDefined)
     );
 
-export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elements }: In) => {
+export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
     const navigate = useNavigate();
     const { handleError } = useError();
     const { schedule, setSynced, markSynced } = useBoardSync({
@@ -93,21 +89,9 @@ export const useBoardCollaboration = ({ slug, excalidrawApi, setElements, elemen
         },
     });
 
-    const onDrawingChange = (e: ExcalidrawElements, state: AppState) => {
-        const { allNewElements, elementsUpdated } = DrawingUtil.getChanges({
-            newElements: e,
-            oldElements: elements,
-            newState: state,
-        });
-
-        if (elementsUpdated) {
-            setElements(allNewElements);
-        }
-
-        // rest is only for collaboration
-        if (!slug) return;
-        if (isLoading) return;
-
+    /** Call when the elements changed. The changes are found and sent on a timer. */
+    const onDrawingChange = () => {
+        if (!slug || isLoading) return;
         schedule();
     };
 

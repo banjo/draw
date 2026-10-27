@@ -499,6 +499,31 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       in and out, save to collection, the sidebar, theme toggle, create copy, offline mode,
       the export preview, toggle, PNG, and SVG, code highlighting, the element dialog
       position, and the code block language menu.
+- [x] **10b**, Oct 27: a 2,000-shape drawing and two untested cases, panning and a
+      collaborator dragging, showed two more costs:
+    - Every change deep-compared and cloned the whole scene into React state
+      (`DrawingUtil.getChanges`), which re-rendered `Draw`. That took 3.2 of 6 s while someone
+      dragged on the 2,000-shape drawing. The state is gone: the offline drawing is saved
+      from the scene when its version differs from the last save (so a change made in the
+      same render as leaving is saved too), and images are checked when the elements
+      change.
+    - Code block positions were state in `Draw`, so every scroll re-rendered it. They're in a
+      store per drawing, read by their own component.
+
+      | Main thread busy (CPU 4x slower)  | 300 shapes | 2,000 shapes                  |
+      | --------------------------------- | ---------- | ----------------------------- |
+      | Someone else drags a shape        | 25% → 18%  | 100%, 19 fps → 55%, 60 fps    |
+      | You drag a shape (shared drawing) | 17% → 11%  | 80–90%, ~40 fps → 34%, 60 fps |
+      | You drag a shape (offline)        | 20% → 13%  |                               |
+      | Panning                           | 35% → 32%  | 100%, 60 fps (Excalidraw)     |
+
+      Panning at 2,000 shapes is Excalidraw's own drawing; it's at 100% without our
+      `onChange` too. Checked in Chrome: offline saves (after a drag, a change right before
+      leaving or closing, nothing written on load), offline images saved, loaded after a
+      reload, and removed when deleted, board changes both ways, typing in a code block
+      syncs, and code blocks follow panning and show their language menu. A separate chunk
+      for Excalidraw and React was tried and dropped: the page went blank (`forwardRef` of
+      undefined, CommonJS load order).
 
 ## 11. Smaller UI bugs
 
