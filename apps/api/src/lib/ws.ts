@@ -17,6 +17,8 @@ const handler = applyWSSHandler({
     wss,
     router: appRouter,
     createContext: createWSContext,
+    // Pings keep idle connections open behind proxies. Cloudflare closes them after 100 s
+    keepAlive: { enabled: true, pingMs: 30_000, pongWaitMs: 5000 },
 });
 
 const closeWss = () => {

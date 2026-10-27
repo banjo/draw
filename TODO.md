@@ -397,21 +397,35 @@ no `VITE_*` build args, and uses Node 18. The web app is on Vercel anyway.
 
 **Fix**
 
-- [ ] Delete `Procfile`, `nginx.conf.sigil`, `scripts/deploy.sh`, `scripts/logs.sh`,
-      `apps/api/src/http-server.ts`, `apps/api/src/ws-server.ts`, and the `deploy:api` and
-      `logs:api` scripts.
-- [ ] Delete `docker/Dockerfile.web`.
-- [ ] In `Dockerfile.api`: add `USER node`, set `NODE_ENV=production`, use
-      `pnpm --filter api deploy --prod` (or copy only Prisma and pino), use a current Node
-      LTS, pin pnpm with corepack and turbo to the repo version, and use
-      `turbo prune api --docker`.
-- [ ] Add `.git`, `**/.env*`, `!**/.env.example`, `**/dist`, and `**/.turbo` to
-      `.dockerignore`.
-- [ ] Run `prisma migrate deploy` before the API starts, and add a `HEALTHCHECK` on
-      `/health`.
-- [ ] Set `dts: false` in `apps/api/tsup.config.ts`.
-- [ ] Turn on `keepAlive` in `applyWSSHandler`. Open the client WebSocket lazily
-      (`lazy: { enabled: true }`), so offline users don't connect.
+- [x] Deleted `Procfile`, `nginx.conf.sigil`, `scripts/deploy.sh`, `scripts/logs.sh`,
+      `apps/api/src/http-server.ts`, `apps/api/src/ws-server.ts`, the `deploy:api` and
+      `logs:api` scripts, and `docker/Dockerfile.web`.
+- [x] `Dockerfile.api`: Node 24 (also in `.nvmrc`), pnpm from `packageManager` through
+      corepack, turbo pinned with `TURBO_VERSION`, and `turbo prune api --docker`. The image
+      only has `pnpm --filter api deploy --prod` (isolated layout, since hoisted deploys come
+      out empty), the bundle, and the Prisma schema and migrations. It runs as `node` with
+      `NODE_ENV=production`.
+- [x] The API's runtime packages are its `dependencies`: `@prisma/client` and `prisma` pinned
+      to 5.15.1, `pino`, and `pino-pretty`. `@excalidraw/excalidraw` is only used for types,
+      so it's a dev dependency. The repo now has one Prisma version; the Lucia adapter used
+      to pull in `@prisma/client` 5.22.0.
+- [x] `.dockerignore` leaves out `.git`, `.env` files (except `.env.example`), `dist`, and
+      `.turbo`.
+- [x] `prisma migrate deploy` runs before the API starts, then `exec` makes Node PID 1 so it
+      gets SIGTERM. `HEALTHCHECK` on `/health`.
+- [x] `dts: false` in `apps/api/tsup.config.ts`.
+- [x] Server `keepAlive` pings every 30 s (Cloudflare closes idle WebSockets after 100 s).
+      The client WebSocket is lazy: it connects for a saved drawing and closes 10 s after
+      the last subscription.
+- [x] Tested the image locally (Oct 27) against Docker Postgres and S3: 17 migrations on a
+      fresh database, healthy in about 8 s, Node as PID 1 running as `node`, `/login/local`
+      404, two WebSocket clients collaborate, a ping after 30 s, `docker stop` saves open
+      drawings in 1 s, and a restart has no pending migrations. The firewall needs a local
+      copy of the Dockerfile with the corporate CA added; the repo's Dockerfile is unchanged.
+- [ ] Not tested yet: the lazy WebSocket in Chrome (no socket on `/`, one on a drawing).
+- [ ] After deploying: check that Coolify builds with `docker/Dockerfile.api` from the repo
+      root, the container turns healthy, migrations ran, and collaboration stays connected
+      for a few idle minutes behind Cloudflare.
 
 ## 10. Performance
 

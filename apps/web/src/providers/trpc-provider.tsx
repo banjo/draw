@@ -24,6 +24,9 @@ const createTrpcClient = ({ httpUrl, wsUrl }: { httpUrl: string; wsUrl: string }
                     transformer: superjson,
                     client: createWSClient({
                         url: wsUrl,
+                        // Connect only for a saved drawing, and keep the socket a while
+                        // when switching between drawings
+                        lazy: { enabled: true, closeMs: 10_000 },
                     }),
                 }),
             }),

@@ -1,53 +1,49 @@
-# https://github.com/prisma/prisma/issues/18510#issuecomment-1694748984
-FROM node:20-alpine3.17 as base
+# Build context: the repository root
+ARG NODE_VERSION=24
+ARG TURBO_VERSION=2.0.4
 
-# Use Node.js LTS version
-FROM base AS builder
+FROM node:${NODE_VERSION}-alpine AS base
+# Prisma's engines need OpenSSL
+RUN apk add --no-cache openssl
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable
 
+# Only the API and the packages it uses
+FROM base AS prune
+ARG TURBO_VERSION
 WORKDIR /app
-COPY package.json .
-RUN npm add -g turbo
-
-# Create turbo file
 COPY . .
-RUN turbo prune --scope=api --docker
+RUN npx --yes turbo@${TURBO_VERSION} prune api --docker
 
-FROM base as installer
-
-# Install build dependencies
-RUN apk add --update python3 make g++\
-    && rm -rf /var/cache/apk/*
-
+FROM base AS build
 WORKDIR /app
-RUN npm add -g pnpm
-RUN npm add -g turbo
+# Dependencies first, so they're cached until the lockfile changes
+COPY .npmrc .gitignore ./
+COPY --from=prune /app/out/json/ .
+COPY --from=prune /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN pnpm install --frozen-lockfile
 
-# First install the dependencies (as they change less often)
-COPY .gitignore .gitignore
-COPY --from=builder /app/out/json/ .
-COPY --from=builder /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-RUN pnpm install --frozen-lockfile --prod=false
+COPY --from=prune /app/out/full/ .
+RUN pnpm exec turbo build --filter=api...
 
-# Build the project
-COPY --from=builder /app/out/full/ .
-RUN turbo build --filter=api...
+# The bundle, its production dependencies, and the Prisma schema and migrations. Hoisted
+# deploys come out empty, so this folder uses pnpm's default layout.
+RUN pnpm --filter api deploy --prod --config.node-linker=isolated /prod/api \
+    && cp -r apps/api/dist /prod/api/dist \
+    && cp -r packages/db/prisma /prod/api/prisma \
+    && cd /prod/api \
+    && ./node_modules/.bin/prisma generate --schema prisma/schema.prisma
 
-# Production Stage
 FROM base AS production
-
-# Create directory for the application
+ENV NODE_ENV=production
+ENV CHECKPOINT_DISABLE=1
 WORKDIR /app
+COPY --from=build --chown=node:node /prod/api .
+USER node
 
-# Copy the required directories from the installer stage
-COPY --from=installer /app/apps/api ./apps/api
-# COPY --from=installer /app/packages/db ./packages/db
-COPY --from=installer /app/node_modules ./node_modules
-
-# Change workdir to the worker app
-WORKDIR /app/apps/api
-
-# HTTP SERVER
 EXPOSE 3003
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD wget -q -O /dev/null "http://127.0.0.1:${PORT:-3003}/health" || exit 1
 
-# Set the command to run your app
-CMD ["node", "dist/server.cjs"]
+# Migrate, then exec so Node gets SIGTERM and saves open drawings before stopping
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma && exec node dist/server.cjs"]
