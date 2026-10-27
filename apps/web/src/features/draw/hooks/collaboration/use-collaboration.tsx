@@ -4,7 +4,7 @@ import { usePointerCollaboration } from "@/features/draw/hooks/collaboration/use
 import { noop } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
 import { ExcalidrawElements } from "common";
-import { useCallback } from "react";
+import { useMemo } from "react";
 
 type In = {
     slug?: string;
@@ -28,20 +28,20 @@ export const useCollaboration = ({ slug, setElements, elements }: In) => {
         slug,
     });
 
-    const renderCollabButton = useCallback(
+    const collabButton = useMemo(
         () => (
             <LiveCollaborationTrigger
                 isCollaborating={isCollaborating ? Boolean(slug) : false}
                 onSelect={noop}
             />
         ),
-        [isCollaborating, excalidrawApi]
+        [isCollaborating, slug]
     );
 
     return {
         isCollaborating,
         onPointerUpdate,
-        renderCollabButton,
+        collabButton,
         onDrawingChange,
     };
 };

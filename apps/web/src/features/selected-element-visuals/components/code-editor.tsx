@@ -1,5 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
-import { CUSTOM_ELEMENT_CLASS } from "@/features/draw/models/constants";
+import { CODE_ELEMENT_CLASS, CUSTOM_ELEMENT_CLASS } from "@/features/draw/models/constants";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
@@ -8,13 +8,15 @@ import { getCodeBlockSettings } from "@/features/selected-element-visuals/models
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { cn } from "@/lib/utils";
 import { debounce, Maybe } from "@banjoanton/utils";
-import Editor from "@uiw/react-textarea-code-editor";
+import {
+    codeHighlightPlugins,
+    toPrismLanguage,
+} from "@/features/selected-element-visuals/models/code-highlighting";
+import Editor from "@uiw/react-textarea-code-editor/nohighlight";
 import { CustomData, CustomDataCodeblock } from "common";
 import { useEffect, useMemo, useRef } from "react";
 import "./code-editor.css";
 import React from "react";
-
-export const CODE_ELEMENT_CLASS = "code-element";
 
 const SCENE_UPDATE_DELAY = 300;
 
@@ -99,7 +101,8 @@ export const CodeEditor = ({ element, style }: CodeBlockElement) => {
                     ref={editorRef}
                     value={customData.code}
                     className="w-full h-full"
-                    language={language.toLowerCase()}
+                    language={toPrismLanguage(language)}
+                    rehypePlugins={codeHighlightPlugins}
                     data-color-mode="dark"
                     padding={0}
                     onFocus={() => setEditingElementId(element.id)}

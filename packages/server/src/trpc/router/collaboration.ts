@@ -75,9 +75,16 @@ export const collaborationRouter = createTRPCRouter({
             const event = CollaboratorsEmitter.changeEvent(slug);
 
             return observable<Collaborator[]>(emit => {
-                // Everyone except yourself
-                const onChange = (collaborators: Collaborator[]) =>
-                    emit.next(collaborators.filter(c => c.id !== id));
+                // Everyone except yourself. Your own moves don't change that list, so they
+                // aren't sent back to you.
+                let last: string | undefined;
+                const onChange = (collaborators: Collaborator[]) => {
+                    const others = collaborators.filter(c => c.id !== id);
+                    const key = JSON.stringify(others);
+                    if (key === last) return;
+                    last = key;
+                    emit.next(others);
+                };
 
                 collaboratorsEmitter.on(event, onChange);
                 onChange(collaboratorsEmitter.get(slug));

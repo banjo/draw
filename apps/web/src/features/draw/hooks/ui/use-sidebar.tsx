@@ -2,12 +2,14 @@ import { useAuth } from "@/contexts/auth-context";
 import { useGlobal } from "@/contexts/global-context";
 import { DrawingCard } from "@/features/draw/components/drawing-card";
 import { useIsScrollable } from "@/features/draw/hooks/utils/use-is-scrollable";
+import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { trpc } from "@/lib/trpc";
 import { useSidebarStore } from "@/stores/use-sidebar-store";
 import { Maybe } from "@banjoanton/utils";
 import { Sidebar } from "@excalidraw/excalidraw";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { BrushIcon } from "lucide-react";
+import { useMemo } from "react";
 import { cn, ResponsiveIcon } from "ui";
 
 type In = {
@@ -33,11 +35,14 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
         dependencies: [isSidebarOpen, data?.length],
     });
 
-    const toggleSidebar = () => excalidrawApi?.toggleSidebar({ name: SIDEBAR_NAME });
+    const toggleSidebar = useLatestCallback(() =>
+        excalidrawApi?.toggleSidebar({ name: SIDEBAR_NAME })
+    );
 
     const initialOpenSidebar = isAuthenticated && isSidebarOpen ? { name: SIDEBAR_NAME } : null;
 
-    const renderSidebar = () => {
+    // Stable elements, so Excalidraw only re-renders when the sidebar itself changes
+    const sidebar = useMemo(() => {
         if (!isAuthenticated) return null;
 
         return (
@@ -78,9 +83,9 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
                 </div>
             </Sidebar>
         );
-    };
+    }, [isAuthenticated, docked, data, isLoading, isScrollable, currentSlug]);
 
-    const renderSidebarButton = () => {
+    const sidebarButton = useMemo(() => {
         if (!isAuthenticated) return null;
 
         return (
@@ -89,11 +94,11 @@ export const useSidebar = ({ slug: currentSlug }: In) => {
                 <span>Collection</span>
             </button>
         );
-    };
+    }, [isAuthenticated]);
 
     return {
-        renderSidebar,
-        renderSidebarButton,
+        sidebar,
+        sidebarButton,
         toggleSidebar,
         initialOpenSidebar,
     };

@@ -15,6 +15,7 @@ import { useChangeElementKeyDialog } from "./use-change-element-dialog";
 import { useSmartCopyKeyDialog } from "./use-smart-copy-key-dialog";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ChangeElementKeyDialog } from "../components/smart-copy-key-dialog";
+import { useEffect } from "react";
 
 const MIN_ELEMENT_VISUAL_SIZE = 40;
 
@@ -132,6 +133,24 @@ export const useSelectedElementVisuals = () => {
 
         setShowExtendElements(true);
     };
+
+    // Run again when these change, as they aren't in Excalidraw's state, so they don't trigger
+    // its onChange. A dialog that just appeared also needs its position, which is set
+    // through its ref and so couldn't be set before it rendered.
+    useEffect(() => {
+        if (!excalidrawApi) return;
+        handleSelectedElementVisuals(
+            excalidrawApi.getSceneElements(),
+            excalidrawApi.getAppState(),
+            {}
+        );
+    }, [
+        metaKeyIsDown,
+        showSelectElementDialog,
+        showChangeElementKeyDialog,
+        showExtendElements,
+        showSmartCopyDialog,
+    ]);
 
     const handleChangeElementDialogClick = () => {
         if (!excalidrawApi) return;

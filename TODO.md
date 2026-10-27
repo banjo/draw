@@ -422,7 +422,8 @@ no `VITE_*` build args, and uses Node 18. The web app is on Vercel anyway.
       404, two WebSocket clients collaborate, a ping after 30 s, `docker stop` saves open
       drawings in 1 s, and a restart has no pending migrations. The firewall needs a local
       copy of the Dockerfile with the corporate CA added; the repo's Dockerfile is unchanged.
-- [ ] Not tested yet: the lazy WebSocket in Chrome (no socket on `/`, one on a drawing).
+- [x] Tested the lazy WebSocket in Chrome (Oct 27, step 10): none on `/`, one on a drawing,
+      closed about 10 s after leaving it.
 - [ ] After deploying: check that Coolify builds with `docker/Dockerfile.api` from the repo
       root, the container turns healthy, migrations ran, and collaboration stays connected
       for a few idle minutes behind Cloudflare.
@@ -451,20 +452,53 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 
 **Fix**
 
-- [ ] Keep the pointer in a ref and send it with a throttled
-      `utils.client.collaboration.updateCollaborator.mutate`. Same for `updateBoard`. Skip
-      sending when not collaborating.
-- [ ] Memoise the menu and sidebar children.
-- [ ] Skip `onChange` work when `getSceneVersion(elements)` hasn't changed, and only clone
-      when something did.
-- [ ] Pass only `collaborators` to `updateScene` for pointer updates.
-- [ ] Read localStorage once, and write with a debounce only when there's no slug.
-- [ ] In the export: depend on `[useDarkMode, exportBackground]`, copy `appState` instead of
-      mutating it, pass temporary files to `exportToCanvas` instead of `addFiles`, and revoke
-      the object URL.
-- [ ] Lazy-load the export modal, the code editor, and `html2canvas`. Use the code editor's
-      `nohighlight` entry with a few Prism languages.
-- [ ] Remove the Open Sans link, and use one `lucide-react` version.
+- [x] The pointer is kept in a ref and sent at most every 30 ms through
+      `utils.client.collaboration.updateCollaborator.mutate`, only while someone else is on the
+      drawing. One update on joining tells the server you're there, and your position is sent
+      when someone joins. `updateBoard` already used `utils.client` (step 2).
+- [x] Pointer updates pass only `collaborators` to `updateScene`, as a new `Map`, and skip
+      unchanged lists. The server only sends a subscriber the others' list when it changed, so
+      your own moves no longer come back to you.
+- [x] Everything passed to Excalidraw is stable: the menu, sidebar, and buttons are memoised
+      elements, and callbacks use `useLatestCallback`. This also fixes stale dependency
+      arrays in `useMenu`.
+- [x] `onChange` returns early when `getSceneVersion` and the app state it reads are
+      unchanged, diffs the elements only when the version changed, and only clones when
+      something changed. The selected-element visuals re-run when the meta key or a dialog
+      changes, as those used to rely on the extra Excalidraw renders (otherwise the "Tab"
+      dialog showed in the top-left corner).
+- [x] The offline drawing and the library are read from localStorage once. The drawing is
+      saved 500 ms after changes, and on `pagehide` and unmount.
+- [x] Export: the preview depends on `[useDarkMode, exportBackground]`, `appState` is copied,
+      code block images are passed as extra files instead of `addFiles`, and the SVG URL is
+      revoked.
+- [x] Lazy: the export dialog, the code editor (only for drawings with code blocks), and
+      `html2canvas`. The editor uses the `nohighlight` entry with our 27 Prism languages;
+      C#, C++, F#, and Objective-C now highlight too.
+- [x] Removed the Open Sans link and font family, and `ui` uses `lucide-react` 0.368.0.
+- [x] Measured on a production build with the CPU 4x slower (Oct 27), with a test drawing of
+      300 shapes and 2 code blocks, and a bot as the remote collaborator:
+
+      | Main thread busy                       | Before         | After            |
+      | -------------------------------------- | -------------- | ---------------- |
+      | Remote cursor moving (30/s)            | 32%            | 8% (idle is 7%)  |
+      | Own mouse, alone on a drawing          | 100%, 54 fps   | 12%, 60 fps      |
+      | Own mouse, with a collaborator         | 100%, 44 fps   | 19%, 60 fps      |
+      | Offline drawing, dragging a shape      | 74%, 47 fps    | 20%, 60 fps      |
+      | Offline drawing, mouse moves           | 31%            | 11%              |
+      | Export dialog, first 6 s               | 98%, 4 fps     | 60%, 28 fps      |
+
+      Other changes: 6,120 localStorage reads per 8 s of mouse moves became 0, 60 writes
+      (7.2 MB) per drag became 1 (120 KB), and no cursor messages are sent when alone (203
+      before). The export adds no files to the drawing (4 before) and is idle after the
+      preview. The main bundle went from 2,899 KB (901 KB gzipped) to 1,871 KB (559 KB). On
+      Fast 4G, first paint went from 2.17 s to 1.25 s, the app was ready at 1.5 s instead of
+      2.43 s, and the Google Fonts request is gone.
+- [x] Checked in Chrome: board changes and cursors both ways, the lazy WebSocket (none on
+      `/`, one on a drawing, closed about 10 s after leaving, which was open from step 9), sign
+      in and out, save to collection, the sidebar, theme toggle, create copy, offline mode,
+      the export preview, toggle, PNG, and SVG, code highlighting, the element dialog
+      position, and the code block language menu.
 
 ## 11. Smaller UI bugs
 

@@ -1,9 +1,9 @@
 import { trpc } from "@/lib/trpc";
+import { logger } from "@/utils/logger";
 import { isDefined, Maybe } from "@banjoanton/utils";
 import { Collaborator, CollaboratorPointer, Gesture } from "@excalidraw/excalidraw/types/types";
-import { useThrottle } from "@uidotdev/usehooks";
 import { ExcalidrawApi } from "common";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import generateName from "sillyname";
 
 type In = {
@@ -23,82 +23,93 @@ const DEFAULT_MOUSE_POSITION: CollaboratorPointer = {
     tool: "pointer",
 };
 
-const collaborators = new Map<string, Collaborator>();
 const MOUSE_THROTTLE_TIME = 30;
 
+/**
+ * Shows the other collaborators' cursors, and sends your own. The pointer is kept out of React
+ * state, so moving the mouse doesn't re-render the drawing, and it's only sent while someone
+ * else is on the drawing.
+ */
 export const usePointerCollaboration = ({ slug, excalidrawApi }: In) => {
     // Shown when not signed in. Signed-in users get their name from the server.
     const anonymousName = useMemo(() => generateName(), []);
     const [isCollaborating, setIsCollaborating] = useState(false);
+    const utils = trpc.useUtils();
 
-    const input = { slug: slug ?? "" };
-    trpc.collaboration.onCollaboratorChange.useSubscription(input, {
-        enabled: isDefined(slug),
-        // Everyone else on the drawing, without yourself
-        onData: otherCollaborators => {
-            if (!slug || !excalidrawApi) return;
+    const pointer = useRef(DEFAULT_MOUSE_POSITION);
+    const timer = useRef<ReturnType<typeof setTimeout>>();
+    const othersPresent = useRef(false);
+    // Your own moves come back as an unchanged list of the others, which is skipped
+    const lastOthers = useRef("");
 
-            if (otherCollaborators.length === 0 && !isCollaborating) {
-                return;
-            }
-
-            if (otherCollaborators.length === 0) {
-                setIsCollaborating(false);
-                collaborators.clear();
-                excalidrawApi.updateScene({
-                    collaborators,
-                });
-                return;
-            }
-
-            setIsCollaborating(true);
-
-            collaborators.clear();
-            otherCollaborators.forEach(c => {
-                collaborators.set(c.id, {
-                    avatarUrl: c.avatarUrl,
-                    username: c.name,
-                    id: c.id,
-                    pointer: {
-                        tool: "pointer",
-                        x: c.x,
-                        y: c.y,
-                    },
-                });
-            });
-
-            excalidrawApi.updateScene({
-                collaborators,
-                elements: excalidrawApi.getSceneElements(),
-            });
-        },
-        onError: error => {
-            console.error({ error });
-        },
-    });
-
-    const updateCollaborator = trpc.collaboration.updateCollaborator.useMutation();
-
-    const [mousePosition, setMousePosition] = useState(DEFAULT_MOUSE_POSITION);
-    const debouncedMousePosition = useThrottle(mousePosition, MOUSE_THROTTLE_TIME);
-
-    const onPointerUpdate = ({ pointer }: PointerUpdateData) => {
+    const send = useCallback(() => {
+        clearTimeout(timer.current);
+        timer.current = undefined;
         if (!slug) return;
-        setMousePosition(pointer);
-    };
 
+        const { x, y } = pointer.current;
+        utils.client.collaboration.updateCollaborator
+            .mutate({ slug, collaborator: { name: anonymousName, x, y } })
+            .catch(error => logger.error({ error, slug }, "Could not send the pointer"));
+    }, [slug]);
+
+    // The first update tells the server you're on the drawing, so others see you
     useEffect(() => {
-        if (!slug) return;
+        send();
+        return () => clearTimeout(timer.current);
+    }, [send]);
 
-        updateCollaborator.mutate({
-            collaborator: {
-                name: anonymousName,
-                x: debouncedMousePosition.x,
-                y: debouncedMousePosition.y,
+    trpc.collaboration.onCollaboratorChange.useSubscription(
+        { slug: slug ?? "" },
+        {
+            enabled: isDefined(slug),
+            // Everyone else on the drawing, without yourself
+            onData: others => {
+                if (!slug || !excalidrawApi) return;
+
+                const wasPresent = othersPresent.current;
+                othersPresent.current = others.length > 0;
+                if (!wasPresent && !othersPresent.current) return;
+
+                if (wasPresent !== othersPresent.current) {
+                    setIsCollaborating(othersPresent.current);
+                }
+
+                // Someone joined, so show them where you are
+                if (!wasPresent) send();
+
+                const key = JSON.stringify(others);
+                if (key === lastOthers.current) return;
+                lastOthers.current = key;
+
+                const collaborators = new Map<string, Collaborator>(
+                    others.map(c => [
+                        c.id,
+                        {
+                            avatarUrl: c.avatarUrl,
+                            username: c.name,
+                            id: c.id,
+                            pointer: { tool: "pointer", x: c.x, y: c.y },
+                        },
+                    ])
+                );
+
+                excalidrawApi.updateScene({ collaborators });
             },
-            slug,
-        });
-    }, [debouncedMousePosition, slug]);
+            onError: error => {
+                logger.error({ error, slug }, "Collaborator subscription failed");
+            },
+        }
+    );
+
+    const onPointerUpdate = useCallback(
+        ({ pointer: next }: PointerUpdateData) => {
+            pointer.current = next;
+            if (!slug || !othersPresent.current || timer.current) return;
+            timer.current = setTimeout(send, MOUSE_THROTTLE_TIME);
+        },
+        [slug, send]
+    );
 
     return {
         isCollaborating,

@@ -3,7 +3,6 @@ import { FileUtil } from "@/features/draw/utils/file-util";
 import { raise } from "@banjoanton/utils";
 import { BinaryFileData } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawElement } from "common";
-import html2canvas from "html2canvas";
 
 export type CustomElementImageData = {
     data: string;
@@ -17,6 +16,8 @@ const fromHtmlElement = async (
     htmlElement: HTMLElement,
     customExcalidrawElements: ExcalidrawElement[]
 ): Promise<CustomElementImageData> => {
+    // Loaded on the first export, as it's large
+    const { default: html2canvas } = await import("html2canvas");
     const canvas = await html2canvas(htmlElement, {
         allowTaint: true,
         logging: false,

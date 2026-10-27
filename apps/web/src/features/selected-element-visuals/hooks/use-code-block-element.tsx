@@ -5,11 +5,17 @@ import { NativeToolbar } from "@/features/draw/models/native/native-toolbar";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { CodeEditor } from "@/features/selected-element-visuals/components/code-editor";
 import { CodeEditorMenuContainer } from "@/features/selected-element-visuals/components/code-editor-menu";
 import { first, isEqual, Maybe } from "@banjoanton/utils";
 import { ExcalidrawElement } from "common";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
+
+// Loaded once a drawing has a code block, as the editor and its highlighting are large
+const CodeEditor = lazy(() =>
+    import("@/features/selected-element-visuals/components/code-editor").then(m => ({
+        default: m.CodeEditor,
+    }))
+);
 
 type CodeBlockStyle = {
     left: string;
@@ -73,9 +79,17 @@ export const useCodeBlockElement = () => {
 
         return (
             <>
-                {codeBlockElements.map(({ element, style }) => (
-                    <CodeEditor key={`code-block${element.id}`} style={style} element={element} />
-                ))}
+                {codeBlockElements.length > 0 ? (
+                    <Suspense fallback={null}>
+                        {codeBlockElements.map(({ element, style }) => (
+                            <CodeEditor
+                                key={`code-block${element.id}`}
+                                style={style}
+                                element={element}
+                            />
+                        ))}
+                    </Suspense>
+                ) : null}
                 {selectedElement ? <CodeEditorMenuContainer element={selectedElement} /> : null}
             </>
         );

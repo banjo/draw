@@ -25,7 +25,8 @@ const getChanges = ({ newElements, oldElements }: ApplyLocalDrawingChangesProps)
 
     return {
         elementsUpdated,
-        allNewElements: structuredClone(allNewElements),
+        // Only copied when something changed, as it's the whole scene
+        allNewElements: elementsUpdated ? structuredClone(allNewElements) : allNewElements,
         allOldElements,
     };
 };

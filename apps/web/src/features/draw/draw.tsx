@@ -1,5 +1,4 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ExportModal } from "@/features/draw/components/export-modal";
 import { useContextMenu } from "@/features/draw/hooks/base/use-context-menu";
 import { useDrawing } from "@/features/draw/hooks/base/use-drawing";
 import { useElementsState } from "@/features/draw/hooks/base/use-elements-state";
@@ -17,13 +16,20 @@ import { useTheme } from "@/providers/theme-provider";
 import { useExportModalStore } from "@/stores/use-export-modal-store";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
-import { Excalidraw } from "@excalidraw/excalidraw";
+import { Excalidraw, getSceneVersion } from "@excalidraw/excalidraw";
 import { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawApi, ExcalidrawElements } from "common";
+import { lazy, Suspense, useCallback, useMemo, useRef } from "react";
+import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { useAddElement } from "../add-element/hooks/use-add-element";
 import { SignInModal } from "./components/sign-in-modal";
 import { useCleanup } from "./hooks/utils/use-cleanup";
 import { useOnPaste } from "./hooks/utils/use-on-paste";
+
+// Loaded when it's first opened
+const ExportModal = lazy(() =>
+    import("@/features/draw/components/export-modal").then(m => ({ default: m.ExportModal }))
+);
 
 type DrawProps = {
     slug?: string;
@@ -32,6 +38,24 @@ type DrawProps = {
 export type OnChangeCallback = Maybe<
     (elements: ExcalidrawElements, appState: AppState, files: BinaryFiles) => void
 >;
+
+/** What the onChange handlers read from the app state, besides the elements */
+const getRelevantAppState = (appState: AppState) => [
+    appState.theme,
+    appState.scrollX,
+    appState.scrollY,
+    appState.zoom.value,
+    appState.width,
+    appState.height,
+    appState.offsetLeft,
+    appState.offsetTop,
+    appState.selectedElementIds,
+    appState.selectedGroupIds,
+    appState.editingGroupId,
+    appState.draggingElement,
+    appState.resizingElement,
+    appState.editingElement,
+];
 
 export const Draw = ({ slug }: DrawProps) => {
     const { elements, setElements } = useElementsState({ slug });
@@ -46,22 +70,21 @@ export const Draw = ({ slug }: DrawProps) => {
     useInit({ slug });
 
     const { onLibraryChange, library } = useLibrary();
-    const { onPointerUpdate, renderCollabButton, isCollaborating, onDrawingChange } =
-        useCollaboration({
-            slug,
-            elements,
-            setElements,
-        });
+    const { onPointerUpdate, collabButton, isCollaborating, onDrawingChange } = useCollaboration({
+        slug,
+        elements,
+        setElements,
+    });
 
     const { createDrawing } = useDrawing();
 
-    const { renderSidebar, renderSidebarButton, toggleSidebar, initialOpenSidebar } = useSidebar({
+    const { sidebar, sidebarButton, toggleSidebar, initialOpenSidebar } = useSidebar({
         slug,
     });
 
     const { uploadImagesOnCanvas } = useImages({ elements, slug });
 
-    const { renderMenu } = useMenu({
+    const { menu } = useMenu({
         slug,
         createDrawing,
         toggleSidebar,
@@ -90,19 +113,64 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const { setTheme, theme } = useTheme();
 
-    const handleOnChange: OnChangeCallback = (changeElements, appState, files) => {
-        if (!excalidrawApi) return;
+    const lastChange = useRef<{ version: number; appState: unknown[] }>();
 
-        if (theme !== appState.theme) {
-            setTheme(appState.theme);
+    const handleOnChange = useLatestCallback(
+        (_changeElements: ExcalidrawElements, appState: AppState, files: BinaryFiles) => {
+            if (!excalidrawApi) return;
+
+            // Excalidraw calls onChange on every render, e.g. each mouse move. Skip it when
+            // neither the elements (every change bumps a version) nor the app state we read
+            // have changed.
+            // @ts-ignore - better local typings
+            const version = getSceneVersion(excalidrawApi.getSceneElementsIncludingDeleted());
+            const relevantAppState = getRelevantAppState(appState);
+            const previous = lastChange.current;
+            const elementsChanged = previous?.version !== version;
+            const appStateChanged =
+                !previous || relevantAppState.some((value, i) => value !== previous.appState[i]);
+            if (!elementsChanged && !appStateChanged) return;
+            lastChange.current = { version, appState: relevantAppState };
+
+            if (theme !== appState.theme) {
+                setTheme(appState.theme);
+            }
+
+            const elements = excalidrawApi.getSceneElements(); // get elements from excalidraw api, changeElements is buggy
+            if (elementsChanged) {
+                onDrawingChange(elements, appState);
+                cleanup(elements, appState, files);
+            }
+            updateCodeBlockElements(elements, appState, files);
+            handleSelectedElementVisuals(elements, appState, files);
         }
-
-        const elements = excalidrawApi.getSceneElements(); // get elements from excalidraw api, changeElements is buggy
-        onDrawingChange(elements, appState);
-        updateCodeBlockElements(elements, appState, files);
-        handleSelectedElementVisuals(elements, appState, files);
-        cleanup(elements, appState, files);
-    };
+    );
+    // Excalidraw is memoised and re-renders when any prop changes identity, so everything
+    // passed to it is kept stable
+    const onPaste = useLatestCallback(handleOnPaste);
+    const onLibraryChangeStable = useLatestCallback(onLibraryChange);
+    const excalidrawAPI = useCallback(
+        (api: unknown) => setExcalidrawApi(api as ExcalidrawApi),
+        [setExcalidrawApi]
+    );
+    const renderTopRightUI = useCallback(
+        () => (
+            <>
+                {collabButton}
+                {sidebarButton}
+            </>
+        ),
+        [collabButton, sidebarButton]
+    );
+    const children = useMemo(
+        () => (
+            <>
+                {menu}
+                {sidebar}
+            </>
+        ),
+        [menu, sidebar]
+    );
 
     return (
         <>
@@ -111,7 +179,9 @@ export const Draw = ({ slug }: DrawProps) => {
                 <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
             ) : null}
             {showExportModal ? (
-                <ExportModal setShow={setShowExportModal} show={showExportModal} />
+                <Suspense fallback={null}>
+                    <ExportModal setShow={setShowExportModal} show={showExportModal} />
+                </Suspense>
             ) : null}
             <div
                 style={{ height: "100dvh" }}
@@ -122,11 +192,11 @@ export const Draw = ({ slug }: DrawProps) => {
                 {renderCodeBlocks()}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
-                    excalidrawAPI={api => setExcalidrawApi(api as ExcalidrawApi)}
+                    excalidrawAPI={excalidrawAPI}
                     // @ts-ignore - better local typings
                     onChange={handleOnChange}
-                    onPaste={handleOnPaste}
-                    onLibraryChange={onLibraryChange}
+                    onPaste={onPaste}
+                    onLibraryChange={onLibraryChangeStable}
                     isCollaborating={isCollaborating}
                     onPointerUpdate={onPointerUpdate}
                     handleKeyboardGlobally={false}
@@ -144,15 +214,9 @@ export const Draw = ({ slug }: DrawProps) => {
                     UIOptions={{
                         dockedSidebarBreakpoint: 0,
                     }}
-                    renderTopRightUI={() => (
-                        <>
-                            {renderCollabButton()}
-                            {renderSidebarButton()}
-                        </>
-                    )}
+                    renderTopRightUI={renderTopRightUI}
                 >
-                    {renderMenu()}
-                    {renderSidebar()}
+                    {children}
                 </Excalidraw>
             </div>
         </>

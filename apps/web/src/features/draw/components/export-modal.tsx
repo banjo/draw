@@ -13,29 +13,30 @@ type ExportModalProps = {
 };
 
 export const ExportModal = ({ setShow, show }: ExportModalProps) => {
-    const { exportToCanvas, exportToPng, exportToSvg, exportToClipboard, getPng } = useExport();
+    const { exportToPng, exportToSvg, exportToClipboard, getPng } = useExport();
 
     const { theme } = useTheme();
     const [png, setPng] = useState<string | undefined>();
     const [useDarkMode, setUseDarkMode] = useState(() => theme === "dark");
     const [exportBackground, setExportBackground] = useState(false);
 
+    // The preview only changes with the options. Rendering code blocks to images is slow.
     useEffect(() => {
-        const fetchCanvas = async () => {
-            const opts: ExportOpts = {
-                exportBackground,
-                useDarkMode,
-                format: "png", // does not matter for canvas
-            };
-            const element = await getPng(opts);
-
-            if (element) {
-                setPng(element);
-            }
+        let cancelled = false;
+        const opts: ExportOpts = {
+            exportBackground,
+            useDarkMode,
+            format: "png", // does not matter for canvas
         };
 
-        fetchCanvas();
-    }, [exportToCanvas, png, useDarkMode, exportBackground]);
+        getPng(opts).then(element => {
+            if (element && !cancelled) setPng(element);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [useDarkMode, exportBackground]);
 
     const onClose = () => {
         NativeContainer.parse();

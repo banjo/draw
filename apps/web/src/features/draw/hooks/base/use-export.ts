@@ -2,8 +2,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { CustomElementImageData } from "@/features/draw/models/custom-element-image-data";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
-import { StateUtil } from "@/features/draw/utils/state-util";
-import { CODE_ELEMENT_CLASS } from "@/features/selected-element-visuals/components/code-editor";
+import { CODE_ELEMENT_CLASS } from "@/features/draw/models/constants";
 import { logger } from "@/utils/logger";
 import { isEmpty, toIsoDateString } from "@banjoanton/utils";
 import {
@@ -70,17 +69,20 @@ const prepare = async (excalidrawApi: ExcalidrawApi, opts: ExportOpts) => {
 
     const newImageElements = customElements.map(CustomElementImageData.toExcalidrawImageElement);
 
-    StateUtil.mutateState(appState, draft => {
-        draft.exportWithDarkMode = opts.useDarkMode;
-        draft.exportBackground = opts.exportBackground;
-    });
-
-    excalidrawApi.addFiles(customElements.map(e => e.binaryFileData));
+    // The code block images only exist in the export, so they aren't added to the drawing
+    const codeBlockFiles = Object.fromEntries(
+        customElements.map(e => [e.binaryFileData.id, e.binaryFileData])
+    );
 
     return {
         elements: [...elementsToExport, ...newImageElements],
-        files: excalidrawApi.getFiles(),
-        appState,
+        files: { ...excalidrawApi.getFiles(), ...codeBlockFiles },
+        // A copy, so exporting doesn't change the app's own state
+        appState: {
+            ...appState,
+            exportWithDarkMode: opts.useDarkMode,
+            exportBackground: opts.exportBackground,
+        },
         exportPadding: 5,
     };
 };
@@ -173,6 +175,8 @@ export const useExport = () => {
 
         const fileName = getFileName("svg");
         FileUtil.downloadImage(url, fileName);
+        // After the download has started
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
 
     return { getSvg, getPng, exportToPng, exportToSvg, exportToCanvas, exportToClipboard };

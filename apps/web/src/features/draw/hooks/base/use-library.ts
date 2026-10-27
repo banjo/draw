@@ -1,14 +1,31 @@
+import { logger } from "@/utils/logger";
 import { LibraryItems } from "@excalidraw/excalidraw/types/types";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { useState } from "react";
 
 const KEY = "banjo-library";
 
+const readLibrary = (): LibraryItems => {
+    try {
+        const stored = localStorage.getItem(KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        logger.error({ error }, "Could not read the library");
+        return [];
+    }
+};
+
+/** The library is only Excalidraw's initial data, so it's read once and saved on changes. */
 export const useLibrary = () => {
-    const [library, setLibrary] = useLocalStorage<LibraryItems>(KEY, []);
+    const [library] = useState(readLibrary);
 
     const onLibraryChange = (data: LibraryItems) => {
-        setLibrary(data);
+        try {
+            localStorage.setItem(KEY, JSON.stringify(data));
+        } catch (error) {
+            logger.error({ error }, "Could not save the library");
+        }
     };
+
     return {
         onLibraryChange,
         library,
