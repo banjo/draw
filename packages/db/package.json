@@ -13,7 +13,7 @@
         "dev": "tsup --watch --clean",
         "clean": "rimraf node_modules dist",
         "typecheck": "tsc --noEmit",
-        "test:migrations": "node --test scripts/migrations.test.mjs",
+        "test:migrations": "node --test scripts/*.test.mjs",
         "db:safe": "node ../../scripts/db.mjs",
         "db:seed": "pnpm exec prisma db seed",
         "db:migrate:dev": "pnpm run db:safe && pnpm exec prisma migrate dev && pnpm run db:generate",

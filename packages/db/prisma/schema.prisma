@@ -9,14 +9,15 @@ generator client {
 
 // USER AND AUTH
 model User {
-  id           Int            @id @default(autoincrement())
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  email        String         @unique
+  id           Int               @id @default(autoincrement())
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  email        String            @unique
   name         String?
   avatarUrl    String?
-  drawings     Drawing[]      @relation("OwnerDrawings")
-  collection   Drawing[]      @relation("Collection")
+  drawings     Drawing[]         @relation("OwnerDrawings")
+  collection   CollectionEntry[]
+  folders      Folder[]
   sessions     Session[]
   OauthAccount OauthAccount[]
 }
@@ -52,19 +53,54 @@ enum Access {
 }
 
 model Drawing {
-  id        Int              @id @default(autoincrement())
-  slug      String           @unique @default(uuid())
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  name      String?
-  owner     User?            @relation("OwnerDrawings", fields: [ownerId], references: [id])
-  ownerId   Int?
-  users     User[]           @relation("Collection")
-  access    Access           @default(public)
-  order     String[]
-  elements  DrawingElement[]
+  id          Int               @id @default(autoincrement())
+  slug        String            @unique @default(uuid())
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  name        String?
+  owner       User?             @relation("OwnerDrawings", fields: [ownerId], references: [id])
+  ownerId     Int?
+  collectedBy CollectionEntry[]
+  access      Access            @default(public)
+  order       String[]
+  elements    DrawingElement[]
 
   @@index([ownerId])
+}
+
+/// A drawing in a user's collection, and where that user keeps it
+model CollectionEntry {
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  drawingId Int
+  drawing   Drawing  @relation(fields: [drawingId], references: [id], onDelete: Cascade)
+  /// Unsorted when null. Deleting the folder moves the drawing back to unsorted.
+  folderId  Int?
+  folder    Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  pinned    Boolean  @default(false)
+
+  @@id([userId, drawingId])
+  @@index([drawingId])
+  @@index([folderId])
+}
+
+/// A folder in a user's collection. Deleting it deletes its sub-folders too.
+model Folder {
+  id        Int               @id @default(autoincrement())
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  name      String
+  color     String
+  userId    Int
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId  Int?
+  parent    Folder?           @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[]          @relation("FolderTree")
+  entries   CollectionEntry[]
+
+  @@index([userId])
+  @@index([parentId])
 }
 
 model DrawingElement {

@@ -688,3 +688,32 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 - [x] Tested (Oct 27): first visit, "Start drawing", "Got it", and Escape marking features as
       seen, no dialog after a reload, two new features as What's new, no welcome on a first
       visit through a shared link, the menu item, light and dark, and a narrow window.
+
+## 16. Collection folders and finding a drawing
+
+- [x] Folders in the collection sidebar, chosen from five mockups (Explorer). Folders nest, have
+      a color, and show how many drawings they hold. Drawings can be pinned to the top.
+      Drawings by others that aren't in a folder show under "Shared with me", yours under
+      "Unsorted". The sidebar has a search, a ⋯ menu and right-click on every row (open in a new
+      tab, rename, pin, copy link, move to, remove with undo), drag and drop for drawings and
+      folders, F2 to rename, and "New drawing" at the bottom. A pinned drawing shows in both
+      places; the open drawing is highlighted in the row it was opened from, or in its folder.
+- [x] Database: `CollectionEntry` replaces the implicit `_Collection` table (folder and pinned
+      per user and drawing), plus a `Folder` table. Saved drawings are copied over, unsorted.
+      Deleting a folder deletes its sub-folders and moves their drawings to unsorted. Migration
+      tests share a Docker helper (`packages/db/scripts/postgres.mjs`).
+- [x] API: a `collection` router replaces `draw.getCollection`, `saveToCollection`, and
+      `deleteFromCollection`. It checks that folders belong to the user and refuses to move a
+      folder into itself. Deploy the API before the web app.
+- [x] ⌘O / Ctrl+O, or "Find a drawing" in the menu, opens a search over the collection, in
+      place of Excalidraw's "open file". Arrows and Enter open a drawing (⌘Enter in a new
+      tab), Tab searches inside a folder, and the selected drawing shows a preview, drawn from
+      the saved drawing with its code blocks. No match offers a new drawing with that name.
+- [x] Both are in the features dialog as "What's new". The full dialog has five columns, so all
+      ten features fit in three rows, and the last cards widen to fill its last row.
+- [x] Tested (Oct 27): moving with the menu and by dragging, dropping a folder into its own
+      sub-folder (refused), a new folder, renaming with F2, renaming the open drawing (shown
+      both pinned and in its folder), search, deleting a folder with
+      drawings, removing and undo, pinning, the palette's keys and preview, a new drawing from
+      the palette, light and dark, a narrow window, and the API refusing unknown folders,
+      loops, blank names, and unknown colors.

@@ -1,18 +1,8 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
-import { readdirSync, readFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
 import { after, before, describe, it } from "node:test";
-import { setTimeout } from "node:timers/promises";
+import { loadMigration, startPostgres } from "./postgres.mjs";
 
-const migrationsDir = new URL("../prisma/migrations/", import.meta.url);
-const migrationName = "20261026130000_database_relations";
-const migration = readFileSync(new URL(`${migrationName}/migration.sql`, migrationsDir), "utf8");
-const baseline = readdirSync(migrationsDir, { withFileTypes: true })
-    .filter(entry => entry.isDirectory() && entry.name < migrationName)
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(entry => readFileSync(new URL(`${entry.name}/migration.sql`, migrationsDir), "utf8"))
-    .join("\n");
+const { migration, baseline } = loadMigration("20261026130000_database_relations");
 
 const fixtures = `
 INSERT INTO "User" (id, email, "updatedAt") VALUES
@@ -29,43 +19,10 @@ INSERT INTO "DrawingElement" (id, "elementId", version, data, "drawingId", "upda
 INSERT INTO "_Collection" ("A", "B") VALUES (1, 1), (1, 2), (2, 1);
 `;
 
-let container;
-let databaseNumber = 0;
-
-const docker = (args, input) => {
-    const result = spawnSync("docker", args, { input, encoding: "utf8", timeout: 120000 });
-    if (result.status !== 0) {
-        throw new Error(result.stderr || result.error?.message || "Docker command failed");
-    }
-    return result.stdout.trim();
-};
-
-const sql = (database, input) =>
-    docker(
-        [
-            "exec",
-            "-i",
-            container,
-            "psql",
-            "-X",
-            "-U",
-            "postgres",
-            "-d",
-            database,
-            "-v",
-            "ON_ERROR_STOP=1",
-            "-Atq",
-        ],
-        input
-    );
-
-const createDatabase = () => {
-    const database = `migration_test_${++databaseNumber}`;
-    sql("postgres", `CREATE DATABASE "${database}";`);
-    sql(database, baseline);
-    sql(database, fixtures);
-    return database;
-};
+let sql;
+let create;
+let createDatabase;
+let stop;
 
 const counts = database =>
     JSON.parse(
@@ -84,36 +41,11 @@ const counts = database =>
 
 describe("database relation migration (isolated PostgreSQL 17, requires Docker)", () => {
     before(async () => {
-        container = docker([
-            "run",
-            "--detach",
-            "--rm",
-            "--network",
-            "none",
-            "--name",
-            `banjodraw-migrations-${randomUUID()}`,
-            "--env",
-            "POSTGRES_HOST_AUTH_METHOD=trust",
-            "postgres:17.5-alpine",
-        ]);
-        for (let attempt = 0; attempt < 60; attempt++) {
-            try {
-                // Wait until the entrypoint has replaced itself with the final server.
-                docker(["exec", container, "sh", "-c", 'test "$(cat /proc/1/comm)" = postgres']);
-                sql("postgres", "SELECT 1;");
-                return;
-            } catch {
-                await setTimeout(500);
-            }
-        }
-        throw new Error("Test PostgreSQL did not start");
+        ({ sql, createDatabase: create, stop } = await startPostgres());
+        createDatabase = () => create(baseline, fixtures);
     });
 
-    after(() => {
-        if (container) {
-            docker(["rm", "--force", "--volumes", container]);
-        }
-    });
+    after(() => stop?.());
 
     it("preserves rows and element contents, adds indexes and six validated foreign keys", () => {
         const database = createDatabase();

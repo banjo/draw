@@ -73,4 +73,18 @@ export const FEATURES: Feature[] = [
         description:
             "The drawing on the start page stays in this browser. Sign in to save drawings to your collection and open them anywhere.",
     },
+    {
+        id: "folders",
+        title: "Folders",
+        short: "Sort your collection.",
+        description:
+            "Sort the drawings in your collection into folders, pin the ones you use most, and drag them where they belong.",
+    },
+    {
+        id: "find-drawing",
+        title: "Find a drawing",
+        short: "Jump to any drawing by name.",
+        description: `Press ${MODIFIER_LABEL} O to search your collection and jump to any drawing. Tab searches inside a folder.`,
+        keys: [MODIFIER_LABEL, "O"],
+    },
 ];

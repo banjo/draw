@@ -1,4 +1,5 @@
 export * from "./repositories/auth-repository";
+export * from "./repositories/collection-repository";
 export * from "./repositories/draw-repository";
 export * from "./repositories/file-repository";
 export * from "./services/bucket-service";

@@ -9,6 +9,7 @@ import { useLibrary } from "@/features/draw/hooks/base/use-library";
 import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
 import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
+import { useCollectionPalette } from "@/features/collection/hooks/use-collection-palette";
 import { useFeaturesIntro } from "@/features/features-intro/hooks/use-features-intro";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
@@ -93,6 +94,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const { codeBlocks, updateCodeBlockElements, onDoubleClickCapture } = useCodeBlockElement();
     const { render: renderAddElement } = useAddElement();
     const { render: renderFeatures } = useFeaturesIntro({ slug });
+    const { render: renderPalette } = useCollectionPalette();
 
     const { handleKeyDown, handleKeyDownCapture, handleKeyUp } = useKeyboard({
         handleChangeElementDialogClick,
@@ -179,6 +181,7 @@ export const Draw = ({ slug }: DrawProps) => {
         <>
             {renderAddElement()}
             {renderFeatures()}
+            {renderPalette()}
             {showSignInModal ? (
                 <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
             ) : null}

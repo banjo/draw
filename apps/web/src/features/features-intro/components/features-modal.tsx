@@ -37,12 +37,22 @@ const getHeading = (mode: FeaturesModalMode, isFirstVisit: boolean) => {
         : { lead: "What's", accent: "new", sub: "New in BanjoDraw since your last visit." };
 };
 
-/** The first card is big and the second wide. A few cards share the space equally. */
+// Five, so every feature fits on screen without scrolling
+const COLUMNS = 5;
+
+/**
+ * The first card is big and the second wide. The last cards widen to fill the last row. A few
+ * cards share the space equally.
+ */
 const getSize = (index: number, count: number): CardSize => {
     if (count < 4) return "few";
     if (index === 0) return "hero";
     if (index === 1) return "wide";
-    return "single";
+
+    // The big card takes four cells, the wide one two, and each widened card one more
+    const cells = count + 4;
+    const emptyCells = (COLUMNS - (cells % COLUMNS)) % COLUMNS;
+    return index >= count - emptyCells ? "wide" : "single";
 };
 
 const Keys = ({ keys }: { keys: string[] }) => (
@@ -160,7 +170,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                     "font-['Hanken_Grotesk_Variable',sans-serif] text-[#1b1b1f] dark:bg-[#141418] dark:text-[#ececf1]",
                     "shadow-[0_50px_120px_-30px_rgba(25,25,60,0.45),0_0_0_1px_rgba(20,20,40,0.06)] dark:shadow-[0_50px_120px_-30px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)]",
                     "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-500",
-                    FEW_WIDTHS[features.length] ?? "max-w-[1040px]"
+                    FEW_WIDTHS[features.length] ?? "max-w-[1180px]"
                 )}
                 role="dialog"
                 aria-modal
@@ -195,7 +205,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                         "grid gap-3",
                         isFew
                             ? cn("auto-rows-[360px] grid-cols-1", FEW_COLUMNS[features.length])
-                            : "auto-rows-[200px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                            : "auto-rows-[176px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
                     )}
                 >
                     {features.map((feature, index) => (

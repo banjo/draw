@@ -21,7 +21,7 @@ const Background = ({ children, className, refObject, ...props }: BackgroundProp
         ref={refObject}
         tabIndex={-1}
         className={cn(
-            "fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-50 flex-col",
+            "fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-50 flex-col outline-none",
             className
         )}
     >
@@ -43,7 +43,8 @@ const Container = (props: ModalProps) => {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (props.show) {
+        // Unless something inside already took focus, like an autofocused field
+        if (props.show && !ref.current?.contains(document.activeElement)) {
             ref.current?.focus();
         }
     }, [props.show]);

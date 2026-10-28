@@ -316,6 +316,63 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
             card.appendChild(text(x + 10, y + 13, title, { anchor: "start", size: 14 }));
         });
     },
+
+    folders: ({ rc, add, box, text, line, options }) => {
+        const folder = (x: number, y: number, color: string) =>
+            add(
+                rc.path(
+                    `M ${x} ${y + 3} h 7 l 2 3 h 11 v 12 h -20 Z`,
+                    options({ fill: color, fillStyle: "solid", strokeWidth: 1.3, roughness: 0.6 })
+                )
+            );
+        const chevron = (x: number, y: number) =>
+            add(
+                rc.linearPath(
+                    [
+                        [x, y],
+                        [x + 4, y + 4],
+                        [x + 8, y],
+                    ],
+                    options({ strokeWidth: 1.2, roughness: 0.4 })
+                )
+            );
+
+        chevron(0, 12);
+        folder(16, 4, COLORS.blue);
+        text(46, 14, "Work", { anchor: "start", size: 17 });
+
+        line(4, 30, 4, 112, { stroke: "#ced4da", strokeWidth: 1, roughness: 0.3 });
+        chevron(22, 46);
+        folder(38, 38, COLORS.violet);
+        text(68, 48, "Architecture", { anchor: "start", size: 16 });
+
+        box(44, 64, 190, 30, "#e7f5ff", { stroke: "transparent", roughness: 0.3 });
+        add(rc.rectangle(64, 70, 14, 18, options({ strokeWidth: 1.2, roughness: 0.5 })));
+        text(88, 80, "System overview", { anchor: "start", size: 15 });
+
+        folder(38, 104, COLORS.yellow);
+        text(68, 114, "Sprints", { anchor: "start", size: 16 });
+
+        folder(16, 140, COLORS.green);
+        text(46, 150, "Side projects", { anchor: "start", size: 17 });
+    },
+
+    "find-drawing": ({ rc, add, box, text, line, key, options }) => {
+        key(0, 22, "⌘");
+        key(34, 22, "O");
+        box(74, 16, 220, 38, "#ffffff", { roughness: 0.6 });
+        add(rc.circle(94, 35, 13, options({ strokeWidth: 1.5 })));
+        line(99, 40, 105, 46, { strokeWidth: 1.5 });
+        text(116, 36, "sys", { anchor: "start", size: 17 });
+        line(144, 26, 144, 46, { stroke: COLORS.accent, strokeWidth: 1.5, roughness: 0.2 });
+
+        box(74, 66, 220, 40, "#e7f5ff", { stroke: "transparent", roughness: 0.3 });
+        add(rc.rectangle(90, 76, 16, 20, options({ strokeWidth: 1.2, roughness: 0.5 })));
+        text(118, 87, "System overview", { anchor: "start", size: 16 });
+        add(rc.rectangle(90, 116, 16, 20, options({ strokeWidth: 1.2, roughness: 0.5 })));
+        text(118, 127, "System design", { anchor: "start", size: 16 });
+        text(272, 87, "↵", { size: 16, fill: COLORS.gray });
+    },
 };
 
 const PADDING = 14;

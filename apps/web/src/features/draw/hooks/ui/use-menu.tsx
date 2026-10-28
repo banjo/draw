@@ -6,11 +6,21 @@ import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
+import { usePaletteStore } from "@/features/collection/stores/use-palette-store";
 import { useFeaturesModalStore } from "@/features/features-intro/stores/use-features-modal-store";
 import { copyToClipboard } from "@/utils/clipboard";
+import { formatShortcut } from "@/utils/platform";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu } from "@excalidraw/excalidraw";
-import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon, Sparkles } from "lucide-react";
+import {
+    BrushIcon,
+    CopyIcon,
+    FolderIcon,
+    PlusIcon,
+    SaveIcon,
+    SearchIcon,
+    Sparkles,
+} from "lucide-react";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +36,7 @@ type In = {
 export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanvas }: In) => {
     const { excalidrawApi } = useGlobal();
     const showFeatures = useFeaturesModalStore(s => s.show);
+    const openPalette = usePaletteStore(s => s.setIsOpen);
     const navigate = useNavigate();
 
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
@@ -75,7 +86,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
         if (!currentSlug) return;
 
         const [_, error] = await wrapAsync(
-            async () => await utils.client.draw.saveToCollection.mutate({ slug: currentSlug })
+            async () => await utils.client.collection.add.mutate({ slug: currentSlug })
         );
 
         if (error) {
@@ -86,7 +97,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
             return;
         }
 
-        utils.draw.getCollection.invalidate();
+        utils.collection.get.invalidate();
         toast.success("Drawing saved to my collection!");
         navigate(`/draw/${currentSlug}`);
     });
@@ -182,6 +193,14 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                             icon={<ResponsiveIcon Icon={BrushIcon} />}
                         >
                             Collection
+                        </MainMenu.Item>
+
+                        <MainMenu.Item
+                            onSelect={() => openPalette(true)}
+                            icon={<ResponsiveIcon Icon={SearchIcon} />}
+                            shortcut={formatShortcut("O")}
+                        >
+                            Find a drawing
                         </MainMenu.Item>
 
                         <MainMenu.Item

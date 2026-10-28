@@ -69,10 +69,22 @@ Prisma may still record a failed migration; inspect that record before resolving
 ```sh
 pnpm --filter db test:migrations
 # Or, from the repository root without pnpm:
-node --test packages/db/scripts/migrations.test.mjs
+node --test packages/db/scripts/*.test.mjs
 ```
 
 Tests require Docker. They replay the existing migrations in a disposable PostgreSQL 17.5
 container, seed synthetic data, and test indexes, foreign keys, cascades, and rollback on
 orphaned rows or legacy data. The container has no network access or published ports, never
 uses `.env` or a real database, and is removed after the suite.
+
+## Collection folders
+
+`20261027120000_collection_folders` replaces Prisma's implicit `_Collection` table with
+`CollectionEntry`: one row per user and saved drawing, with its folder and whether it's
+pinned. It also adds `Folder`. Every saved drawing is copied over, unsorted.
+
+Deleting a folder deletes its sub-folders, and their drawings go back to unsorted. Deleting
+a user deletes their folders and collection entries.
+
+The API container applies it on start. Deploy the API first, then the web app: the old web
+app's collection sidebar fails to load against the new API until the web app is deployed.
