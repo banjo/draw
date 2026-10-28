@@ -624,10 +624,10 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 ## 13. Cleanup, CI, and tests
 
 - [x] **CI:** `.github/workflows/ci.yml` runs `pnpm install --frozen-lockfile`, typecheck,
-      lint, tests, and build on pushes to `main` and on pull requests, in one job of two to
-      four minutes. The migration tests (Docker) run in `migrations.yml`, only when
-      `packages/db` changes. Dependabot opens weekly pull requests for npm, minor and patch
-      updates grouped, and monthly ones for the actions.
+      lint, tests, and build on pushes to `main` and on pull requests, in one job of about a
+      minute. The migration tests (Docker) run in `migrations.yml`, only when `packages/db`
+      changes. Dependabot was tried and removed again; no automatic dependency updates for
+      now.
 - [x] **Tests:** a root `pnpm test` runs the vitest suites in `common` and `server` through
       Turborepo.
 - [x] **Lint:** a root `pnpm lint` lints the whole repository with the shared config, in place
