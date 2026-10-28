@@ -787,6 +787,10 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 - [x] Dragging an arrow out of an extend button reset the style picked for the next things
       drawn (stroke color, style, opacity, roundness, and so on) to Excalidraw's defaults,
       and changed Excalidraw's state in place. Only the tool changes now.
+- [x] A shape added with ⌘/Ctrl+arrow or an extend button copies the type (rectangle,
+      ellipse, or diamond) and look (colors, fill, stroke, sloppiness, edges, opacity) of the
+      shape it extends. The arrow keeps the default look. The preview shows it too, dashed
+      and faded. From anything else, like an image, it's still a plain rectangle.
 - [x] Changing a shape's type (Tab) gave it a new id, so arrows came loose from it and its
       label lost its shape. On a shared drawing the old shape came back after a reload, as
       it was dropped instead of deleted. Between rectangle, ellipse, and diamond only the

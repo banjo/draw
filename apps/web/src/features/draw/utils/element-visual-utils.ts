@@ -121,9 +121,25 @@ export type ElementExtensionShadow = {
     direction: ArrowKey;
 };
 
+const SHAPE_TYPES = ["rectangle", "ellipse", "diamond"] as const;
+const isShapeType = (type: string): type is (typeof SHAPE_TYPES)[number] =>
+    includes(SHAPE_TYPES, type);
+
+/** What a shape added next to another copies from it */
+const SHAPE_STYLE = [
+    "strokeColor",
+    "backgroundColor",
+    "fillStyle",
+    "strokeWidth",
+    "strokeStyle",
+    "roughness",
+    "roundness",
+    "opacity",
+] as const;
+
 /**
- * A new shape next to the source, with an arrow to it. The preview (shadow) isn't bound to
- * anything; the real one binds the arrow to both shapes.
+ * A new shape next to the source, of the same type and look, with a default arrow to it.
+ * The preview (shadow) isn't bound to anything; the real one binds the arrow to both shapes.
  */
 const createExtension = (direction: ArrowKey, source: ExcalidrawElement, shadow: boolean) => {
     const arrowId = ElementUtil.createElementId();
@@ -146,17 +162,24 @@ const createExtension = (direction: ArrowKey, source: ExcalidrawElement, shadow:
         draft.strokeStyle = "dashed";
     };
 
+    // A copy of a shape's type and look; other elements, like images, get a plain rectangle
+    const isShape = isShapeType(source.type);
+    const type = isShape ? source.type : "rectangle";
+
     const element = ElementCreationUtil.createElement({
         base: {
             height: measurements.height,
             width: measurements.width,
             x,
             y,
-            type: "rectangle",
+            type,
         },
         callback: (draft, helpers) => {
             helpers.defaultSettings(draft);
-            draft.customData = CustomData.createDefault({ shadow, type: "rectangle" });
+            if (isShape) {
+                SHAPE_STYLE.forEach(key => Object.assign(draft, { [key]: source[key] }));
+            }
+            draft.customData = CustomData.createDefault({ shadow, type });
             style(draft);
             if (!shadow) helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
             return draft;
@@ -270,10 +293,6 @@ const createElementExtensionFromShadow = (
         elements: [...ElementUtil.mergeElements(elements, [updatedSource]), arrow, element],
     });
 };
-
-const SHAPE_TYPES = ["rectangle", "ellipse", "diamond"] as const;
-const isShapeType = (type: string): type is (typeof SHAPE_TYPES)[number] =>
-    includes(SHAPE_TYPES, type);
 
 const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: CustomElementType) => {
     const state = excalidrawApi.getAppState();
