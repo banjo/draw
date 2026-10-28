@@ -35,8 +35,7 @@
         "rimraf": "^5.0.7",
         "tsup": "^8.1.0",
         "turbo": "^2.11.10",
-        "typescript": "^5.5.2",
-        "zx": "^7.2.3"
+        "typescript": "^5.5.2"
     },
     "prettier": "@banjoanton/prettier-config",
     "packageManager": "pnpm@10.34.9",
