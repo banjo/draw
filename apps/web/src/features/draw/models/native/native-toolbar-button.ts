@@ -1,6 +1,6 @@
 import { logger } from "@/utils/logger";
 
-export type NativeToolbarButtonProps = {
+type NativeToolbarButtonProps = {
     icon: Element;
     keybinding: string;
     title: string;

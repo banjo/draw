@@ -108,7 +108,7 @@ const updateElements = <T extends ExcalidrawElement>(
         })
     );
 
-export type MutateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => void;
+type MutateCallback<T> = (element: Mutable<T>, helpers: UpdateHelpers) => void;
 
 /**
  * Mutate an element with a callback.

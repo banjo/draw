@@ -3,7 +3,7 @@ import { OnChangeCallback } from "@/features/draw/draw";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
-import { SmartCopyKeyDialog } from "@/features/selected-element-visuals/components/change-element-key-dialog";
+import { SmartCopyKeyDialog } from "@/features/selected-element-visuals/components/smart-copy-key-dialog";
 import { ExtendElementsContainer } from "@/features/selected-element-visuals/components/extend-elements-container";
 import { SelectElementDialog } from "@/features/selected-element-visuals/components/select-element-dialog";
 import { useExtendElementsButtons } from "@/features/selected-element-visuals/hooks/use-extend-element-buttons";
@@ -14,7 +14,7 @@ import { ElementMeasurement } from "common";
 import { useChangeElementKeyDialog } from "./use-change-element-dialog";
 import { useSmartCopyKeyDialog } from "./use-smart-copy-key-dialog";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
-import { ChangeElementKeyDialog } from "../components/smart-copy-key-dialog";
+import { ChangeElementKeyDialog } from "../components/change-element-key-dialog";
 import { useEffect } from "react";
 
 const MIN_ELEMENT_VISUAL_SIZE = 40;

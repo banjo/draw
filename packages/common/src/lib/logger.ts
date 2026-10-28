@@ -1,5 +1,5 @@
 import { isBrowser } from "@banjoanton/utils";
-import pino, { TransportTargetOptions } from "pino";
+import pino from "pino";
 import { Env } from "../env";
 // * Pino import needs to be default to work in the browser
 // * This file cannot parse with Env.server() because this file is loaded before the .env file.
@@ -16,53 +16,27 @@ export const createLogger = (name: string) => {
         return pino({ name, level: clientVariables.VITE_LOG_LEVEL || "info" });
     }
 
-    const targets: TransportTargetOptions[] = [
-        {
-            target: "pino-pretty",
-            options: {
-                colorize: true,
-                ignore: "hostname,pid",
-            },
-            level: "trace",
-        },
-    ];
-
-    // const env = Env.server();
-
-    // if (env.NODE_ENV === "production") {
-    //     const DATASET = env.AXIOM_DATASET;
-    //     const AXIOM_TOKEN = env.AXIOM_TOKEN;
-
-    //     targets.push({
-    //         target: "@axiomhq/pino",
-    //         options: {
-    //             dataset: DATASET,
-    //             token: AXIOM_TOKEN,
-    //         },
-    //         level: "trace",
-    //     });
-    // }
-
-    // use shared transports to avoid memory leaks
-    if (!sharedTransport) {
-        sharedTransport = pino.transport({
-            targets,
-        });
-    }
-
     const env = Env.allServer();
-
-    const base = {
-        env: env.NODE_ENV,
+    const options = {
+        name,
+        level: env.LOG_LEVEL || "info",
+        base: { env: env.NODE_ENV },
+        errorKey: "error",
     };
 
-    return pino(
-        {
-            name,
-            level: env.LOG_LEVEL || "info",
-            base,
-            errorKey: "error",
-        },
-        sharedTransport
-    );
+    // Plain JSON lines in production, for the log collector; readable lines when developing
+    if (env.NODE_ENV === "production") return pino(options);
+
+    // One transport for every logger, as each starts a worker thread
+    sharedTransport ??= pino.transport({
+        targets: [
+            {
+                target: "pino-pretty",
+                options: { colorize: true, ignore: "hostname,pid" },
+                level: "trace",
+            },
+        ],
+    });
+
+    return pino(options, sharedTransport);
 };

@@ -13,7 +13,7 @@ import { getFlagTags } from "./flag-names";
 import { getIconSet, ICON_SETS, IconCollection, IconSet, IconSetId } from "./icon-sets";
 
 /** Icons per row in the palette's grids */
-export const GRID_COLUMNS = 10;
+const GRID_COLUMNS = 10;
 /** Icons shown in a preview of a set or category, before "Show all" */
 const PREVIEW_COUNT = GRID_COLUMNS * 2;
 const RECENT_COUNT = GRID_COLUMNS;
@@ -33,7 +33,7 @@ export type Section = {
     loading?: boolean;
 };
 
-export type SectionInput = {
+type SectionInput = {
     scope: Scope;
     query: string;
     recents: Item[];

@@ -1,63 +1,15 @@
-import {
-    GetObjectCommand,
-    HeadObjectCommand,
-    ListBucketsCommand,
-    ListObjectsV2Command,
-    PutObjectCommand,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { toSeconds, wrapAsync } from "@banjoanton/utils";
 import { createLogger, Env, Result } from "common";
 import { S3 } from "../providers/bucket-provider";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PresignedUrlResult } from "../model/bucket/presigned-url-result";
-import { Bucket } from "../model/bucket/bucket";
-import { BucketFile } from "../model/bucket/bucket-file";
 
 const env = Env.server();
 const logger = createLogger("bucket-service");
 
 const BUCKET_NAME = env.CLOUDFLARE_BUCKET_NAME;
 const EXPIRE_TIME_SECONDS = toSeconds({ minutes: 1 });
-
-const listAllBuckets = async () => {
-    const command = new ListBucketsCommand();
-
-    const [response, error] = await wrapAsync(() => S3.send(command));
-
-    if (error) {
-        logger.error({ error }, "Could not list buckets");
-        return Result.error(error.message);
-    }
-
-    if (!response.Buckets) {
-        logger.error("No buckets found");
-        return Result.ok([]);
-    }
-
-    const buckets = response.Buckets.map(Bucket.fromAwsBucket);
-
-    return Result.ok(buckets);
-};
-
-const listAllFiles = async () => {
-    const command = new ListObjectsV2Command({ Bucket: BUCKET_NAME });
-
-    const [response, error] = await wrapAsync(() => S3.send(command));
-
-    if (error) {
-        logger.error({ error }, "Could not list buckets");
-        return Result.error(error.message);
-    }
-
-    if (!response.Contents) {
-        logger.trace("No files found");
-        return Result.ok([]);
-    }
-
-    const files = response.Contents.map(BucketFile.fromAwsContent);
-
-    return Result.ok(files);
-};
 
 const addFile = async (file: Buffer, key: string, mimeType: string) => {
     const command = new PutObjectCommand({
@@ -177,8 +129,6 @@ const generateMultiplePresignedUrlsForRead = async (keys: string[]) => {
 };
 
 export const BucketService = {
-    listAllBuckets,
-    listAllFiles,
     addFile,
     generatePresignedUrlForRead,
     generatePresignedUrlForWrite,

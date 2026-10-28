@@ -3,7 +3,7 @@ import { ExcalidrawApi } from "common";
 import { createContext, PropsWithChildren, useContext, useState } from "react";
 import React from "react";
 
-export interface GlobalContextInterface {
+interface GlobalContextInterface {
     excalidrawApi: Maybe<ExcalidrawApi>;
     setExcalidrawApi: React.Dispatch<React.SetStateAction<Maybe<ExcalidrawApi>>>;
 }

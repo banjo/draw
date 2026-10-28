@@ -2,10 +2,9 @@
     "name": "api",
     "version": "1.0.0",
     "description": "",
-    "main": "src/index.ts",
     "type": "module",
     "scripts": {
-        "run": "tsx run src/server.ts",
+        "start": "node dist/server.cjs",
         "dev": "tsx watch src/server.ts",
         "build": "tsup",
         "clean": "rimraf node_modules dist",
@@ -13,7 +12,7 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "devDependencies": {
         "@banjoanton/utils": "^0.1.93",
         "@types/cors": "^2.8.17",

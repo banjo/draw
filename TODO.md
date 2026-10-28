@@ -623,26 +623,40 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 
 ## 13. Cleanup, CI, and tests
 
-- [ ] **CI:** add a GitHub Actions workflow that runs `pnpm install --frozen-lockfile`,
-      typecheck, lint, and build. Add Renovate or Dependabot.
-- [ ] **Tests:** `packages/common` (merge) and `packages/server` (`DrawingEmitter`) have vitest
-      and tests. Add a root `test` script and run it in CI.
-- [ ] **Lint:** only `apps/web` has a `lint` script.
-- [ ] **Dead code:** `config/site.ts`, `DrawingUtil.isOnlyMouseChange`,
-      `debouncedSaveDrawing`, `BucketService.listAllBuckets`/`listAllFiles`,
-      `BucketKey.parseString`, `runtime.ts`, `apps/api/src/utils.ts`, and unused `ui`
-      components (`Animated`, `Dropdown`, `Card`, `Dialog`, `RadioGroup`). Run `knip` for
-      more.
-- [ ] **Naming:** `SmartCopyKeyDialog` lives in `change-element-key-dialog.tsx` and the other
-      way around.
-- [ ] **Imports:** `drawing-emitter.ts` imports `../../../common/src/...` instead of `common`.
-- [ ] **Logger:** `pino-pretty` runs in production, and `context-logger.ts` spreads an array
-      into `"0"`, `"1"` keys.
-- [ ] **Small fixes:** `apps/api/package.json` has `"main": "src/index.ts"` (doesn't exist) and
-      a `run` script with a wrong tsx command. `scripts/db.mjs` checks for `localhost` in the
-      URL to decide it's safe. `.prettierignore` doesn't list `pnpm-lock.yaml`.
-- [ ] **License:** root and api say ISC, the packages say MIT, and there's no `LICENSE` file.
-      Pick one, add the file, and add it to the README.
+- [x] **CI:** `.github/workflows/ci.yml` runs `pnpm install --frozen-lockfile`, typecheck,
+      lint, tests, and build on pushes to `main` and on pull requests, in one job of two to
+      four minutes. The migration tests (Docker) run in `migrations.yml`, only when
+      `packages/db` changes. Dependabot opens weekly pull requests for npm, minor and patch
+      updates grouped, and monthly ones for the actions.
+- [x] **Tests:** a root `pnpm test` runs the vitest suites in `common` and `server` through
+      Turborepo.
+- [x] **Lint:** a root `pnpm lint` lints the whole repository with the shared config, in place
+      of `lint:all`, which only reached `apps/web`. Fixed its one error (`db/src/ensure.ts`)
+      and a few unused imports.
+- [x] **Dead code:** removed `config/site.ts`, `lib/utils.ts`, `DrawingUtil.isOnlyMouseChange`,
+      `BucketService.listAllBuckets`/`listAllFiles` with their models, `BucketKey.parseString`,
+      the unused `ui` components (`Animated`, `Dropdown`, `DropdownRow`, `EditableLabel`,
+      `Card`, `Dialog`, `Switch`, `Label`, `RadioGroup`), `apps/web/vercel.json`, and
+      `packages/scripts` (the finished move of images to the bucket). From `knip`: exports
+      used only in their own file, and the dependencies nothing imports (web: Radix, cva,
+      clsx, framer-motion, tailwind-merge, tailwindcss-animate, which `ui` has; `ui`: the
+      removed components' packages; `common`: dotenv; `server`: `@trpc/client`; root: zx).
+      `debouncedSaveDrawing`, `runtime.ts`, and `apps/api/src/utils.ts` were already gone.
+- [x] **Naming:** `SmartCopyKeyDialog` and `ChangeElementKeyDialog` are in files of their own
+      names.
+- [x] **Imports:** `drawing-emitter.ts` already imports `common`.
+- [x] **Logger:** production logs plain JSON lines, and `pino-pretty` only runs when
+      developing. Extra arguments go under `args` instead of `"0"`, `"1"` keys, and a logged
+      object's fields are no longer overwritten by empty request fields (`userId`).
+- [x] **Small fixes:** `apps/api` has no `main` and a `start` script (`node dist/server.cjs`)
+      in place of the broken `run`; the root has no `main`. `scripts/db.mjs` checks that the
+      database host is local, instead of looking for "localhost" anywhere in the URL.
+      `.prettierignore` lists `pnpm-lock.yaml`.
+- [x] **License:** MIT everywhere, with a `LICENSE` file and a section in the README.
+- [x] Tested (Oct 28): the CI steps in a clean checkout without `.env` files (install, type
+      check, lint with 0 errors, tests, build, and the 16 migration tests), `actionlint` on the
+      workflow, the API's Docker image starting healthy with JSON logs, dev logs still pretty,
+      and the app's menus, sidebar, and ⋯ menus without console errors.
 
 ## 14. Code blocks and export
 

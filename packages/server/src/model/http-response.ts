@@ -1,6 +1,5 @@
 import { Response as IResponse } from "express";
 import { CoreResponse, CoreResponseError, CoreResponseMetadata, CoreResponseSuccess } from "common";
-import ck from "cookie";
 
 type BaseProps = {
     res: IResponse;

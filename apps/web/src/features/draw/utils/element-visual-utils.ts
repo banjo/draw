@@ -19,7 +19,7 @@ import {
 import { CustomDataUtil } from "./custom-data-util";
 import React from "react";
 
-export type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
+type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
 
 const smartCopy = (excalidrawApi: ExcalidrawApi) => {
     const elements = excalidrawApi.getSceneElements();

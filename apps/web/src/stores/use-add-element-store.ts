@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 /** "pointer" adds where the mouse is, "center" in the middle of the screen */
-export type AddElementPlacement = "pointer" | "center";
+type AddElementPlacement = "pointer" | "center";
 
 type AddElementStore = {
     isOpen: boolean;

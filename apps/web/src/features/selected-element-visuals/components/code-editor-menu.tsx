@@ -17,7 +17,7 @@ type Props = {
     element: ExcalidrawElement;
 };
 
-export const CUSTOM_CODEBLOCK_MENU_ID = "custom-codeblock-menu";
+const CUSTOM_CODEBLOCK_MENU_ID = "custom-codeblock-menu";
 
 export const initCodeblockMenuElement = () => {
     ExcalidrawUtil.createCustomNativeElement(

@@ -55,7 +55,7 @@ const getPositionFromBounds = (bounds: Bounds) => {
     return positions;
 };
 
-export type BoundsPositions = ReturnType<typeof getPositionFromBounds>;
+type BoundsPositions = ReturnType<typeof getPositionFromBounds>;
 
 const getPositionFromElement = (element: ExcalidrawElement) => {
     const bounds = ExcalidrawUtil.getCommonBounds([element]);
@@ -69,7 +69,7 @@ const getPositionFromElement = (element: ExcalidrawElement) => {
     };
 };
 
-export type ElementPosition = ReturnType<typeof getPositionFromElement>;
+type ElementPosition = ReturnType<typeof getPositionFromElement>;
 
 const getPositionFromElements = (elements: ExcalidrawElements) => {
     const elementPositions = elements.map(element => getPositionFromElement(element));
@@ -88,7 +88,7 @@ const getPositionFromElements = (elements: ExcalidrawElements) => {
     };
 };
 
-export type ElementsPosition = ReturnType<typeof getPositionFromElements>;
+type ElementsPosition = ReturnType<typeof getPositionFromElements>;
 
 const closestElementMap: Record<
     ArrowKey,
@@ -125,7 +125,7 @@ const getClosestElement = (direction: ArrowKey, selectedElements: ExcalidrawElem
     return selectedElements.find(element => element.id === elementToConnectPosition.id);
 };
 
-export type ArrowOptions = {
+type ArrowOptions = {
     startX: number;
     startY: number;
     relativeEndPoint: IPoint;

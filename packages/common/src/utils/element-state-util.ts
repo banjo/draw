@@ -1,6 +1,4 @@
-import { Board } from "../model/board";
 import { BoardDeltaUpdate } from "../model/board-delta-update";
-import { ExcalidrawSimpleElement } from "../model/excalidraw-simple-element";
 
 /**
  * Apply a delta update to the locked elements, updating them with new locked elements

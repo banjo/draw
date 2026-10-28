@@ -1,30 +1,4 @@
-import { ElementUtil } from "@/features/draw/utils/element-util";
-import { isEqual } from "@banjoanton/utils";
-import { AppState } from "@excalidraw/excalidraw/types";
-import { ElementMeasurement, ExcalidrawApi, ExcalidrawElements } from "common";
-
-type IsOnlyMouseChangeProps = {
-    elements: ExcalidrawElements;
-    appState: AppState;
-    excalidrawApi: ExcalidrawApi;
-};
-
-// TODO: is this correct?
-const isOnlyMouseChange = ({ elements, excalidrawApi, appState }: IsOnlyMouseChangeProps) => {
-    const oldElements = excalidrawApi.getSceneElements();
-    const oldAppState = excalidrawApi.getAppState();
-
-    if (elements.length !== oldElements.length) return false;
-
-    const allNewElements = ElementUtil.removeDeletedElements(elements);
-    const allOldElements = ElementUtil.removeDeletedElements(oldElements);
-    const elementsUpdated = !isEqual(allNewElements, allOldElements);
-
-    if (elementsUpdated) return false;
-
-    const stateUpdated = !isEqual(oldAppState, appState);
-    return !stateUpdated;
-};
+import { ElementMeasurement } from "common";
 
 const focusCanvas = () => {
     const element = document.querySelector<HTMLDivElement>(".excalidraw");
@@ -41,7 +15,6 @@ const isElementTooSmall = (element: ElementMeasurement, zoomLevel: number, min: 
 };
 
 export const DrawingUtil = {
-    isOnlyMouseChange,
     focusCanvas,
     isElementTooSmall,
 };

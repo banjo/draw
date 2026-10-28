@@ -64,4 +64,4 @@ app.use(errorMiddleware);
 
 const server = createServer(app);
 
-export { app, PORT, server };
+export { PORT, server };

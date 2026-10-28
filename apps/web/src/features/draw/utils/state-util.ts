@@ -42,8 +42,8 @@ const dragElement = (state: Mutable<AppState>, element: ExcalidrawElement) => {
 const helpers = { clearBindings, setActiveTool, arrowActiveToolDefaultSettings, dragElement };
 
 type UpdateHelpers = typeof helpers;
-export type UpdateCallback = (state: Mutable<AppState>, helpers: UpdateHelpers) => AppState;
-export type MutateCallback = (state: Mutable<AppState>, helpers: UpdateHelpers) => void;
+type UpdateCallback = (state: Mutable<AppState>, helpers: UpdateHelpers) => AppState;
+type MutateCallback = (state: Mutable<AppState>, helpers: UpdateHelpers) => void;
 
 const updateState = (state: AppState, callback: UpdateCallback): AppState =>
     produce(state, draft => callback(draft, helpers));

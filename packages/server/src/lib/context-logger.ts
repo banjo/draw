@@ -9,6 +9,9 @@ const getNamespace = () => ({
     isWS: NodeContext.getIsWS(),
 });
 
+/** Extra arguments under one key, instead of spread into "0", "1", ... */
+const withArgs = (args: unknown[]) => (args.length > 0 ? { args } : {});
+
 type LogFnWithString = (msg: string, ...args: unknown[]) => void;
 type LogFnWithObject = (obj: object, msg: string, ...args: unknown[]) => void;
 type LogFn = LogFnWithString & LogFnWithObject;
@@ -33,13 +36,13 @@ class ContextLogger implements ILogger {
         const namespace = getNamespace();
 
         if (typeof objOrMsg === "string") {
-            this.logger[level]({ ...namespace, ...args }, objOrMsg);
+            this.logger[level]({ ...namespace, ...withArgs(args) }, objOrMsg);
             return;
         }
 
         const [msg, ...restArgs] = args;
         invariant(typeof msg === "string", "Expected message to be a string");
-        this.logger[level]({ ...objOrMsg, ...namespace, ...restArgs }, msg);
+        this.logger[level]({ ...namespace, ...objOrMsg, ...withArgs(restArgs) }, msg);
     }
 
     public trace(obj: object, msg?: string, ...args: unknown[]): void;

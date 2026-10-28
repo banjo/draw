@@ -27,4 +27,4 @@ const closeWss = () => {
     logger.info("🛑 WebSocket Server closed");
 };
 
-export { closeWss, handler, wss };
+export { closeWss, wss };

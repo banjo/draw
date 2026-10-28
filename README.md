@@ -47,7 +47,8 @@ OAuth.
 ```bash
 pnpm build        # Build all apps.
 pnpm typecheck    # Type check everything.
-pnpm lint:all     # Lint everything.
+pnpm lint         # Lint everything.
+pnpm test         # Run the tests.
 pnpm db:reset     # Recreate the database. This removes all data.
 ```
 
@@ -61,4 +62,9 @@ The repository is a [pnpm workspace](https://pnpm.io/workspaces) run with
 
 ## Contributing
 
-Pull requests and issues are welcome.
+Pull requests and issues are welcome. GitHub Actions type checks, lints, tests, and builds
+every pull request.
+
+## License
+
+[MIT](LICENSE)
