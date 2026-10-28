@@ -9,3 +9,8 @@ onlyBuiltDependencies:
     - esbuild
     - prisma
     - unrs-resolver
+
+# Draws BanjoDraw's own shapes, like a hexagon or cloud, for rectangles that are one. Redo
+# the patch when upgrading Excalidraw (see apps/web/src/features/draw/utils/custom-shape-util.ts).
+patchedDependencies:
+    "@excalidraw/excalidraw@0.18.1": patches/@excalidraw__excalidraw@0.18.1.patch
