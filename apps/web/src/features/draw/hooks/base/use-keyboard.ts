@@ -28,7 +28,7 @@ const isModifierPressed = (event: { metaKey: boolean; ctrlKey: boolean }) =>
     IS_MAC ? event.metaKey : event.ctrlKey;
 
 /** Typing in the code editor, a rename field, or another input */
-const isTypingTarget = (target: EventTarget) =>
+export const isTypingTarget = (target: EventTarget | null) =>
     target instanceof HTMLElement &&
     (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
 
@@ -37,7 +37,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
     const [shadowElements, setShadowElements] = useState<Maybe<ElementExtensionShadow>>(undefined);
     const setShowVisualElements = useVisualElementStore(state => state.setShowVisualElements);
     const setMetaKeyIsDown = useVisualElementStore(state => state.setMetaKeyIsDown);
-    const setShowAddElementMenu = useAddElementStore(state => state.setShowAddElementMenu);
+    const openAddElementMenu = useAddElementStore(state => state.open);
     const isEditingCode = useCodeEditorStore(state => state.editingElementId !== undefined);
     const setEditingCodeBlockId = useCodeEditorStore(state => state.setEditingElementId);
 
@@ -114,7 +114,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         if (addElementKeybindingPressed) {
             // do not send key event to new menu input
             setTimeout(() => {
-                setShowAddElementMenu(true);
+                openAddElementMenu("pointer");
             }, 100);
             return;
         }

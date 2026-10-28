@@ -20,7 +20,7 @@
 - 🧱 Custom elements: database models, code blocks with syntax highlighting, and smart copy and
   extend
 - 🖼️ Upload, share, and manage images right on the board
-- ⚡️ Add icons and emojis in one click
+- ⚡️ Add shapes, logos, emojis, flags, and thousands of icons from one search (⌘K)
 - ✏️ Everything else is plain Excalidraw, so it works the way you already know
 
 ## Getting started

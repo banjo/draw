@@ -1,3 +1,4 @@
+import { Hint, Keys } from "@/components/keys";
 import { Modal } from "@/components/modal";
 import { Highlight } from "@/features/collection/components/highlight";
 import { DrawingPreview } from "@/features/collection/components/palette/drawing-preview";
@@ -66,19 +67,6 @@ const getFolderToEnter = (tree: CollectionTree, item: Item | undefined) => {
     if (!item) return null;
     return "folder" in item ? item.folder.id : tree.folderOf(item.drawing);
 };
-
-const Keys = ({ keys }: { keys: string[] }) => (
-    <span className="inline-flex gap-1">
-        {keys.map(key => (
-            <kbd
-                key={key}
-                className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-black/10 bg-white px-1 font-sans text-[11px] font-semibold text-zinc-500 shadow-[0_1px_0_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-zinc-800 dark:text-zinc-400"
-            >
-                {key}
-            </kbd>
-        ))}
-    </span>
-);
 
 const Detail = ({ label, children }: { label: string; children: ReactNode }) => (
     <>
@@ -231,12 +219,6 @@ const NoResults = ({ query, onCreate }: { query: string; onCreate: () => void })
             </button>
         ) : null}
     </div>
-);
-
-const Hint = ({ keys, children }: { keys: string[]; children: ReactNode }) => (
-    <span className="flex items-center gap-1.5">
-        <Keys keys={keys} /> {children}
-    </span>
 );
 
 /** Find a drawing in the collection by name, and open it */

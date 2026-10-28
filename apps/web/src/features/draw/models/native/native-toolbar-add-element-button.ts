@@ -1,4 +1,5 @@
 import { logger } from "@/utils/logger";
+import { formatShortcut } from "@/utils/platform";
 import { NativeToolbarButton } from "./native-toolbar-button";
 
 const ADD_ELEMENT_ID = "add-element-button";
@@ -35,7 +36,7 @@ class NativeToolbarAddElementButtonClass {
     public create({ onClick }: { onClick: () => void }) {
         this.element = NativeToolbarButton.create({
             id: ADD_ELEMENT_ID,
-            title: "Add element",
+            title: `Add element — + or ${formatShortcut("K")}`,
             icon: createPlusIcon(),
             keybinding: this.keybinding,
             onClick,

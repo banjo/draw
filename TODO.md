@@ -722,3 +722,31 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       drawings, removing and undo, pinning, the palette's keys and preview, a new drawing from
       the palette, light and dark, a narrow window, and the API refusing unknown folders,
       loops, blank names, and unknown colors.
+
+## 17. Adding shapes and icons
+
+- [x] The + button, the + key, and now ⌘K / Ctrl+K open a palette for adding things, chosen
+      from five mockups (Spotlight), in place of the small box with five results. Chips pick
+      everything, shapes, blocks, or icons, and in icons a set. Enter on a set, or on the
+      "+108" tile at the end of a preview, opens it, down to a set's categories (Emojis by
+      Smileys, Animals, and so on); Escape or Backspace goes back to where it was opened, on the
+      same row. Tab and Shift+Tab move like the arrows. Icons show in grids, shapes and blocks as rows with a small sketch. Search
+      also finds them by tags, so "database" finds Model. "Recently used" is kept between
+      visits.
+- [x] Nine icon sets: Logos, Tech stack (skill-icons), Files (vscode-icons), Emojis, Flags,
+      Round flags, General (Carbon), Outline (Tabler), and Colorful (Fluent). Sets with the
+      same icon in sizes or light and dark show one of each.
+- [x] ⌘K adds at the mouse, the button in the middle of the screen (now right when zoomed).
+      Shift+Enter adds and keeps the palette open, each next one beside the last. Icons keep
+      their shape instead of being squeezed into a square. ⌘K was Excalidraw's "Add link",
+      which is still in the element's actions.
+- [x] Icons are loaded in batches of up to 80 per request, instead of one request per icon,
+      and fall back to Iconify's other hosts when one fails or limits requests. Whole sets
+      show a part at a time as you scroll. Flags are searched by country name in the browser,
+      as Iconify only knows their codes ("sweden" found nothing).
+- [x] Tested (Oct 28): the button, + and ⌘K, ⌘K again to close, every chip, opening the
+      icons, a set, a category and a "+108" tile, Escape and Backspace back onto the same row
+      (also with a search, and three levels deep), Tab and Shift+Tab,
+      search in all and in a set, flags by name, Shift+Enter three times, a model in the
+      middle, a code block at the mouse opening its editor, tall and wide logos staying in
+      their tiles, scrolling through all 2,043 logos, light and dark, and a narrow window.

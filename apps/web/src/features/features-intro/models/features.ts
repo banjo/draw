@@ -27,9 +27,8 @@ export const FEATURES: Feature[] = [
         id: "add-element",
         title: "Add shapes and icons",
         short: "Shapes, code, models, and thousands of icons.",
-        description:
-            "Search shapes, code blocks, models, and thousands of icons, logos, and emojis. It's also the + in the toolbar.",
-        keys: ["+"],
+        description: `Search shapes, code blocks, models, and thousands of logos, emojis, flags, and icons, or browse one set. ${MODIFIER_LABEL} K adds it where the mouse is. It's also the + in the toolbar.`,
+        keys: [MODIFIER_LABEL, "K"],
     },
     {
         id: "smart-copy",
