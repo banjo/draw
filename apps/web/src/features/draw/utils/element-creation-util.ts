@@ -33,6 +33,23 @@ const createElementFromSkeleton = (skeleton: ExcalidrawElementSkeleton): Excalid
 const createElementsFromSkeleton = (skeleton: ExcalidrawElementSkeleton[]) =>
     convertToExcalidrawElements(skeleton);
 
+/**
+ * Excalidraw expects a line's first point at 0,0, with x and y where it starts, and logs an
+ * error for each one that isn't. Creating one from a skeleton can shift the points.
+ */
+const normalizePoints = (element: ExcalidrawElement): ExcalidrawElement => {
+    if (!ExcalidrawUtil.isLinearElement(element)) return element;
+    const [offsetX, offsetY] = element.points[0] ?? [0, 0];
+    if (offsetX === 0 && offsetY === 0) return element;
+
+    return {
+        ...element,
+        x: element.x + offsetX,
+        y: element.y + offsetY,
+        points: element.points.map(([x, y]) => [x - offsetX, y - offsetY]),
+    } as ExcalidrawLinearElement;
+};
+
 type LinearElementBase = {
     x: number;
     y: number;
@@ -55,7 +72,7 @@ const createLinearElement = (
         }),
     };
 
-    const createdElement = createElementFromSkeleton(arrow);
+    const createdElement = normalizePoints(createElementFromSkeleton(arrow));
 
     if (!ExcalidrawUtil.isLinearElement(createdElement)) {
         throw new Error("Something wrong when creating arrow");

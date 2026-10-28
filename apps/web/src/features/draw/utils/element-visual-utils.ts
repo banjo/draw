@@ -7,19 +7,21 @@ import { ElementPositionUtil } from "@/features/draw/utils/element-position-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { clone, first, Maybe, produce } from "@banjoanton/utils";
+import { first, includes, Maybe, produce } from "@banjoanton/utils";
+import { PointBinding } from "@excalidraw/excalidraw/element/types";
+import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import {
     CustomData,
     CustomElementType,
     ElementMeasurement,
     ExcalidrawApi,
     ExcalidrawElement,
+    ExcalidrawLinearElement,
     ExcalidrawTextElement,
 } from "common";
 import { CustomDataUtil } from "./custom-data-util";
-import React from "react";
 
-type KeyboardEvent = React.KeyboardEvent<HTMLDivElement>;
+const COPY_OFFSET = 50;
 
 const smartCopy = (excalidrawApi: ExcalidrawApi) => {
     const elements = excalidrawApi.getSceneElements();
@@ -57,127 +59,79 @@ const smartCopy = (excalidrawApi: ExcalidrawApi) => {
         return;
     }
 
-    type HandledBoundElements = {
-        oldId: string;
-        newId: string;
-        newElement: ExcalidrawElement;
+    // The copies get new ids. Bindings between copied elements, like an arrow between two
+    // shapes or a shape's label, point to the copies; bindings to anything else are dropped.
+    const idMap = new Map(
+        selectedElements.map(element => [element.id, ElementUtil.createElementId()])
+    );
+    const groupIdMap = new Map<string, string>();
+    const copyGroupId = (groupId: string) => {
+        const existing = groupIdMap.get(groupId);
+        if (existing) return existing;
+        const created = ElementUtil.createElementId();
+        groupIdMap.set(groupId, created);
+        return created;
     };
-    const handledBoundElements: HandledBoundElements[] = [];
-
-    type GroupIds = {
-        oldId: string;
-        newId: string;
+    const copyBinding = (binding: Maybe<PointBinding> | null) => {
+        const elementId = binding && idMap.get(binding.elementId);
+        return binding && elementId ? { ...binding, elementId } : null;
     };
-    const groupedIds: GroupIds[] = [];
 
-    const copiedElements = selectedElements.map(element => {
-        const boundElementsIds = element.boundElements?.map(bound => bound.id) ?? [];
-        const boundTextElements = ElementUtil.getElementsByIds(elements, boundElementsIds).filter(
-            e => e.type === "text"
-        );
-        const currentGroupIds = element.groupIds;
-        const cloned = clone(element);
-        const updatedMainElement = ElementUtil.resetElement(cloned);
-
-        const updatedBoundElements = boundTextElements.map(boundElement => {
-            const cloned = clone(boundElement);
-            const updatedBoundElement = ElementUtil.resetElement(cloned) as ExcalidrawTextElement;
-
-            UpdateElementUtil.mutateElement(updatedBoundElement, (draft, helpers) => {
-                draft.containerId = updatedMainElement.id;
+    const copies = selectedElements.map(element =>
+        UpdateElementUtil.updateElement(element, draft => {
+            draft.id = idMap.get(element.id) ?? ElementUtil.createElementId();
+            draft.x += COPY_OFFSET;
+            draft.y += COPY_OFFSET;
+            draft.groupIds = element.groupIds.map(copyGroupId);
+            draft.boundElements = (element.boundElements ?? []).flatMap(bound => {
+                const id = idMap.get(bound.id);
+                return id ? [{ ...bound, id }] : [];
             });
 
-            handledBoundElements.push({
-                oldId: boundElement.id,
-                newId: updatedBoundElement.id,
-                newElement: updatedBoundElement,
-            });
-            return updatedBoundElement;
-        });
+            if (ExcalidrawUtil.isTextElement(element)) {
+                const text = draft as Mutable<ExcalidrawTextElement>;
+                text.containerId = (element.containerId && idMap.get(element.containerId)) ?? null;
+            }
+            if (ExcalidrawUtil.isLinearElement(element)) {
+                const linear = draft as Mutable<ExcalidrawLinearElement>;
+                linear.startBinding = copyBinding(element.startBinding);
+                linear.endBinding = copyBinding(element.endBinding);
+            }
+            return draft;
+        })
+    );
 
-        UpdateElementUtil.mutateElement(updatedMainElement, (draft, helpers) => {
-            helpers.addBoundElements(
-                draft,
-                updatedBoundElements.map(e => ({ id: e.id, type: e.type }))
-            );
-
-            currentGroupIds.forEach(groupId => {
-                const alreadyExists = groupedIds.find(g => g.oldId === groupId);
-
-                if (alreadyExists) {
-                    draft.groupIds = [...draft.groupIds, alreadyExists.newId];
-                    return;
-                }
-
-                const newGroupId = ElementUtil.createElementId();
-                groupedIds.push({ oldId: groupId, newId: newGroupId });
-                draft.groupIds = [...draft.groupIds, newGroupId];
-            });
-        });
-
-        return updatedMainElement;
-    });
-
-    const allNewElements = [...copiedElements, ...handledBoundElements.map(e => e.newElement)];
-
-    UpdateElementUtil.mutateElements(allNewElements, element => {
-        element.x += 50;
-        element.y += 50;
-    });
-
-    // do not include bound elements in the selection
-    const { updatedState } = ElementUtil.createNewElementSelection(copiedElements, state);
+    // Labels aren't selected on their own
+    const { updatedState } = ElementUtil.createNewElementSelection(
+        copies.filter(element => !ElementUtil.isBoundText(element)),
+        state
+    );
 
     excalidrawApi.updateScene({
-        elements: [...elements, ...allNewElements],
+        elements: [...elements, ...copies],
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         appState: updatedState,
     });
 };
 
-export type ElementExtensionShadow = { arrowId: string; elementId: string; selectedId: string };
+export type ElementExtensionShadow = {
+    arrowId: string;
+    elementId: string;
+    selectedId: string;
+    direction: ArrowKey;
+};
 
-const createElementExtensionShadow = (
-    direction: ArrowKey,
-    excalidrawApi: ExcalidrawApi,
-    shadowElements: Maybe<ElementExtensionShadow>
-): Maybe<ElementExtensionShadow> => {
-    const sceneElements = excalidrawApi.getSceneElements();
-    const state = excalidrawApi.getAppState();
-
-    let elements = sceneElements;
-    if (shadowElements) {
-        elements = ElementUtil.removeShadowElementsById(sceneElements, shadowElements);
-    }
-
-    const selectedElements = ElementUtil.getSelectedElements(state, elements);
-    if (selectedElements.length === 0) return;
-
-    if (shadowElements) {
-        selectedElements.forEach(selected => {
-            UpdateElementUtil.mutateElement(selected, (draft, helpers) => {
-                helpers.removeBoundElements(draft, [shadowElements.arrowId]);
-            });
-        });
-    }
-
-    const sourceElement = ElementPositionUtil.getClosestElement(direction, selectedElements);
-    if (!sourceElement) return;
-
+/**
+ * A new shape next to the source, with an arrow to it. The preview (shadow) isn't bound to
+ * anything; the real one binds the arrow to both shapes.
+ */
+const createExtension = (direction: ArrowKey, source: ExcalidrawElement, shadow: boolean) => {
     const arrowId = ElementUtil.createElementId();
-
-    UpdateElementUtil.mutateElement(sourceElement, (draft, helpers) => {
-        helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
-    });
-
-    const arrowOptions = ElementPositionUtil.getArrowOptionsFromSourceElement(
-        direction,
-        sourceElement
-    );
+    const arrowOptions = ElementPositionUtil.getArrowOptionsFromSourceElement(direction, source);
 
     const measurements = ElementMeasurement.from({
-        height: Math.max(sourceElement.height, MIN_ELEMENT_HEIGHT),
-        width: Math.max(sourceElement.width, MIN_ELEMENT_WIDTH),
+        height: Math.max(source.height, MIN_ELEMENT_HEIGHT),
+        width: Math.max(source.width, MIN_ELEMENT_WIDTH),
     });
 
     const { x, y } = ElementPositionUtil.getAddedElementOptions(
@@ -186,7 +140,13 @@ const createElementExtensionShadow = (
         measurements
     );
 
-    const newElement = ElementCreationUtil.createElement({
+    const style = (draft: Mutable<ExcalidrawElement>) => {
+        if (!shadow) return;
+        draft.opacity = 50;
+        draft.strokeStyle = "dashed";
+    };
+
+    const element = ElementCreationUtil.createElement({
         base: {
             height: measurements.height,
             width: measurements.width,
@@ -194,16 +154,11 @@ const createElementExtensionShadow = (
             y,
             type: "rectangle",
         },
-        props: {
-            strokeStyle: "dashed",
-            customData: {
-                shadow: true,
-            },
-        },
         callback: (draft, helpers) => {
             helpers.defaultSettings(draft);
-            helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
-            draft.opacity = 50;
+            draft.customData = CustomData.createDefault({ shadow, type: "rectangle" });
+            style(draft);
+            if (!shadow) helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
             return draft;
         },
     });
@@ -217,80 +172,94 @@ const createElementExtensionShadow = (
         },
         (draft, helpers) => {
             draft.id = arrowId;
-            draft.opacity = 50;
-            draft.strokeStyle = "dashed";
-            draft.customData = CustomData.createDefault({ shadow: true, type: "arrow" });
-            helpers.addArrowBindings(draft, {
-                startId: sourceElement.id,
-                endId: newElement.id,
-            });
+            draft.customData = CustomData.createDefault({ shadow, type: "arrow" });
+            style(draft);
+            if (!shadow) {
+                helpers.addArrowBindings(draft, { startId: source.id, endId: element.id });
+            }
             return draft;
         }
     );
 
-    excalidrawApi.updateScene({
-        elements: [...elements, arrow, newElement],
-    });
+    const updatedSource = shadow
+        ? source
+        : UpdateElementUtil.updateElement(source, (draft, helpers) => {
+              helpers.addBoundElements(draft, [{ id: arrowId, type: "arrow" }]);
+              return draft;
+          });
 
-    return {
-        arrowId,
-        elementId: newElement.id,
-        selectedId: sourceElement.id,
-    };
+    return { arrow, element, source: updatedSource };
 };
 
-// TODO: remove bound elements when arrow is no longer visible
+/** Shows where ⌘/Ctrl+arrow, or an extend button, would add a shape */
+const createElementExtensionShadow = (
+    direction: ArrowKey,
+    excalidrawApi: ExcalidrawApi,
+    shadowElements: Maybe<ElementExtensionShadow>
+): Maybe<ElementExtensionShadow> => {
+    const sceneElements = excalidrawApi.getSceneElements();
+    const elements = shadowElements
+        ? ElementUtil.removeShadowElementsById(sceneElements, shadowElements)
+        : sceneElements;
+
+    const selectedElements = ElementUtil.getSelectedElements(
+        excalidrawApi.getAppState(),
+        elements
+    ).filter(element => !ElementUtil.isBoundText(element));
+
+    const source = ElementPositionUtil.getClosestElement(direction, selectedElements);
+    if (!source) return;
+
+    const { arrow, element } = createExtension(direction, source, true);
+
+    // Left out of undo: the preview is removed, and replaced when it's confirmed
+    excalidrawApi.updateScene({
+        elements: [...elements, arrow, element],
+        captureUpdate: CaptureUpdateAction.EVENTUALLY,
+    });
+
+    return { arrowId: arrow.id, elementId: element.id, selectedId: source.id, direction };
+};
+
+/** Removes the preview, e.g. when it's cancelled */
+const removeElementExtensionShadow = (
+    shadow: ElementExtensionShadow,
+    excalidrawApi: ExcalidrawApi
+) => {
+    excalidrawApi.updateScene({
+        elements: ElementUtil.removeShadowElementsById(excalidrawApi.getSceneElements(), shadow),
+        captureUpdate: CaptureUpdateAction.EVENTUALLY,
+    });
+};
+
+/**
+ * Replaces the preview with a real shape and arrow. They get new ids, as undo only tracks
+ * elements it has seen being added, and the preview was left out of it.
+ */
 const createElementExtensionFromShadow = (
     shadow: ElementExtensionShadow,
     excalidrawApi: ExcalidrawApi
 ) => {
-    const elements = excalidrawApi.getSceneElements();
-    const state = excalidrawApi.getAppState();
+    const elements = ElementUtil.removeShadowElementsById(excalidrawApi.getSceneElements(), shadow);
 
-    const { arrowId, elementId, selectedId } = shadow;
-    const elementsToModify = ElementUtil.getElementsByIds(elements, [
-        arrowId,
-        elementId,
-        selectedId,
-    ]);
+    const source = ElementUtil.getElementById(elements, shadow.selectedId);
+    if (!source) {
+        excalidrawApi.updateScene({ elements, captureUpdate: CaptureUpdateAction.EVENTUALLY });
+        return;
+    }
 
-    if (elementsToModify.length === 0) return;
-
-    const [arrow, newElement, selected] = elementsToModify;
-    if (!arrow || !newElement || !selected) return;
-    if (!ExcalidrawUtil.isLinearElement(arrow)) return;
-
-    const updatedArrow = UpdateElementUtil.updateElement(arrow, (element, helpers) => {
-        helpers.addArrowBindings(element, { endId: newElement.id, startId: selected.id });
-        element.opacity = 100;
-        element.strokeStyle = "solid";
-
-        if (element.customData) {
-            element.customData = CustomData.updateDefault(element.customData, {
-                shadow: false,
-            });
-        }
-
-        return element;
-    });
-
-    const updatedNewElement = UpdateElementUtil.updateElement(newElement, element => {
-        element.opacity = 100;
-        element.strokeStyle = "solid";
-
-        if (element.customData) {
-            element.customData = CustomData.updateDefault(element.customData, {
-                shadow: false,
-            });
-        }
-
-        return element;
-    });
+    const {
+        arrow,
+        element,
+        source: updatedSource,
+    } = createExtension(shadow.direction, source, false);
 
     DrawingUtil.focusCanvas();
 
-    const { updatedState } = ElementUtil.createNewElementSelection([updatedNewElement], state);
-    const allElements = ElementUtil.mergeElements(elements, [updatedArrow, updatedNewElement]);
+    const { updatedState } = ElementUtil.createNewElementSelection(
+        [element],
+        excalidrawApi.getAppState()
+    );
 
     // remove binding circles
     updatedState.suggestedBindings = [];
@@ -298,25 +267,47 @@ const createElementExtensionFromShadow = (
     excalidrawApi.updateScene({
         captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         appState: updatedState,
-        elements: allElements,
+        elements: [...ElementUtil.mergeElements(elements, [updatedSource]), arrow, element],
     });
 };
+
+const SHAPE_TYPES = ["rectangle", "ellipse", "diamond"] as const;
+const isShapeType = (type: string): type is (typeof SHAPE_TYPES)[number] =>
+    includes(SHAPE_TYPES, type);
 
 const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: CustomElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
 
-    const selected = ElementUtil.getSelectedElements(state, elements);
+    const selected = ElementUtil.getSelectedElements(state, elements).filter(
+        element => !ElementUtil.isBoundText(element)
+    );
     if (selected.length !== 1) return;
     const element = first(selected);
     if (!element) return;
+
+    // Between shapes, only the type changes, so arrows and the label stay attached
+    if (isShapeType(element.type) && isShapeType(type)) {
+        const updated = UpdateElementUtil.updateElement(element, draft => {
+            (draft as { type: string }).type = type;
+            draft.customData = CustomData.updateDefault(element.customData, { type });
+            return draft;
+        });
+
+        excalidrawApi.updateScene({
+            elements: ElementUtil.mergeElements(elements, [updated]),
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+        return;
+    }
 
     const newElements = ElementCreationUtil.createElementsFromElement({
         type,
         element,
     });
 
-    const updatedElements = ElementUtil.removeElements(elements, [element.id]);
+    // Marked as deleted, instead of left out, so the deletion reaches the server
+    const updatedElements = ElementUtil.deleteElements(elements, [element.id]);
     const { updatedState } = ElementUtil.createNewElementSelection(newElements, state);
 
     excalidrawApi.updateScene({
@@ -330,5 +321,6 @@ export const ElementVisualUtils = {
     smartCopy,
     createElementExtensionShadow,
     createElementExtensionFromShadow,
+    removeElementExtensionShadow,
     updateElementFromTypeSelection,
 };

@@ -14,7 +14,8 @@ export type ExcalidrawApi = Omit<
     getSceneElements: () => ExcalidrawElements;
     updateScene: (sceneData: {
         elements?: ExcalidrawElements | null | undefined;
-        appState?: AppState | null | undefined;
+        // Merged into the current app state, like setState
+        appState?: Partial<AppState> | null | undefined;
         collaborators?: Map<string, Collaborator>;
         captureUpdate?: SceneData["captureUpdate"];
     }) => void;

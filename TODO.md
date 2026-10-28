@@ -764,3 +764,40 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       search in all and in a set, flags by name, Shift+Enter three times, a model in the
       middle, a code block at the mouse opening its editor, tall and wide logos staying in
       their tiles, scrolling through all 2,043 logos, light and dark, and a narrow window.
+
+## 18. Arrows and undo
+
+- [x] After ⌘/Ctrl+arrow, or a click or drag from the extend buttons, undo only changed the
+      selection and left the new shape and arrow. Undo only tracks elements it saw being
+      added, and the preview was added outside it and then turned into the real thing, while
+      the source shape was changed in place. The preview is now unbound and left out of
+      undo, and confirming it adds a new shape and arrow and updates the source as a copy.
+- [x] On a shared drawing, the first undo after opening it deleted the whole drawing, for
+      everyone, as loading it counted as part of your first change. Undo also took back
+      collaborators' changes. Both now update the scene without being undoable.
+- [x] Arrows made by BanjoDraw didn't start at 0,0, which Excalidraw logs as "Linear element
+      is not normalized" (often on undo and redo). Their bindings aim at the center now
+      (focus 0), so they don't jump the first time a shape moves.
+- [x] Dragging an arrow out of an extend button listed it twice on the source shape, and
+      kept the preview arrow's id there too. Bound elements are only added once now.
+- [x] The arrow dragged out of an extend button didn't show until it was dropped. Excalidraw
+      draws the element being drawn from `newElement` and leaves it out of the scene, and
+      that kept the empty arrow from the start of the drag. It's updated with each move now,
+      which also keeps the highlight on the shape it will connect to.
+- [x] Dragging an arrow out of an extend button reset the style picked for the next things
+      drawn (stroke color, style, opacity, roundness, and so on) to Excalidraw's defaults,
+      and changed Excalidraw's state in place. Only the tool changes now.
+- [x] Changing a shape's type (Tab) gave it a new id, so arrows came loose from it and its
+      label lost its shape. On a shared drawing the old shape came back after a reload, as
+      it was dropped instead of deleted. Between rectangle, ellipse, and diamond only the
+      type changes now; to a code block or model, the old shape and label are deleted and
+      arrows unbound.
+- [x] Smart copy (⌘/Ctrl+Enter) of connected shapes left the copied arrows bound to the
+      originals. Bindings and labels between copied elements now point to the copies, and
+      bindings to anything else are dropped.
+- [x] Tested (Oct 28): each of these before and after the fix, in the offline drawing and a
+      shared one with two tabs: undo and redo of ⌘+arrow and of an arrow dragged from an
+      extend button down to an empty drawing and back, changing direction before letting go,
+      cancelling, moving the shapes afterwards, smart copy with a label and with arrows, type
+      changes with an arrow and a label, and reloading after a type change. No console
+      errors.

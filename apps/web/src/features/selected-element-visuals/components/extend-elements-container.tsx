@@ -17,8 +17,9 @@ import { ExtendElementRefSummary } from "@/features/selected-element-visuals/hoo
 import { logger } from "@/utils/logger";
 import { first, isDefined, Maybe } from "@banjoanton/utils";
 import { ExcalidrawBindableElement } from "@excalidraw/excalidraw/element/types";
+import { AppState } from "@excalidraw/excalidraw/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
-import { ExcalidrawLinearElement } from "common";
+import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
 import {
     ArrowDownCircle,
     ArrowLeftCircle,
@@ -55,11 +56,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         }
 
         const state = excalidrawApi.getAppState();
-        let elements = excalidrawApi.getSceneElements();
-
-        if (shadowElements) {
-            elements = ElementUtil.removeShadowElementsByType(elements);
-        }
+        const elements = ElementUtil.removeShadowElementsByType(excalidrawApi.getSceneElements());
 
         const selected = first(ElementUtil.getSelectedElements(state, elements));
         if (!selected || !direction) return;
@@ -69,6 +66,7 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             selected
         );
 
+        // A preview, left out of undo, and replaced by a new arrow when it's dropped
         const arrow = ElementCreationUtil.createLinearElement(
             {
                 points: [
@@ -87,22 +85,19 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             }
         );
 
-        UpdateElementUtil.mutateElement(selected, (element, helpers) => {
-            helpers.addBoundElements(element, [{ id: arrow.id, type: "arrow" }]);
-        });
-
-        StateUtil.mutateState(state, (draft, helpers) => {
-            helpers.dragElement(draft, arrow);
-            draft.cursorButton = "down";
-            helpers.setActiveTool(draft, "arrow");
-            helpers.arrowActiveToolDefaultSettings(draft);
-        });
-
+        // Drawn like a new arrow, so Excalidraw highlights the shape it would connect to. Only
+        // the tool changes, not the style picked for what's drawn next.
         excalidrawApi.updateScene({
-            appState: state,
+            appState: {
+                newElement: arrow as AppState["newElement"],
+                cursorButton: "down",
+                activeTool: StateUtil.createActiveTool("arrow"),
+            },
             elements: [...elements, arrow],
+            captureUpdate: CaptureUpdateAction.EVENTUALLY,
         });
 
+        setShadowElements(undefined);
         arrowIdRef.current = arrow.id;
     };
 
@@ -124,12 +119,18 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
                 [0, 0],
                 [x - arrow.x, y - arrow.y],
             ];
+            arrow.width = Math.abs(x - arrow.x);
+            arrow.height = Math.abs(y - arrow.y);
             return arrow;
         });
 
         const updatedElements = ElementUtil.mergeElements(elements, [updatedArrow]);
         excalidrawApi.updateScene({
             elements: updatedElements,
+            // Excalidraw draws the element being drawn from here, and leaves it out of the scene
+            // until it's done, so the arrow only showed once it was dropped
+            appState: { newElement: updatedArrow as AppState["newElement"] },
+            captureUpdate: CaptureUpdateAction.EVENTUALLY,
         });
     };
 
@@ -139,24 +140,17 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
         if (!excalidrawApi || !arrowId) return;
 
         const state = excalidrawApi.getAppState();
-        const elements = excalidrawApi.getSceneElements();
+        const sceneElements = excalidrawApi.getSceneElements();
+        const preview = ElementUtil.getElementById(sceneElements, arrowId);
+        const elements = ElementUtil.removeElements(sceneElements, [arrowId]);
 
         const selected = first(ElementUtil.getSelectedElements(state, elements));
-        if (!selected) return;
-
-        const arrow = ElementUtil.getElementById(elements, arrowId);
-        if (!arrow) return;
+        if (!selected || !preview) return;
 
         const suggestedEndBinding = first(
             state.suggestedBindings
         ) as Maybe<ExcalidrawBindableElement>;
         const suggestedEndElement = ElementUtil.getElementById(elements, suggestedEndBinding?.id);
-
-        if (suggestedEndElement) {
-            UpdateElementUtil.mutateElement(suggestedEndElement, (element, helpers) => {
-                helpers.addBoundElements(element, [{ id: arrow.id, type: "arrow" }]);
-            });
-        }
 
         const { x, y } = ElementPositionUtil.getScenePositionFromWindowPosition(pos, state);
 
@@ -164,17 +158,15 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             {
                 points: [
                     [0, 0],
-                    [x - arrow.x, y - arrow.y],
+                    [x - preview.x, y - preview.y],
                 ],
-                x: arrow.x,
-                y: arrow.y,
+                x: preview.x,
+                y: preview.y,
                 type: "arrow",
             },
             (element, helpers) => {
-                element.id = arrow.id;
-
                 helpers.addArrowBindings(element, {
-                    endId: suggestedEndBinding?.id,
+                    endId: suggestedEndElement?.id,
                     startId: selected.id,
                 });
 
@@ -182,9 +174,16 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             }
         );
 
-        UpdateElementUtil.mutateElement(selected, (element, helpers) => {
-            helpers.addBoundElements(element, [{ id: finalArrow.id, type: "arrow" }]);
-        });
+        const bindArrow = (element: ExcalidrawElement) =>
+            UpdateElementUtil.updateElement(element, (draft, helpers) => {
+                helpers.addBoundElements(draft, [{ id: finalArrow.id, type: "arrow" }]);
+                return draft;
+            });
+
+        const boundElements = [selected, suggestedEndElement]
+            .filter(isDefined)
+            .filter((element, index, all) => all.findIndex(e => e.id === element.id) === index)
+            .map(bindArrow);
 
         const stateAfterMouseDown = StateUtil.updateState(state, (draft, helpers) => {
             draft.newElement = null;
@@ -195,16 +194,15 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
             return draft;
         });
 
-        const mergedElements = ElementUtil.mergeElements(elements, [finalArrow]);
-
         const { updatedState } = ElementUtil.createNewLinearElementSelection(
             finalArrow,
             stateAfterMouseDown
         );
 
+        // The arrow has a new id, as undo only tracks elements it has seen being added
         excalidrawApi.updateScene({
             appState: updatedState,
-            elements: mergedElements,
+            elements: [...ElementUtil.mergeElements(elements, boundElements), finalArrow],
             captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
 
@@ -227,25 +225,8 @@ export const ExtendElementsContainer = ({ refs }: Props) => {
     const drag = useDrag({ onDrag, onDragStart, onDragEnd, relativeToStart: false });
 
     const onMouseLeave = () => {
-        if (!excalidrawApi) return;
-
-        let elements = excalidrawApi.getSceneElements();
-        const appState = excalidrawApi.getAppState();
-        const selected = ElementUtil.getSelectedElements(appState, elements);
-
-        if (selected.length === 1 && shadowElements) {
-            UpdateElementUtil.mutateElements(selected, (element, helpers) => {
-                helpers.removeBoundElements(element, [shadowElements.arrowId]);
-            });
-        }
-
-        if (shadowElements) {
-            elements = ElementUtil.removeShadowElementsById(elements, shadowElements);
-        }
-
-        excalidrawApi.updateScene({
-            elements,
-        });
+        if (!excalidrawApi || !shadowElements) return;
+        ElementVisualUtils.removeElementExtensionShadow(shadowElements, excalidrawApi);
         setShadowElements(undefined);
     };
 

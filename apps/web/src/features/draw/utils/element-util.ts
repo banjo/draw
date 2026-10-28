@@ -1,4 +1,5 @@
 import { ElementExtensionShadow } from "@/features/draw/utils/element-visual-utils";
+import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { attempt, first, isDefined, Maybe, produce, randomString } from "@banjoanton/utils";
 import { AppState } from "@excalidraw/excalidraw/types";
@@ -58,23 +59,44 @@ const removeDeletedElements = (elements: ExcalidrawElements) =>
 const removeElements = (elements: ExcalidrawElements, ids: string[]) =>
     elements.filter(element => !ids.includes(element.id));
 
-const idDictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
-const createElementId = () => randomString(21, idDictionary);
+/** A label in a shape or on an arrow */
+const isBoundText = (element: ExcalidrawElement) =>
+    "containerId" in element && Boolean(element.containerId);
 
 /**
- * Reset element by mutation, creating a new id and setting version to 0.
+ * Marks elements, and their labels, as deleted, and unbinds arrows from them. Deleted
+ * elements stay in the scene, so the deletion is saved and sent to collaborators.
  */
-const resetElement = (element: ExcalidrawElement): ExcalidrawElement => ({
-    ...element,
-    isDeleted: false,
-    id: createElementId(),
-    version: 0,
-    versionNonce: 0,
-    groupIds: [],
-    boundElements: [],
-});
+const deleteElements = (elements: ExcalidrawElements, ids: string[]) => {
+    const deletedIds = new Set(ids);
+    elements.filter(isBoundText).forEach(text => {
+        // @ts-ignore - isBoundText checks it has a container
+        if (deletedIds.has(text.containerId)) deletedIds.add(text.id);
+    });
 
-const resetElements = (elements: ExcalidrawElements) => elements.map(resetElement);
+    return elements.map(element => {
+        if (deletedIds.has(element.id)) {
+            return UpdateElementUtil.updateElement(element, draft => {
+                draft.isDeleted = true;
+                return draft;
+            });
+        }
+
+        if (!ExcalidrawUtil.isLinearElement(element)) return element;
+        const startDeleted = deletedIds.has(element.startBinding?.elementId ?? "");
+        const endDeleted = deletedIds.has(element.endBinding?.elementId ?? "");
+        if (!startDeleted && !endDeleted) return element;
+
+        return UpdateElementUtil.updateElement(element, draft => {
+            if (startDeleted) draft.startBinding = null;
+            if (endDeleted) draft.endBinding = null;
+            return draft;
+        });
+    });
+};
+
+const idDictionary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+const createElementId = () => randomString(21, idDictionary);
 
 const createNewElementGroup = (renderedElements: ExcalidrawElements, state: AppState) => {
     const newGroupId = createElementId();
@@ -275,8 +297,6 @@ const isElementGroup = (elements: ExcalidrawElement[]) => {
 
 export const ElementUtil = {
     removeDeletedElements,
-    resetElement,
-    resetElements,
     createElementId,
     createNewElementGroup,
     createNewElementSelection,
@@ -286,6 +306,8 @@ export const ElementUtil = {
     getElementsByIds,
     mergeElements,
     removeElements,
+    deleteElements,
+    isBoundText,
     removeShadowElementsById,
     removeShadowElementsByType,
     getShadowElements,

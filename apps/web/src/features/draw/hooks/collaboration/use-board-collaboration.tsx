@@ -4,6 +4,7 @@ import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { isDefined, Maybe } from "@banjoanton/utils";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { AppState } from "@excalidraw/excalidraw/types";
 import {
     BoardUpdateResponse,
@@ -78,7 +79,11 @@ export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
                 );
 
                 setSynced(boardElements);
-                excalidrawApi.updateScene({ elements: boardElements });
+                // Not undoable: undo should only take back your own changes
+                excalidrawApi.updateScene({
+                    elements: boardElements,
+                    captureUpdate: CaptureUpdateAction.NEVER,
+                });
                 setIsLoading(false);
                 return;
             }
@@ -98,7 +103,10 @@ export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
             if (applied.length === 0 && !update.delta.order) return;
 
             markSynced(applied, before, after);
-            excalidrawApi.updateScene({ elements: after });
+            excalidrawApi.updateScene({
+                elements: after,
+                captureUpdate: CaptureUpdateAction.NEVER,
+            });
         },
         onError: error => {
             setIsLoading(false);

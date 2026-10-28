@@ -7,7 +7,6 @@ import {
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useAddElementStore } from "@/stores/use-add-element-store";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
-import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Callback, includes, Maybe } from "@banjoanton/utils";
 import { ExcalidrawApi } from "common";
 import React, { KeyboardEventHandler, useEffect, useRef, useState } from "react";
@@ -155,16 +154,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             const shadow = shadowRef.current;
             if (!shadow || !excalidrawApi) return;
 
-            const elements = excalidrawApi.getSceneElements();
-            const selected = ElementUtil.getSelectedElements(excalidrawApi.getAppState(), elements);
-            selected.forEach(element =>
-                UpdateElementUtil.mutateElement(element, (draft, helpers) => {
-                    helpers.removeBoundElements(draft, [shadow.arrowId]);
-                })
-            );
-            excalidrawApi.updateScene({
-                elements: ElementUtil.removeShadowElementsById(elements, shadow),
-            });
+            ElementVisualUtils.removeElementExtensionShadow(shadow, excalidrawApi);
             setShadowElements(undefined);
         };
 

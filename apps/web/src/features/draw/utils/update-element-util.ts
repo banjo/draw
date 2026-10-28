@@ -1,6 +1,4 @@
-import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { ELEMENT_GAP } from "@/features/draw/models/constants";
-import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { defaults, produce } from "@banjoanton/utils";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import { ExcalidrawElement, ExcalidrawLinearElement } from "common";
@@ -10,23 +8,11 @@ type BoundElement = {
     type: "arrow" | "text";
 };
 
+/** Adds bound elements that aren't there already */
 const addBoundElements = (element: Mutable<ExcalidrawElement>, boundElements: BoundElement[]) => {
-    if (element.boundElements) {
-        boundElements.forEach(boundElement => {
-            if (!element.boundElements) return;
-            // @ts-ignore
-            element.boundElements.push(boundElement);
-        });
-    } else {
-        element.boundElements = boundElements;
-    }
-};
-
-const removeBoundElements = (element: Mutable<ExcalidrawElement>, ids: string[]) => {
-    if (!element.boundElements) return;
-    element.boundElements = element.boundElements.filter(
-        boundElement => !ids.includes(boundElement.id)
-    );
+    const current = element.boundElements ?? [];
+    const added = boundElements.filter(bound => !current.some(({ id }) => id === bound.id));
+    element.boundElements = [...current, ...added];
 };
 
 const defaultSettings = (element: Mutable<ExcalidrawElement>) => {
@@ -42,22 +28,15 @@ type BindingOptions = {
     endId?: string;
     gap?: number;
 };
+// Focus 0 points the arrow at the shape's center, as the arrows are drawn
 const addArrowBindings = (element: Mutable<ExcalidrawLinearElement>, options?: BindingOptions) => {
     const { gap, endId, startId } = defaults(options, { gap: ELEMENT_GAP });
     if (startId) {
-        element.startBinding = {
-            elementId: startId,
-            focus: 0.2,
-            gap,
-        };
+        element.startBinding = { elementId: startId, focus: 0, gap };
     }
 
     if (endId) {
-        element.endBinding = {
-            elementId: endId,
-            focus: 0.2,
-            gap,
-        };
+        element.endBinding = { elementId: endId, focus: 0, gap };
     }
 };
 
@@ -65,7 +44,6 @@ const helpers = {
     addBoundElements,
     defaultSettings,
     addArrowBindings,
-    removeBoundElements,
 };
 
 type UpdateHelpers = typeof helpers;
