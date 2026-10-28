@@ -27,6 +27,9 @@ const FEW_COLUMNS: Record<number, string> = { 2: "sm:grid-cols-2", 3: "sm:grid-c
 
 const DISPLAY_FONT = "font-['Bricolage_Grotesque_Variable',sans-serif]";
 
+// The stroke in the logo, public/banjodraw.svg
+const LOGO_STROKE = "M26 84 C34 54 50 38 60 48 C70 58 46 80 58 88 C68 94 84 70 94 40";
+
 const getHeading = (mode: FeaturesModalMode, isFirstVisit: boolean) => {
     if (mode === "all") {
         return { lead: "What's in", accent: "BanjoDraw", sub: "Excalidraw, with a few extras." };
@@ -105,9 +108,9 @@ const FeatureCard = ({
             className={cn(
                 "group flex overflow-hidden rounded-[18px] bg-white ring-1 ring-black/[0.07] transition duration-200",
                 "animate-in fade-in-0 slide-in-from-bottom-3 fill-mode-backwards duration-500",
-                "hover:-translate-y-[3px] hover:shadow-[0_18px_40px_-16px_rgba(60,50,160,0.35)] hover:ring-[#6965db]/35",
+                "hover:-translate-y-[3px] hover:shadow-[0_18px_40px_-16px_rgba(180,110,30,0.4)] hover:ring-[#de9239]/45",
                 "dark:bg-[#1c1c22] dark:ring-white/[0.06]",
-                isHero && "sm:col-span-2 sm:row-span-2",
+                isHero && "row-span-2 sm:col-span-2",
                 isWide ? "flex-row sm:col-span-2" : "flex-col"
             )}
         >
@@ -166,7 +169,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
         <Modal.Container show setShow={close} backgroundClassName="backdrop-blur-[3px] p-4">
             <div
                 className={cn(
-                    "max-h-[calc(100dvh-32px)] w-full overflow-y-auto rounded-[26px] bg-[#fbfbfd] p-5 sm:p-[26px]",
+                    "max-h-[calc(100dvh-32px)] w-full overflow-y-auto rounded-[26px] bg-[#fbfbfd]",
                     "font-['Hanken_Grotesk_Variable',sans-serif] text-[#1b1b1f] dark:bg-[#141418] dark:text-[#ececf1]",
                     "shadow-[0_50px_120px_-30px_rgba(25,25,60,0.45),0_0_0_1px_rgba(20,20,40,0.06)] dark:shadow-[0_50px_120px_-30px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)]",
                     "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-500",
@@ -176,33 +179,50 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                 aria-modal
                 aria-labelledby="features-title"
             >
-                <header className="mx-1 mb-5 mt-1 flex flex-wrap items-end justify-between gap-5">
-                    <div>
-                        <h2
-                            id="features-title"
-                            className={cn(
-                                DISPLAY_FONT,
-                                "text-[34px] font-extrabold leading-[0.95] tracking-[-0.035em] sm:text-[44px]"
-                            )}
-                        >
-                            {lead}{" "}
-                            <span className="bg-gradient-to-r from-[#6965db] via-[#b06ad9] to-[#ff8a65] bg-clip-text text-transparent">
-                                {accent}
-                            </span>
-                        </h2>
-                        <p className="mt-2.5 text-base text-[#6c6c78] dark:text-[#9d9daa]">{sub}</p>
+                <header className="relative flex flex-wrap items-center justify-between gap-5 overflow-hidden bg-[#de9239] px-5 py-6 text-white sm:px-[30px] dark:bg-[#b8701f]">
+                    <svg
+                        aria-hidden
+                        viewBox="0 0 120 120"
+                        className="pointer-events-none absolute -right-1.5 -top-6 h-[190px] w-[190px] opacity-30"
+                    >
+                        <path
+                            d={LOGO_STROKE}
+                            fill="none"
+                            stroke="white"
+                            strokeWidth={9}
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                    <div className="relative flex items-center gap-4">
+                        <img
+                            src="/banjodraw.svg"
+                            alt=""
+                            className="hidden h-14 w-14 shrink-0 rounded-[15px] ring-[3px] ring-white/55 sm:block"
+                        />
+                        <div>
+                            <h2
+                                id="features-title"
+                                className={cn(
+                                    DISPLAY_FONT,
+                                    "text-[34px] font-extrabold leading-[0.95] tracking-[-0.035em] sm:text-[44px]"
+                                )}
+                            >
+                                {lead} {accent}
+                            </h2>
+                            <p className="mt-2.5 text-base text-white/85">{sub}</p>
+                        </div>
                     </div>
                     <button
                         type="button"
                         onClick={close}
-                        className="whitespace-nowrap rounded-[14px] bg-[#1b1b1f] px-5 py-3 text-[15px] font-semibold text-white transition active:scale-[0.97] dark:bg-white dark:text-[#111]"
+                        className="relative whitespace-nowrap rounded-[14px] bg-white px-5 py-3 text-[15px] font-semibold text-[#9a5512] transition active:scale-[0.97]"
                     >
                         {isFirstVisit && mode === "new" ? "Start drawing" : "Got it"}
                     </button>
                 </header>
                 <div
                     className={cn(
-                        "grid gap-3",
+                        "grid gap-3 p-4 sm:p-[22px] sm:pt-5",
                         isFew
                             ? cn("auto-rows-[360px] grid-cols-1", FEW_COLUMNS[features.length])
                             : "auto-rows-[176px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"

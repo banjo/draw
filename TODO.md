@@ -711,6 +711,11 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       the saved drawing with its code blocks. No match offers a new drawing with that name.
 - [x] Both are in the features dialog as "What's new". The full dialog has five columns, so all
       ten features fit in three rows, and the last cards widen to fill its last row.
+- [x] The features dialog's header is the logo's amber, with the logo and its stroke, instead
+      of a gradient (chosen from four mockups). Cards get an amber outline on hover. On a
+      narrow window the first card is tall enough for its illustration again.
+- [x] The Share button at the top right did nothing. It copies the drawing's link now; on the
+      start page it saves the drawing first, like "Share drawing" in the menu.
 - [x] Tested (Oct 27): moving with the menu and by dragging, dropping a folder into its own
       sub-folder (refused), a new folder, renaming with F2, renaming the open drawing (shown
       both pinned and in its folder), search, deleting a folder with

@@ -60,10 +60,11 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
         return await createDrawing(elements, order);
     });
 
-    const onShareDrawing = useLatestCallback(async () => {
+    /** Copy the drawing's link. On the start page, it's saved as a new drawing first. */
+    const shareDrawing = useLatestCallback(async () => {
         if (!excalidrawApi) return;
 
-        const updatedSlug = await createDrawingFromCanvas();
+        const updatedSlug = slug ?? (await createDrawingFromCanvas());
         if (!updatedSlug) return;
 
         // Not awaited: a clipboard write can wait for focus, and shouldn't hold up the drawing
@@ -177,7 +178,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
 
                 {!slug && (
                     <MainMenu.Item
-                        onSelect={onShareDrawing}
+                        onSelect={shareDrawing}
                         icon={<ResponsiveIcon Icon={Icons.link} />}
                     >
                         Share drawing
@@ -232,5 +233,6 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
 
     return {
         menu,
+        shareDrawing,
     };
 };

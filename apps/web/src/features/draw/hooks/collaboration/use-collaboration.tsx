@@ -1,15 +1,15 @@
 import { useGlobal } from "@/contexts/global-context";
 import { useBoardCollaboration } from "@/features/draw/hooks/collaboration/use-board-collaboration";
 import { usePointerCollaboration } from "@/features/draw/hooks/collaboration/use-pointer-collaboration";
-import { noop } from "@banjoanton/utils";
 import { LiveCollaborationTrigger } from "@excalidraw/excalidraw";
 import { useMemo } from "react";
 
 type In = {
     slug?: string;
+    onShare: () => void;
 };
 
-export const useCollaboration = ({ slug }: In) => {
+export const useCollaboration = ({ slug, onShare }: In) => {
     const { excalidrawApi } = useGlobal();
 
     const { isCollaborating, onPointerUpdate } = usePointerCollaboration({
@@ -27,10 +27,10 @@ export const useCollaboration = ({ slug }: In) => {
         () => (
             <LiveCollaborationTrigger
                 isCollaborating={isCollaborating ? Boolean(slug) : false}
-                onSelect={noop}
+                onSelect={onShare}
             />
         ),
-        [isCollaborating, slug]
+        [isCollaborating, slug, onShare]
     );
 
     return {

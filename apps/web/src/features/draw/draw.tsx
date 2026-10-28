@@ -64,10 +64,6 @@ export const Draw = ({ slug }: DrawProps) => {
     useInit({ slug });
 
     const { onLibraryChange, library } = useLibrary();
-    const { onPointerUpdate, collabButton, isCollaborating, onDrawingChange } = useCollaboration({
-        slug,
-    });
-
     const { createDrawing } = useDrawing();
 
     const { sidebar, sidebarButton, toggleSidebar, initialOpenSidebar } = useSidebar({
@@ -76,11 +72,16 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const { uploadImagesOnCanvas, onElementsChange: checkImages } = useImages({ slug });
 
-    const { menu } = useMenu({
+    const { menu, shareDrawing } = useMenu({
         slug,
         createDrawing,
         toggleSidebar,
         uploadImagesOnCanvas,
+    });
+
+    const { onPointerUpdate, collabButton, isCollaborating, onDrawingChange } = useCollaboration({
+        slug,
+        onShare: shareDrawing,
     });
 
     useHistory({ slug });
