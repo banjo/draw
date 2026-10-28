@@ -1,4 +1,4 @@
-import { shapes } from "@/models/shapes";
+import { SHAPE_GROUPS, ShapeGroup, shapes } from "@/models/shapes";
 import fuzzysort from "fuzzysort";
 import {
     BrowseItem,
@@ -14,6 +14,8 @@ import { getIconSet, ICON_SETS, IconCollection, IconSet, IconSetId } from "./ico
 
 /** Icons per row in the palette's grids */
 const GRID_COLUMNS = 10;
+/** Named shapes per row */
+const TILE_COLUMNS = 7;
 /** Icons shown in a preview of a set or category, before "Show all" */
 const PREVIEW_COUNT = GRID_COLUMNS * 2;
 const RECENT_COUNT = GRID_COLUMNS;
@@ -22,7 +24,10 @@ const SEARCH_LIMIT = 400;
 export type Section = {
     id: string;
     title: string;
-    layout: "rows" | "grid";
+    /** A list, a grid of icons, or a grid of named shapes */
+    layout: "rows" | "grid" | "tiles";
+    /** Per row in a grid, when not the usual for its layout */
+    columns?: number;
     items: Item[];
     /** Where Tab and "Show all" go from here */
     scope?: Scope;
@@ -106,6 +111,28 @@ const grid = (title: string, items: Item[], extra?: Partial<Section>): Section =
     ...extra,
 });
 
+const tiles = (title: string, items: Item[], extra?: Partial<Section>): Section => ({
+    id: title,
+    title,
+    layout: "tiles",
+    items,
+    ...extra,
+});
+
+const scopeOf = (group: ShapeGroup): Scope => ({ kind: group === "Blocks" ? "block" : "shape" });
+
+/** Shapes and blocks in their groups, e.g. Basic and Flowchart */
+const groupedElements = (kind?: ElementItem["shape"]["kind"]) =>
+    SHAPE_GROUPS.map(group =>
+        tiles(
+            group,
+            ELEMENTS.filter(
+                item => item.shape.group === group && (!kind || item.shape.kind === kind)
+            ),
+            { scope: scopeOf(group) }
+        )
+    );
+
 /** A few of the icons, with how many more there are */
 const preview = (items: IconItem[], total = items.length) => ({
     items: items.slice(0, PREVIEW_COUNT),
@@ -145,8 +172,7 @@ const getAllSections = (input: SectionInput): Section[] => {
     if (!query) {
         return [
             grid("Recently used", recents.slice(0, RECENT_COUNT)),
-            rows("Shapes", searchElements("", "shape"), { scope: { kind: "shape" } }),
-            rows("Blocks", searchElements("", "block"), { scope: { kind: "block" } }),
+            ...groupedElements(),
             rows("Icons", ICON_SETS.map(browseSet), { scope: { kind: "icons" } }),
         ];
     }
@@ -154,11 +180,12 @@ const getAllSections = (input: SectionInput): Section[] => {
     const icons = mixSets(iconResults(input), query);
     const { items, more } = preview(icons);
     return [
-        rows("Shapes", searchElements(query, "shape"), {
+        // Best match first, rather than in groups
+        tiles("Shapes", searchElements(query, "shape"), {
             scope: { kind: "shape" },
             keepQuery: true,
         }),
-        rows("Blocks", searchElements(query, "block"), {
+        tiles("Blocks", searchElements(query, "block"), {
             scope: { kind: "block" },
             keepQuery: true,
         }),
@@ -277,14 +304,14 @@ export const getSections = (input: SectionInput): Section[] => {
     else if (scope.kind === "icons" && scope.set) {
         sections = getSetSections(input, scope.set, scope.category);
     } else if (scope.kind === "icons") sections = getIconsSections(input);
-    else {
+    else if (input.query) {
         sections = [
-            rows(
+            tiles(
                 scope.kind === "shape" ? "Shapes" : "Blocks",
                 searchElements(input.query, scope.kind)
             ),
         ];
-    }
+    } else sections = groupedElements(scope.kind);
 
     return sections.filter(({ items, loading }) => items.length > 0 || loading).map(withMoreTile);
 };
@@ -303,7 +330,13 @@ const locate = (sections: Section[], index: number): Position | undefined => {
 const startOf = (sections: Section[], section: number) =>
     sections.slice(0, section).reduce((sum, { items }) => sum + items.length, 0);
 
-const columnsOf = (section: Section) => (section.layout === "grid" ? GRID_COLUMNS : 1);
+const LAYOUT_COLUMNS: Record<Section["layout"], number> = {
+    rows: 1,
+    grid: GRID_COLUMNS,
+    tiles: TILE_COLUMNS,
+};
+
+export const columnsOf = (section: Section) => section.columns ?? LAYOUT_COLUMNS[section.layout];
 
 /** The next section with something in it, going up or down */
 const nextSection = (sections: Section[], from: number, step: 1 | -1) => {
@@ -334,7 +367,7 @@ export const moveSelection = (
     const column = position.offset % columns;
 
     if (direction === "left" || direction === "right") {
-        if (section.layout !== "grid") return undefined;
+        if (section.layout === "rows") return undefined;
         return Math.min(Math.max(index + (direction === "right" ? 1 : -1), 0), total - 1);
     }
 
@@ -349,7 +382,7 @@ export const moveSelection = (
         const next = nextSection(sections, position.section, 1);
         if (next === undefined) return 0;
         const target = sections[next]!;
-        const offset = target.layout === "grid" ? Math.min(column, target.items.length - 1) : 0;
+        const offset = target.layout === "rows" ? 0 : Math.min(column, target.items.length - 1);
         return startOf(sections, next) + offset;
     }
 
@@ -361,8 +394,8 @@ export const moveSelection = (
     const targetColumns = columnsOf(target);
     const lastRowStart = Math.floor((target.items.length - 1) / targetColumns) * targetColumns;
     const offset =
-        target.layout === "grid"
-            ? Math.min(lastRowStart + column, target.items.length - 1)
-            : target.items.length - 1;
+        target.layout === "rows"
+            ? target.items.length - 1
+            : Math.min(lastRowStart + column, target.items.length - 1);
     return startOf(sections, previous) + offset;
 };

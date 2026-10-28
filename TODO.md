@@ -825,3 +825,23 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       opening from the hint, a shape at the right edge, a code block (to a model), undo, and
       light and dark. Shapes with arrows in and out changed to a code block and a model,
       undone, and moved afterwards. No console errors.
+
+## 20. More shapes
+
+- [x] Ten new shapes, chosen from mockups: circle, triangle, hexagon and star (Basic), pill,
+      parallelogram, cylinder and document (Flowchart), cloud and a yellow sticky note with a
+      folded corner (Other). Each is a rectangle (a circle is an ellipse) that a small patch to
+      Excalidraw (`patches/`) draws as its shape, so labels, arrows, colors, fill, resizing,
+      rotating, undo, copying and export work as for a rectangle. Clicks hit the shape's
+      outline, not its box. Arrows attach to the box, and labels use the box's width.
+- [x] Both palettes show named tiles in groups: Basic, Flowchart, Other and Blocks. The arrows
+      move in the grid; in ⌘K, search results are one list, best match first.
+- [x] Tab changes between any of the shapes and keeps the id. A sticky note turns yellow and
+      back; a circle is made as wide as it's tall, with its arrows moved to the new edge.
+      ⌘+arrow and the extend buttons copy the new shapes too.
+- [x] Tested (Oct 28): every shape drawn, filled and exported to SVG, in dev and in a
+      production build; clicks inside and outside the outlines; a label kept through changes
+      to a sticky note, cloud and rectangle; ⌘+arrow on a hexagon; changing to a circle with
+      an arrow, undo and redo; the Tab palette's arrows, Tab and search; ⌘K's groups,
+      searching "datab" and adding. `turbo prune api` keeps the patch for the API's Docker
+      build. No console errors.

@@ -2,12 +2,16 @@ import { ArrowKey } from "@/features/draw/hooks/base/use-keyboard";
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { MIN_ELEMENT_HEIGHT, MIN_ELEMENT_WIDTH } from "@/features/draw/models/constants";
 import { DrawingUtil } from "@/features/draw/utils/drawing-util";
-import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
+import {
+    ElementCreationUtil,
+    STICKY_NOTE_STYLE,
+} from "@/features/draw/utils/element-creation-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { first, includes, Maybe, produce } from "@banjoanton/utils";
+import { isShapeType } from "@/models/shapes";
+import { first, Maybe, produce } from "@banjoanton/utils";
 import { PointBinding } from "@excalidraw/excalidraw/element/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import {
@@ -122,9 +126,11 @@ export type ElementExtensionShadow = {
     direction: ArrowKey;
 };
 
-const SHAPE_TYPES = ["rectangle", "ellipse", "diamond"] as const;
-const isShapeType = (type: string): type is (typeof SHAPE_TYPES)[number] =>
-    includes(SHAPE_TYPES, type);
+/** The shape's type, as in the palettes, or undefined for blocks, images and the like */
+const getShapeType = (element: ExcalidrawElement) => {
+    const type = element.customData?.type ?? element.type;
+    return isShapeType(type) ? type : undefined;
+};
 
 /** What a shape added next to another copies from it */
 const SHAPE_STYLE = [
@@ -164,8 +170,8 @@ const createExtension = (direction: ArrowKey, source: ExcalidrawElement, shadow:
     };
 
     // A copy of a shape's type and look; other elements, like images, get a plain rectangle
-    const isShape = isShapeType(source.type);
-    const type = isShape ? source.type : "rectangle";
+    const shapeType = getShapeType(source);
+    const type = shapeType ?? "rectangle";
 
     const element = ElementCreationUtil.createElement({
         base: {
@@ -173,11 +179,11 @@ const createExtension = (direction: ArrowKey, source: ExcalidrawElement, shadow:
             width: measurements.width,
             x,
             y,
-            type,
+            type: ExcalidrawUtil.getElementTypeFromCustomType(type),
         },
         callback: (draft, helpers) => {
             helpers.defaultSettings(draft);
-            if (isShape) {
+            if (shapeType) {
                 SHAPE_STYLE.forEach(key => Object.assign(draft, { [key]: source[key] }));
             }
             draft.customData = CustomData.createDefault({ shadow, type });
@@ -376,6 +382,35 @@ const rebindArrows = (elements: ExcalidrawElements, fromId: string, target: Exca
     return { elements: updated, target: boundTarget };
 };
 
+/** Shapes look like their new type: a sticky note turns yellow, and a circle as wide as tall */
+const changeShapeType = (
+    element: ExcalidrawElement,
+    from: CustomElementType,
+    to: CustomElementType
+) =>
+    UpdateElementUtil.updateElement(element, draft => {
+        (draft as { type: string }).type = ExcalidrawUtil.getElementTypeFromCustomType(to);
+        draft.customData = CustomData.updateDefault(element.customData, { type: to });
+
+        if (to === "sticky-note") {
+            Object.assign(draft, STICKY_NOTE_STYLE);
+        } else if (
+            from === "sticky-note" &&
+            element.backgroundColor === STICKY_NOTE_STYLE.backgroundColor
+        ) {
+            draft.backgroundColor = "transparent";
+        }
+
+        if (to === "circle" && element.width !== element.height) {
+            const side = Math.max(element.width, element.height);
+            draft.x -= (side - element.width) / 2;
+            draft.y -= (side - element.height) / 2;
+            draft.width = side;
+            draft.height = side;
+        }
+        return draft;
+    });
+
 const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: CustomElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
@@ -388,15 +423,17 @@ const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: Cust
     if (!element) return;
 
     // Between shapes, only the type changes, so arrows and the label stay attached
-    if (isShapeType(element.type) && isShapeType(type)) {
-        const updated = UpdateElementUtil.updateElement(element, draft => {
-            (draft as { type: string }).type = type;
-            draft.customData = CustomData.updateDefault(element.customData, { type });
-            return draft;
-        });
+    const shapeType = getShapeType(element);
+    if (shapeType && isShapeType(type)) {
+        const updated = changeShapeType(element, shapeType, type);
+        const isResized = updated.width !== element.width || updated.height !== element.height;
+        // Arrows to the new edge, when it has moved
+        const rebound = isResized ? rebindArrows(elements, element.id, updated) : undefined;
 
         excalidrawApi.updateScene({
-            elements: ElementUtil.mergeElements(elements, [updated]),
+            elements: ElementUtil.mergeElements(rebound?.elements ?? elements, [
+                rebound?.target ?? updated,
+            ]),
             captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
         return;

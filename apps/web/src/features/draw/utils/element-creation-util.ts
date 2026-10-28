@@ -216,7 +216,24 @@ const createText = (
 
 export const TEXT_HEIGHT = 25;
 const ELEMENT_WIDTH = 256;
+const ELEMENT_HEIGHT = 150;
 export const SPACING = 10;
+
+/** Sizes for the shapes that look wrong at the usual one */
+const SHAPE_SIZES: Partial<Record<CustomElementType, BaseSize>> = {
+    circle: { width: 150, height: 150 },
+    triangle: { width: 200, height: 170 },
+    star: { width: 180, height: 170 },
+    pill: { width: ELEMENT_WIDTH, height: 100 },
+    cylinder: { width: 160, height: 180 },
+    "sticky-note": { width: 200, height: 200 },
+};
+
+/** A sticky note is yellow, and can be made any other color */
+export const STICKY_NOTE_STYLE = { backgroundColor: "#ffec99", fillStyle: "solid" } as const;
+
+const getShapeStyle = (type: CustomElementType) =>
+    type === "sticky-note" ? STICKY_NOTE_STYLE : {};
 
 type CreateModelElement = {
     base: BasePosition;
@@ -426,6 +443,7 @@ const createElementsFromElement = ({ element, newValues, type }: CreateElementFr
     const newElement: ExcalidrawElementSkeleton = {
         ...element,
         ...newValues,
+        ...getShapeStyle(type),
         customData: CustomData.updateDefault(element.customData, { type }),
         type: ExcalidrawUtil.getElementTypeFromCustomType(type),
     };
@@ -442,15 +460,17 @@ const createElementFromType = (type: CustomElementType, base: BasePosition) => {
         return createModelElement({ base });
     }
 
+    const size = SHAPE_SIZES[type] ?? { width: ELEMENT_WIDTH, height: ELEMENT_HEIGHT };
+
     return toArray(
         createElement({
             base: {
                 x: base.x,
                 y: base.y,
-                width: ELEMENT_WIDTH,
-                height: 150,
+                ...size,
                 type: ExcalidrawUtil.getElementTypeFromCustomType(type),
             },
+            props: getShapeStyle(type),
             customElementType: type,
         })
     );

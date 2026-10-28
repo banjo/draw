@@ -36,6 +36,17 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     diamond: "diamond",
     ellipse: "ellipse",
     rectangle: "rectangle",
+    circle: "ellipse",
+    // Drawn as other shapes by CustomShapeUtil
+    pill: "rectangle",
+    triangle: "rectangle",
+    hexagon: "rectangle",
+    star: "rectangle",
+    parallelogram: "rectangle",
+    cylinder: "rectangle",
+    document: "rectangle",
+    cloud: "rectangle",
+    "sticky-note": "rectangle",
 };
 
 const getElementTypeFromCustomType = (type: CustomElementType): ElementType =>

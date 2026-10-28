@@ -2,10 +2,24 @@ import { defaults, Maybe } from "@banjoanton/utils";
 
 export type ModelType = "model" | "model-child" | "model-line" | "model-title";
 
+/** Shapes of BanjoDraw's own, drawn by Excalidraw as a rectangle or an ellipse */
+export type CustomShapeType =
+    | "circle"
+    | "pill"
+    | "triangle"
+    | "hexagon"
+    | "star"
+    | "parallelogram"
+    | "cylinder"
+    | "document"
+    | "cloud"
+    | "sticky-note";
+
 export type CustomElementType =
     | "rectangle"
     | "ellipse"
     | "diamond"
+    | CustomShapeType
     | "text"
     | "arrow"
     | "line"

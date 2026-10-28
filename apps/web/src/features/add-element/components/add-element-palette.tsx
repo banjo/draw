@@ -34,6 +34,7 @@ import {
 import { useRecentElementsStore } from "../stores/use-recent-elements-store";
 import { ElementSketch } from "./element-sketch";
 import { IconImage, ItemThumb } from "./item-visual";
+import { ShapeTile } from "./shape-tile";
 
 /** On the palette, so ⌘K inside it closes it instead of being typed */
 export const PALETTE_ATTRIBUTE = "data-add-element-palette";
@@ -485,17 +486,32 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
                     {section.title}
                 </div>
                 {section.items.length === 0 && section.loading ? <LoadingTiles /> : null}
-                {section.layout === "rows" ? (
-                    section.items.map((item, offset) => (
-                        <Row {...props(item, offset)} key={getItemKey(item)} query={trimmed} />
-                    ))
-                ) : (
+                {section.layout === "rows"
+                    ? section.items.map((item, offset) => (
+                          <Row {...props(item, offset)} key={getItemKey(item)} query={trimmed} />
+                      ))
+                    : null}
+                {section.layout === "grid" ? (
                     <div className="grid grid-cols-10 gap-1.5 px-1">
                         {section.items.map((item, offset) => (
                             <Tile {...props(item, offset)} key={getItemKey(item)} />
                         ))}
                     </div>
-                )}
+                ) : null}
+                {section.layout === "tiles" ? (
+                    <div className="grid grid-cols-7 gap-1.5 px-1">
+                        {section.items.map((item, offset) =>
+                            item.kind === "element" ? (
+                                <ShapeTile
+                                    {...props(item, offset)}
+                                    key={getItemKey(item)}
+                                    shape={item.shape}
+                                    query={trimmed}
+                                />
+                            ) : null
+                        )}
+                    </div>
+                ) : null}
             </div>
         );
     };

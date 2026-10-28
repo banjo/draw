@@ -1,20 +1,24 @@
-import { Hint, Keys } from "@/components/keys";
+import { Hint } from "@/components/keys";
 import { useGlobal } from "@/contexts/global-context";
-import { ElementSketch } from "@/features/add-element/components/element-sketch";
-import { Highlight } from "@/features/collection/components/highlight";
+import { ShapeTile } from "@/features/add-element/components/shape-tile";
+import { ElementItem } from "@/features/add-element/models/add-element-item";
+import { Direction, moveSelection, Section } from "@/features/add-element/models/palette-sections";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ElementVisualUtils } from "@/features/draw/utils/element-visual-utils";
-import { Shape, shapes } from "@/models/shapes";
+import { Shape, SHAPE_GROUPS, shapes } from "@/models/shapes";
 import { first } from "@banjoanton/utils";
 import { CustomElementType } from "common";
 import { Search } from "lucide-react";
-import { KeyboardEvent, RefObject, useMemo, useState } from "react";
-import { cn } from "ui";
+import { KeyboardEvent, RefObject, useEffect, useMemo, useRef, useState } from "react";
 
-const SECTIONS = [
-    { kind: "shape", title: "Shapes" },
-    { kind: "block", title: "Blocks" },
-] as const;
+const COLUMNS = 4;
+
+const ARROWS: Record<string, Direction> = {
+    ArrowUp: "up",
+    ArrowDown: "down",
+    ArrowLeft: "left",
+    ArrowRight: "right",
+};
 
 const matches = (shape: Shape, query: string) => {
     const q = query.trim().toLowerCase();
@@ -22,10 +26,21 @@ const matches = (shape: Shape, query: string) => {
     return [shape.title ?? "", ...shape.tags].some(text => text.toLowerCase().includes(q));
 };
 
-// In section order, so the keys move the way the list reads
-const filterShapes = (query: string) =>
-    SECTIONS.flatMap(({ kind }) =>
-        shapes.filter(shape => shape.kind === kind && matches(shape, query))
+/** The shapes matching the query, in their groups, e.g. Basic and Flowchart */
+const getSections = (query: string): Section[] =>
+    SHAPE_GROUPS.map((group): Section => ({
+        id: group,
+        title: group,
+        layout: "tiles",
+        columns: COLUMNS,
+        items: shapes
+            .filter(shape => shape.group === group && matches(shape, query))
+            .map((shape): ElementItem => ({ kind: "element", shape })),
+    })).filter(section => section.items.length > 0);
+
+const shapesOf = (sections: Section[]) =>
+    sections.flatMap(section =>
+        section.items.flatMap(item => (item.kind === "element" ? [item.shape] : []))
     );
 
 type Props = {
@@ -38,6 +53,7 @@ type Props = {
 export const SelectElementDialog = ({ customRef, closeSelectElementDialog }: Props) => {
     const { excalidrawApi } = useGlobal();
     const [query, setQuery] = useState("");
+    const list = useRef<HTMLDivElement>(null);
 
     const currentType = useMemo(() => {
         if (!excalidrawApi) return undefined;
@@ -51,13 +67,18 @@ export const SelectElementDialog = ({ customRef, closeSelectElementDialog }: Pro
 
     // Start on the one after the current type, so Tab and Enter swap to the next
     const [selected, setSelected] = useState(() => {
-        const all = filterShapes("");
+        const all = shapesOf(getSections(""));
         const index = all.findIndex(shape => shape.type === currentType);
         return index === -1 ? 0 : (index + 1) % all.length;
     });
 
-    const items = filterShapes(query);
+    const sections = useMemo(() => getSections(query), [query]);
+    const items = shapesOf(sections);
     const index = Math.min(selected, Math.max(items.length - 1, 0));
+
+    useEffect(() => {
+        list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+    }, [index, sections]);
 
     const change = (type: CustomElementType) => {
         if (excalidrawApi && type !== currentType) {
@@ -75,9 +96,16 @@ export const SelectElementDialog = ({ customRef, closeSelectElementDialog }: Pro
         // Keep Excalidraw's shortcuts out of the field
         event.stopPropagation();
 
+        const direction = ARROWS[event.key];
+        if (direction) {
+            const next = moveSelection(sections, index, direction);
+            if (next === undefined) return;
+            event.preventDefault();
+            setSelected(next);
+            return;
+        }
+
         const actions: Record<string, () => void> = {
-            ArrowDown: () => move(1),
-            ArrowUp: () => move(-1),
             // Round and round, instead of on to the rest of the page
             Tab: () => move(event.shiftKey ? -1 : 1),
             Enter: () => {
@@ -105,7 +133,7 @@ export const SelectElementDialog = ({ customRef, closeSelectElementDialog }: Pro
                 if (event.target instanceof HTMLInputElement) return;
                 event.preventDefault();
             }}
-            className="absolute z-[4] w-[260px] overflow-hidden rounded-xl bg-white text-[#1b1b1f] shadow-[0_20px_50px_-18px_rgba(25,25,60,0.35),0_0_0_1px_rgba(20,20,40,0.07)] duration-150 animate-in fade-in-0 zoom-in-[0.98] dark:bg-[#232329] dark:text-[#ececf1] dark:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.08)] dark:[color-scheme:dark]"
+            className="absolute z-[4] w-[336px] overflow-hidden rounded-xl bg-white text-[#1b1b1f] shadow-[0_20px_50px_-18px_rgba(25,25,60,0.35),0_0_0_1px_rgba(20,20,40,0.07)] duration-150 animate-in fade-in-0 zoom-in-[0.98] dark:bg-[#232329] dark:text-[#ececf1] dark:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.08)] dark:[color-scheme:dark]"
         >
             <label className="flex h-11 items-center gap-2 border-b border-black/[0.07] px-3 text-zinc-400 dark:border-white/[0.07]">
                 <Search className="h-4 w-4 shrink-0" />
@@ -128,55 +156,39 @@ export const SelectElementDialog = ({ customRef, closeSelectElementDialog }: Pro
                 />
             </label>
 
-            <div id="change-shape-list" role="listbox" className="px-1.5 pb-1.5">
+            <div
+                ref={list}
+                id="change-shape-list"
+                role="listbox"
+                className="max-h-[min(440px,calc(100vh-120px))] overflow-y-auto px-1.5 pb-1.5"
+            >
                 {items.length === 0 ? (
                     <div className="px-2 py-4 text-[13px] text-zinc-400">
                         No shape matches "{query.trim()}"
                     </div>
                 ) : null}
-                {SECTIONS.map(({ kind, title }) => {
-                    const section = items.filter(shape => shape.kind === kind);
-                    if (section.length === 0) return null;
+                {sections.map(section => {
                     const offset = start;
-                    start += section.length;
+                    start += section.items.length;
 
                     return (
-                        <div key={kind} role="group" aria-label={title}>
+                        <div key={section.id} role="group" aria-label={section.title}>
                             <div className="px-2 pb-1 pt-2.5 text-[10.5px] font-bold uppercase tracking-[0.07em] text-zinc-400">
-                                {title}
+                                {section.title}
                             </div>
-                            {section.map((shape, i) => {
-                                const isSelected = offset + i === index;
-                                return (
-                                    <div
+                            <div className="grid grid-cols-4 gap-1.5">
+                                {shapesOf([section]).map((shape, i) => (
+                                    <ShapeTile
                                         key={shape.type}
-                                        role="option"
-                                        aria-selected={isSelected}
-                                        onMouseMove={() => !isSelected && setSelected(offset + i)}
+                                        shape={shape}
+                                        query={query.trim()}
+                                        isSelected={offset + i === index}
+                                        isCurrent={shape.type === currentType}
+                                        onHover={() => setSelected(offset + i)}
                                         onClick={() => change(shape.type)}
-                                        className={cn(
-                                            "flex h-9 cursor-pointer items-center gap-2.5 rounded-lg px-2 text-[13.5px] font-medium",
-                                            isSelected &&
-                                                "bg-[#ecebff] text-[#4a47b1] dark:bg-[#a8a5ff]/15 dark:text-[#b7b5ff]"
-                                        )}
-                                    >
-                                        <span className="grid w-[33px] shrink-0 place-items-center text-[#1e1e1e] dark:text-[#d8d8d8]">
-                                            <ElementSketch type={shape.type} />
-                                        </span>
-                                        <span className="flex-1 truncate">
-                                            <Highlight text={shape.title ?? ""} query={query} />
-                                        </span>
-                                        {shape.type === currentType ? (
-                                            <span className="text-[11px] font-normal text-zinc-400">
-                                                current
-                                            </span>
-                                        ) : null}
-                                        {isSelected && shape.type !== currentType ? (
-                                            <Keys keys={["↵"]} />
-                                        ) : null}
-                                    </div>
-                                );
-                            })}
+                                    />
+                                ))}
+                            </div>
                         </div>
                     );
                 })}
