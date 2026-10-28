@@ -805,3 +805,23 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       cancelling, moving the shapes afterwards, smart copy with a label and with arrows, type
       changes with an arrow and a label, and reloading after a type change. No console
       errors.
+
+## 19. Changing a shape
+
+- [x] In the picker that Tab opens on a selected shape, Tab moved the browser's focus and a
+      separate highlight, so they drifted apart, and after the last shape it went on to
+      Excalidraw's menu and toolbar. It's now a small palette beside the shape, chosen from
+      five mockups: type to filter (also by tags, so "database" finds Model), Tab or the
+      arrows to move round and round, Enter or a click to change, Escape or clicking away to
+      close. Shapes and blocks are listed apart with the add palette's sketches, the current
+      type is marked, and it starts on the next one, so Tab, Enter swaps to it. It opens on
+      the left when there's no room on the right.
+- [x] The hint above a selected shape says what Tab does: "Tab · Change shape".
+- [x] Changing a shape to a code block or a model dropped its arrows. They're moved to the
+      new block's edge and bound to it now (to the model's box), and the block is centered
+      where the shape was, as it has its own size.
+- [x] Tested (Oct 28): Tab and Shift+Tab around the list both ways, the arrows, filtering by
+      name and tag, nothing matching, Enter, clicking a row, Escape, clicking the canvas,
+      opening from the hint, a shape at the right edge, a code block (to a model), undo, and
+      light and dark. Shapes with arrows in and out changed to a code block and a model,
+      undone, and moved afterwards. No console errors.

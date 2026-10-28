@@ -16,6 +16,7 @@ import {
     ElementMeasurement,
     ExcalidrawApi,
     ExcalidrawElement,
+    ExcalidrawElements,
     ExcalidrawLinearElement,
     ExcalidrawTextElement,
 } from "common";
@@ -294,6 +295,87 @@ const createElementExtensionFromShadow = (
     });
 };
 
+type Point = [number, number];
+
+/** Moves the elements so they're centered where the element is, as blocks have their own size */
+const centerOn = (element: ExcalidrawElement, elements: ExcalidrawElement[]) => {
+    const left = Math.min(...elements.map(({ x }) => x));
+    const top = Math.min(...elements.map(({ y }) => y));
+    const right = Math.max(...elements.map(({ x, width }) => x + width));
+    const bottom = Math.max(...elements.map(({ y, height }) => y + height));
+    const dx = element.x + element.width / 2 - (left + right) / 2;
+    const dy = element.y + element.height / 2 - (top + bottom) / 2;
+
+    return elements.map(created => ({ ...created, x: created.x + dx, y: created.y + dy }));
+};
+
+/** Where an arrow aimed at the element's center (focus 0) meets its edge, from `from` */
+const getEdgePoint = (element: ExcalidrawElement, from: Point, gap: number): Point => {
+    const halfWidth = element.width / 2 + gap;
+    const halfHeight = element.height / 2 + gap;
+    const center: Point = [element.x + element.width / 2, element.y + element.height / 2];
+    const dx = from[0] - center[0];
+    const dy = from[1] - center[1];
+    if (dx === 0 && dy === 0) return center;
+
+    const scale = Math.min(
+        dx === 0 ? Infinity : halfWidth / Math.abs(dx),
+        dy === 0 ? Infinity : halfHeight / Math.abs(dy)
+    );
+    return [center[0] + dx * scale, center[1] + dy * scale];
+};
+
+/** Moves the ends of arrows bound to `fromId` to `target`, and binds them to it */
+const rebindArrows = (elements: ExcalidrawElements, fromId: string, target: ExcalidrawElement) => {
+    const arrows: ExcalidrawLinearElement[] = [];
+
+    const updated = elements.map(element => {
+        if (!ExcalidrawUtil.isLinearElement(element) || element.isDeleted) return element;
+        const start = element.startBinding?.elementId === fromId;
+        const end = element.endBinding?.elementId === fromId;
+        if (!start && !end) return element;
+
+        const arrow = UpdateElementUtil.updateElement(element, draft => {
+            const points = element.points.map(([x, y]): Point => [element.x + x, element.y + y]);
+            // An arrow has at least two points
+            const at = (index: number): Point => points[index] ?? [element.x, element.y];
+            const last = points.length - 1;
+
+            if (start && draft.startBinding) {
+                draft.startBinding = { ...draft.startBinding, elementId: target.id };
+                points[0] = getEdgePoint(target, at(1), draft.startBinding.gap);
+            }
+            if (end && draft.endBinding) {
+                draft.endBinding = { ...draft.endBinding, elementId: target.id };
+                points[last] = getEdgePoint(target, at(last - 1), draft.endBinding.gap);
+            }
+
+            const [originX, originY] = at(0);
+            const xs = points.map(([x]) => x);
+            const ys = points.map(([, y]) => y);
+            draft.x = originX;
+            draft.y = originY;
+            draft.points = points.map(([x, y]) => [x - originX, y - originY]);
+            draft.width = Math.max(...xs) - Math.min(...xs);
+            draft.height = Math.max(...ys) - Math.min(...ys);
+            return draft;
+        });
+
+        arrows.push(arrow);
+        return arrow;
+    });
+
+    const boundTarget = UpdateElementUtil.updateElement(target, (draft, helpers) => {
+        helpers.addBoundElements(
+            draft,
+            arrows.map(({ id }) => ({ id, type: "arrow" as const }))
+        );
+        return draft;
+    });
+
+    return { elements: updated, target: boundTarget };
+};
+
 const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: CustomElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
@@ -320,13 +402,23 @@ const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: Cust
         return;
     }
 
-    const newElements = ElementCreationUtil.createElementsFromElement({
-        type,
+    const created = centerOn(
         element,
-    });
+        ElementCreationUtil.createElementsFromElement({
+            type,
+            element,
+        })
+    );
+
+    // Arrows stay connected, now to the code block or the model's box
+    const target = created.find(({ customData }) => customData?.type === type) ?? first(created);
+    const rebound = target ? rebindArrows(elements, element.id, target) : undefined;
+    const newElements = created.map(created =>
+        created.id === rebound?.target.id ? rebound.target : created
+    );
 
     // Marked as deleted, instead of left out, so the deletion reaches the server
-    const updatedElements = ElementUtil.deleteElements(elements, [element.id]);
+    const updatedElements = ElementUtil.deleteElements(rebound?.elements ?? elements, [element.id]);
     const { updatedState } = ElementUtil.createNewElementSelection(newElements, state);
 
     excalidrawApi.updateScene({

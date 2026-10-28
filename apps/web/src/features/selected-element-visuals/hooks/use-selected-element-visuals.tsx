@@ -160,11 +160,11 @@ export const useSelectedElementVisuals = () => {
         setShowChangeElementKeyDialog(false);
     };
 
-    const closeSelectElementDialog = () => {
+    const closeSelectElementDialog = ({ focusCanvas = true } = {}) => {
         setShowSelectElementDialog(false);
         setShowChangeElementKeyDialog(false);
 
-        DrawingUtil.focusCanvas();
+        if (focusCanvas) DrawingUtil.focusCanvas();
     };
 
     const render = () => (

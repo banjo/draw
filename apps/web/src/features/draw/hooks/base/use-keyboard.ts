@@ -120,6 +120,8 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
 
         // If one element selected, allow change element type
         if (ElementUtil.getSelectedElementIds(state).length === 1 && event.key === "Tab") {
+            // Or the browser moves the focus on, out of the dialog that just opened
+            event.preventDefault();
             handleChangeElementDialogClick();
         }
 

@@ -35,7 +35,7 @@ export const useChangeElementKeyDialog = () => {
         const dialogX = x + (width * appState.zoom.value) / 2 - dialogWidth / 2;
 
         // place dialog above the element
-        const dialogY = y - 100;
+        const dialogY = y - 80;
 
         changeElementKeyRef.current?.setAttribute("style", `top: ${dialogY}px; left: ${dialogX}px`);
         setHasPosition(true);
