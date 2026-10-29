@@ -88,10 +88,11 @@
     display: none;
 }
 
-/* Set while a code block, Mermaid block, note or table is selected, as the hint is about cropping */
+/* Set while a code block, Mermaid block, note, table or link card is selected, as the hint is about cropping */
 .code-block-selected .excalidraw .HintViewer,
 .mermaid-block-selected .excalidraw .HintViewer,
 .markdown-note-selected .excalidraw .HintViewer,
-.table-selected .excalidraw .HintViewer {
+.table-selected .excalidraw .HintViewer,
+.link-card-selected .excalidraw .HintViewer {
     display: none;
 }

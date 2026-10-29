@@ -7,6 +7,7 @@ import {
 import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
 import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useTableStore } from "@/features/table/stores/use-table-store";
+import { useLinkCardStore } from "@/features/link-card/stores/use-link-card-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useAddElementStore } from "@/stores/use-add-element-store";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
@@ -52,7 +53,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         isEditingCode ||
         isTypingTarget(event.target);
 
-    /** Enter edits a selected code block, like text, or Mermaid block, note or table */
+    /** Enter edits a selected code block, like text, or Mermaid block, note, table or link card */
     const openSelectedCodeBlock = (event: React.KeyboardEvent, api: ExcalidrawApi) => {
         const selected = ElementUtil.getSelectedElements(api.getAppState(), api.getSceneElements());
         const block = selected.length === 1 ? selected[0] : undefined;
@@ -69,6 +70,13 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             event.preventDefault();
             event.stopPropagation();
             useMarkdownNoteStore.getState().setEditingId(block.id);
+            return;
+        }
+
+        if (CustomDataUtil.isLinkCard(block)) {
+            event.preventDefault();
+            event.stopPropagation();
+            useLinkCardStore.getState().open({ kind: "edit", id: block.id });
             return;
         }
 

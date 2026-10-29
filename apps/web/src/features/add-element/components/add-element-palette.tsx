@@ -4,6 +4,7 @@ import { Highlight } from "@/features/collection/components/highlight";
 import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
 import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useTableStore } from "@/features/table/stores/use-table-store";
+import { useLinkCardStore } from "@/features/link-card/stores/use-link-card-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ChevronRight, Search } from "lucide-react";
@@ -254,14 +255,16 @@ const ScopeChips = ({ scope, onSelect }: { scope: Scope; onSelect: (scope: Scope
 );
 
 const isMermaid = (item: Item) => item.kind === "element" && item.shape.type === "mermaid";
+const isLinkCard = (item: Item) => item.kind === "element" && item.shape.type === "link";
+// Written in their own dialog first, so they're added one at a time
+const hasDialog = (item: Item) => isMermaid(item) || isLinkCard(item);
 
 type FooterProps = { current?: Item; canGoBack: boolean };
 
 /** What's selected, and what the keys do with it */
 const Footer = ({ current, canGoBack }: FooterProps) => {
     const isInsertable = current !== undefined && !isOpener(current);
-    // A Mermaid diagram is written in its own dialog, so it's one at a time
-    const canAddMore = isInsertable && current !== undefined && !isMermaid(current);
+    const canAddMore = isInsertable && current !== undefined && !hasDialog(current);
 
     return (
         <div className="hidden h-[42px] shrink-0 items-center gap-4 border-t border-black/[0.07] bg-black/[0.02] px-4 text-[12.5px] text-zinc-500 dark:border-white/[0.07] dark:bg-white/[0.02] dark:text-zinc-400 sm:flex">
@@ -418,11 +421,13 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
         const placement = lastAdded.current ?? getStartPlacement(startPointer);
         if (!placement) return;
 
-        // A diagram is written first, in its own dialog
-        if (isMermaid(item)) {
+        // A diagram or link is written first, in its own dialog
+        if (hasDialog(item)) {
             addRecent(getItemKey(item));
             onClose();
-            useMermaidDialogStore.getState().open({ kind: "insert", placement });
+            if (isMermaid(item))
+                useMermaidDialogStore.getState().open({ kind: "insert", placement });
+            else useLinkCardStore.getState().open({ kind: "insert", placement });
             return;
         }
 

@@ -171,6 +171,25 @@ const sketches: Partial<Record<CustomElementType, ReactElement>> = {
             />
         </g>
     ),
+    link: (
+        <g strokeLinecap="round" strokeLinejoin="round">
+            <path
+                d="M4.6 8.4 Q4.6 4.2 9 4.3 L51.2 3.9 Q55.5 4 55.4 8.6 L55.2 31.8 Q55.1 36.2 50.8 36 L9.1 36.2 Q4.8 36.1 4.7 31.7 Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+            />
+            <rect x={10} y={11} width={18} height={18} rx={4.5} fill="#1971c2" />
+            <path
+                d="M15.5 21.5 l7-7 M18 14.5 h4.5 v4.5"
+                stroke="#fff"
+                strokeWidth={1.8}
+                fill="none"
+            />
+            <path d="M33 16.5h17" stroke="currentColor" strokeWidth={2.6} />
+            <path d="M33 24.5h11" stroke="currentColor" strokeWidth={1.8} opacity={0.55} />
+        </g>
+    ),
     markdown: (
         <g strokeLinecap="round">
             <path

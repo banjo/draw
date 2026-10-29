@@ -166,6 +166,15 @@ export const shapes: Shape[] = [
         tags: ["note", "text", "markdown", "checklist", "todo", "rich text", "list"],
     },
     {
+        type: "link",
+        kind: "block",
+        group: "Blocks",
+        title: "Link card",
+        description: "A web page's title and icon, from its link",
+        tags: ["url", "bookmark", "website", "page", "embed", "preview", "href"],
+        addOnly: true,
+    },
+    {
         type: "swimlane",
         kind: "block",
         group: "Blocks",

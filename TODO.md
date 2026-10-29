@@ -932,3 +932,27 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       and columns, undo, Tab on a labelled rectangle, pasting rows, reloading, dark mode, and
       PNG export. Tab and its hint on a table, note, code block and model (nothing) and on a
       hexagon (the palette). No console errors.
+
+## 25. Link card
+
+- [x] A Link card block, chosen from mockups: Compact by default (icon, title and site), Chip
+      (one line), or Sketchy (hand-drawn, with the description), switched in the footer,
+      which also has Edit link and a button that opens the page. Excalidraw's own link icon
+      on the card opens it too.
+- [x] Add one from ⌘K, type or paste a link and see the card before inserting it; the look
+      chosen is remembered. Double-click or Enter changes the link.
+- [x] Pasting a link on the canvas makes a card. Links Excalidraw embeds, like YouTube or
+      Figma, still embed, and text with a link in it stays text.
+- [x] A new API query, `link.preview`, reads a page's title, description, site name and
+      icon. It only reaches public addresses (checked when connecting, also after
+      redirects), gives up after 5 seconds, reads at most 512 KB of a page and 100 KB of an
+      icon, and keeps answers for an hour. Without an answer the card shows the address.
+- [x] The icon is kept in the card as a 64 px PNG, and like notes and tables the image is
+      made in every browser, so nothing is uploaded.
+- [x] Changing the link with Excalidraw's link editor updates the card; removing it puts it
+      back.
+- [x] Tested (Oct 29): adding from ⌘K, all three looks, editing the link, undo and redo,
+      pasting a link, a YouTube link (embed) and text with a link (text), an address that
+      doesn't exist, changing and removing the link in Excalidraw's editor, Tab (nothing),
+      dark mode, reloading and PNG export. The API refuses 169.254.169.254, [::1] and a name
+      that resolves to 127.0.0.1. No console errors.

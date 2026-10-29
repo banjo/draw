@@ -5,20 +5,29 @@ import { CustomDataUtil } from "../../utils/custom-data-util";
 import { CustomData, ExcalidrawElement } from "common";
 import { ElementUtil } from "../../utils/element-util";
 import { FrameUtil } from "../../utils/frame-util";
-import { placeElements } from "@/features/add-element/hooks/use-insert-element";
+import { placeElements, Placement } from "@/features/add-element/hooks/use-insert-element";
+import { useLinkContent } from "@/features/link-card/hooks/use-link-content";
+import { LinkCard } from "@/features/link-card/models/link-card";
+import { useLinkCardStore } from "@/features/link-card/stores/use-link-card-store";
+import toast from "react-hot-toast";
 import { Table } from "@/features/table/models/table";
 import { CaptureUpdateAction, getVisibleSceneBounds } from "@excalidraw/excalidraw";
 import { UpdateElementUtil } from "../../utils/update-element-util";
 
 export const useOnPaste = () => {
     const { excalidrawApi } = useGlobal();
+    const getLinkContent = useLinkContent();
+    const getScreenCenter = (): Placement => {
+        const [minX, minY, maxX, maxY] = getVisibleSceneBounds(excalidrawApi!.getAppState());
+        return { center: { x: (minX + maxX) / 2, y: (minY + maxY) / 2 } };
+    };
+
     /** Rows from a spreadsheet as a table, in the middle of the screen */
     const pasteTable = async (rows: string[][]) => {
         if (!excalidrawApi) return;
         const { element, file } = await Table.create({ rows });
-        const [minX, minY, maxX, maxY] = getVisibleSceneBounds(excalidrawApi.getAppState());
         const elements = FrameUtil.addToFrame(
-            placeElements([element], { center: { x: (minX + maxX) / 2, y: (minY + maxY) / 2 } }),
+            placeElements([element], getScreenCenter()),
             excalidrawApi.getSceneElements()
         );
         excalidrawApi.addFiles([file]);
@@ -30,6 +39,43 @@ export const useOnPaste = () => {
         });
     };
 
+    /** A link as a card, in the middle of the screen, once the page's title and icon are in */
+    const pasteLink = async (url: string) => {
+        if (!excalidrawApi) return;
+        // Only when it takes a while
+        let toastId: string | undefined;
+        const timer = setTimeout(() => (toastId = toast.loading("Getting the link…")), 400);
+        try {
+            const content = await getLinkContent(url, useLinkCardStore.getState().look);
+            await LinkCard.insert(excalidrawApi, content, getScreenCenter());
+        } catch {
+            toast.error("Couldn't make the card");
+        } finally {
+            clearTimeout(timer);
+            if (toastId) toast.dismiss(toastId);
+        }
+    };
+
+    /** Text that becomes a block instead: whether it did */
+    const pasteAsBlock = (data: ClipboardData, event: ClipboardEvent | null) => {
+        // Rows copied from Excel, Sheets or Numbers, instead of Excalidraw's chart
+        const rows = Table.parsePasted(
+            event?.clipboardData?.getData("text/plain") ?? data.text ?? ""
+        );
+        if (rows) {
+            void pasteTable(rows);
+            return true;
+        }
+
+        // A link, instead of text; links Excalidraw embeds, like YouTube, stay embeds
+        const link = LinkCard.parsePasted(data.text ?? "");
+        if (link) {
+            void pasteLink(link);
+            return true;
+        }
+        return false;
+    };
+
     const handleOnPaste = (
         data: ClipboardData,
         event: ClipboardEvent | null
@@ -37,14 +83,7 @@ export const useOnPaste = () => {
         if (!excalidrawApi) return true;
         const copiedElements = data.elements as Maybe<ExcalidrawElement[]>;
 
-        // Rows copied from Excel, Sheets or Numbers, instead of Excalidraw's chart
-        const rows =
-            isEmpty(copiedElements ?? []) &&
-            Table.parsePasted(event?.clipboardData?.getData("text/plain") ?? data.text ?? "");
-        if (rows) {
-            void pasteTable(rows);
-            return false;
-        }
+        if (isEmpty(copiedElements ?? []) && pasteAsBlock(data, event)) return false;
 
         if (!isDefined(copiedElements) || isEmpty(copiedElements)) return true;
 

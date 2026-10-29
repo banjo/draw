@@ -29,6 +29,7 @@ export type CustomElementType =
     | "swimlane-part"
     | "markdown"
     | "table"
+    | "link"
     | "image"
     | ModelType;
 
@@ -102,9 +103,22 @@ export type CustomDataTable = BaseCustomData & {
     headerColumn: boolean;
 };
 
+/** A card for a web page, drawn as an image from what the page says about itself */
+export type CustomDataLink = BaseCustomData & {
+    type: "link";
+    url: string;
+    title?: string;
+    description?: string;
+    siteName?: string;
+    /** The page's icon, as a small PNG data URL */
+    icon?: string;
+    look: "compact" | "chip" | "sketchy";
+};
+
 export type CustomData =
     | CustomDataDefault
     | CustomDataTable
+    | CustomDataLink
     | CustomDataMarkdown
     | CustomDataCodeblock
     | CustomDataModel

@@ -13,6 +13,9 @@ const isMarkdownNote = (element: ExcalidrawElement) =>
 const isTable = (element: ExcalidrawElement) =>
     element.type === "image" && element.customData?.type === "table";
 
+const isLinkCard = (element: ExcalidrawElement) =>
+    element.type === "image" && element.customData?.type === "link";
+
 const isAnyModelElement = (element: ExcalidrawElement) => {
     if (!element.customData) return false;
     const modelElements: ModelType[] = ["model", "model-child", "model-line", "model-title"];
@@ -60,6 +63,7 @@ const BLOCK_TYPES = new Set<string>([
     "mermaid",
     "markdown",
     "table",
+    "link",
     "swimlane",
     "swimlane-part",
 ]);
@@ -75,6 +79,7 @@ export const CustomDataUtil = {
     isMermaidElement,
     isMarkdownNote,
     isTable,
+    isLinkCard,
     isModelElements,
     isModelContainerElement,
     isAnyModelElement,

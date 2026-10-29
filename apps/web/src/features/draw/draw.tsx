@@ -17,6 +17,7 @@ import { useMermaid } from "@/features/mermaid/hooks/use-mermaid";
 import { useSwimlane } from "@/features/swimlane/hooks/use-swimlane";
 import { useMarkdownNotes } from "@/features/markdown-note/hooks/use-markdown-notes";
 import { useTables } from "@/features/table/hooks/use-tables";
+import { useLinkCards } from "@/features/link-card/hooks/use-link-cards";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
@@ -101,6 +102,7 @@ export const Draw = ({ slug }: DrawProps) => {
     const { updateSwimlanes, swimlaneMenu } = useSwimlane();
     const notes = useMarkdownNotes();
     const { tables, updateTables, onDoubleClickCapture: onTableDoubleClick } = useTables();
+    const links = useLinkCards();
     const { handlePointerDownCapture, handleClickCapture, handlePointerMove } = notes;
     const { render: renderAddElement } = useAddElement();
     const { render: renderFeatures } = useFeaturesIntro({ slug });
@@ -151,6 +153,7 @@ export const Draw = ({ slug }: DrawProps) => {
             mermaid.updateMermaidBlocks(elements, appState, files);
             updateSwimlanes(elements, appState, files);
             notes.updateMarkdownNotes(elements, appState, files);
+            links.updateLinkCards(elements, appState, files);
             updateTables(elements, appState, files);
             handleSelectedElementVisuals(elements, appState, files);
         }
@@ -211,6 +214,7 @@ export const Draw = ({ slug }: DrawProps) => {
                     if (!event.isPropagationStopped()) mermaid.onDoubleClickCapture(event);
                     if (!event.isPropagationStopped()) notes.onDoubleClickCapture(event);
                     if (!event.isPropagationStopped()) onTableDoubleClick(event);
+                    if (!event.isPropagationStopped()) links.onDoubleClickCapture(event);
                 }}
                 onPointerDownCapture={handlePointerDownCapture}
                 onClickCapture={handleClickCapture}
@@ -220,6 +224,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 {swimlaneMenu}
                 {notes.markdownNotes}
                 {tables}
+                {links.linkCards}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}

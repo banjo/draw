@@ -2,14 +2,15 @@ import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
 import { Table } from "@/features/table/models/table";
+import { LinkCard } from "@/features/link-card/models/link-card";
 import { CodeBlockImage } from "@/features/selected-element-visuals/models/code-block-image";
 import { exportToSvg } from "@excalidraw/excalidraw";
 import { BinaryFileData } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement } from "common";
 
 /**
- * An SVG of a saved drawing, for a preview. Code blocks, notes and tables are drawn from their
- * content, like on the canvas. Uploaded images aren't loaded.
+ * An SVG of a saved drawing, for a preview. Code blocks, notes, tables and link cards are drawn
+ * from their content, like on the canvas. Uploaded images aren't loaded.
  */
 export const renderDrawingPreview = async (savedElements: unknown[], isDark: boolean) => {
     const elements = (savedElements as ExcalidrawElement[])
@@ -37,6 +38,9 @@ export const renderDrawingPreview = async (savedElements: unknown[], isDark: boo
                 files[fileId] = { ...file, id: fileId };
             } else if (CustomDataUtil.isTable(element)) {
                 const { file } = await Table.render(Table.getContent(element));
+                files[fileId] = { ...file, id: fileId };
+            } else if (CustomDataUtil.isLinkCard(element)) {
+                const { file } = await LinkCard.render(LinkCard.getContent(element));
                 files[fileId] = { ...file, id: fileId };
             }
         })
