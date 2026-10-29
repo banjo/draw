@@ -845,3 +845,22 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       an arrow, undo and redo; the Tab palette's arrows, Tab and search; ⌘K's groups,
       searching "datab" and adding. `turbo prune api` keeps the patch for the API's Docker
       build. No console errors.
+
+## 21. Mermaid
+
+- [x] A Mermaid block in Blocks, chosen from mockups with the table, swimlane, Markdown note
+      and link card that come next. It opens a dialog: Mermaid on the left, a live preview
+      on the right, and examples to start from (flowchart, sequence, class, ER, state, Gantt,
+      pie). Mistakes show Mermaid's message under the preview. ⌘/Ctrl+Enter inserts.
+- [x] Insert as shapes or as a Mermaid block, and the choice is kept for next time. Shapes
+      come from Excalidraw's own converter, so each box and arrow can be moved and restyled.
+      A block is a hand-drawn image of the diagram, saved like other images, with the Mermaid
+      on it: double-click it or press Enter to change it, keeping the size it was resized to,
+      or turn it into shapes. Kinds the converter can't make shapes of, like Gantt and pie,
+      are always added as a block.
+- [x] Mermaid is held at 11.12.3 (`pnpm-workspace.yaml`), as Excalidraw's converter turns
+      class diagrams into an image from 11.13 on. Mermaid only loads when the dialog opens.
+- [x] Tested (Oct 29): adding from ⌘K at the pointer, every example in both modes, light and
+      dark, a mistake and fixing it, editing a resized block, turning a block into shapes,
+      undo after each, reloading the offline drawing with a block, and exporting it to PNG.
+      No console errors.

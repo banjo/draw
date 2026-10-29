@@ -4,6 +4,9 @@ import { ElementUtil } from "./element-util";
 
 const isCodeBlockElement = (element: ExcalidrawElement) => element.customData?.type === "codeblock";
 
+const isMermaidElement = (element: ExcalidrawElement) =>
+    element.type === "image" && element.customData?.type === "mermaid";
+
 const isAnyModelElement = (element: ExcalidrawElement) => {
     if (!element.customData) return false;
     const modelElements: ModelType[] = ["model", "model-child", "model-line", "model-title"];
@@ -36,6 +39,7 @@ const isShadowElement = (element: ExcalidrawElement) => element.customData?.shad
 
 export const CustomDataUtil = {
     isCodeBlockElement,
+    isMermaidElement,
     isModelElements,
     isModelContainerElement,
     isAnyModelElement,

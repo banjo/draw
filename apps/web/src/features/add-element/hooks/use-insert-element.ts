@@ -28,7 +28,8 @@ export type ClientPoint = { clientX: number; clientY: number };
 const moveElements = (elements: ExcalidrawElements, dx: number, dy: number) =>
     elements.map(element => ({ ...element, x: element.x + dx, y: element.y + dy }));
 
-const place = (elements: ExcalidrawElements, placement: Placement) => {
+/** Moves the elements to the placement */
+export const placeElements = (elements: ExcalidrawElements, placement: Placement) => {
     const [minX, minY, maxX, maxY] = ExcalidrawUtil.getCommonBounds(elements);
     const width = maxX - minX;
     const height = maxY - minY;
@@ -84,7 +85,7 @@ export const useInsertElement = () => {
                       file: undefined,
                   };
 
-        const elements = place(created.elements, placement);
+        const elements = placeElements(created.elements, placement);
         const { updatedState } = ElementUtil.createNewElementSelection(
             elements,
             excalidrawApi.getAppState()

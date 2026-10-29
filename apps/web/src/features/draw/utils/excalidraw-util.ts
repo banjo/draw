@@ -33,6 +33,7 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     "model-title": "rectangle", // wont happen
     model: "rectangle",
     codeblock: "rectangle", // wont happen, code blocks are images
+    mermaid: "rectangle", // wont happen, Mermaid blocks are images
     diamond: "diamond",
     ellipse: "ellipse",
     rectangle: "rectangle",

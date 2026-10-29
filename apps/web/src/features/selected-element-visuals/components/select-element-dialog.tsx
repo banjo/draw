@@ -34,7 +34,7 @@ const getSections = (query: string): Section[] =>
         layout: "tiles",
         columns: COLUMNS,
         items: shapes
-            .filter(shape => shape.group === group && matches(shape, query))
+            .filter(shape => shape.group === group && !shape.addOnly && matches(shape, query))
             .map((shape): ElementItem => ({ kind: "element", shape })),
     })).filter(section => section.items.length > 0);
 

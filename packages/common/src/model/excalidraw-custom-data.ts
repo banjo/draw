@@ -24,6 +24,7 @@ export type CustomElementType =
     | "arrow"
     | "line"
     | "codeblock"
+    | "mermaid"
     | "image"
     | ModelType;
 
@@ -54,7 +55,14 @@ export type CustomDataModel = BaseCustomData & {
     groupId: string;
 };
 
-export type CustomData = CustomDataDefault | CustomDataCodeblock | CustomDataModel;
+/** A Mermaid diagram, drawn as an image */
+export type CustomDataMermaid = BaseCustomData & {
+    type: "mermaid";
+    definition: string;
+};
+
+export type CustomData =
+    CustomDataDefault | CustomDataCodeblock | CustomDataModel | CustomDataMermaid;
 
 type Props = {
     shadow: boolean;
@@ -130,6 +138,16 @@ export const CustomData = {
         ...defaultCustomDataModel,
         ...props,
     }),
+    createMermaid: (definition: string): CustomDataMermaid => ({
+        shadow: false,
+        type: "mermaid",
+        definition,
+    }),
+    getMermaidDefinition: (data: unknown): Maybe<string> => {
+        if (!data || typeof data !== "object") return undefined;
+        const { type, definition } = data as CustomDataMermaid;
+        return type === "mermaid" && typeof definition === "string" ? definition : undefined;
+    },
     updateDefault: (
         current: Maybe<CustomData>,
         props: Partial<BaseCustomData>

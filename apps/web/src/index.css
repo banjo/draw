@@ -88,7 +88,8 @@
     display: none;
 }
 
-/* Set while a code block is selected, as the hint is about cropping images */
-.code-block-selected .excalidraw .HintViewer {
+/* Set while a code block or Mermaid block is selected, as the hint is about cropping images */
+.code-block-selected .excalidraw .HintViewer,
+.mermaid-block-selected .excalidraw .HintViewer {
     display: none;
 }

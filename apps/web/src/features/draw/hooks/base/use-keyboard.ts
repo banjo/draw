@@ -4,6 +4,7 @@ import {
     ElementExtensionShadow,
     ElementVisualUtils,
 } from "@/features/draw/utils/element-visual-utils";
+import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useAddElementStore } from "@/stores/use-add-element-store";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
@@ -49,15 +50,24 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         isEditingCode ||
         isTypingTarget(event.target);
 
-    /** Enter edits a selected code block, like text, instead of cropping its image */
+    /** Enter edits a selected code block, like text, or Mermaid block, instead of cropping */
     const openSelectedCodeBlock = (event: React.KeyboardEvent, api: ExcalidrawApi) => {
         const selected = ElementUtil.getSelectedElements(api.getAppState(), api.getSceneElements());
-        const codeBlock = selected.length === 1 ? selected[0] : undefined;
-        if (!codeBlock || !CustomDataUtil.isCodeBlockElement(codeBlock)) return;
+        const block = selected.length === 1 ? selected[0] : undefined;
+        if (!block) return;
+
+        if (CustomDataUtil.isMermaidElement(block)) {
+            event.preventDefault();
+            event.stopPropagation();
+            useMermaidDialogStore.getState().open({ kind: "edit", id: block.id });
+            return;
+        }
+
+        if (!CustomDataUtil.isCodeBlockElement(block)) return;
 
         event.preventDefault();
         event.stopPropagation();
-        setEditingCodeBlockId(codeBlock.id);
+        setEditingCodeBlockId(block.id);
     };
 
     /**

@@ -128,6 +128,19 @@ const sketches: Partial<Record<CustomElementType, ReactElement>> = {
             />
         </>
     ),
+    mermaid: (
+        <g stroke="#1e1e1e" strokeWidth={1.5} strokeLinejoin="round">
+            <path d="M3.4 13.6 L21.6 13.2 L21.8 26.6 L3.2 26.9 Z" fill="#ffdeeb" />
+            <path d="M37.3 3.4 L56.6 3.1 L56.8 15.4 L37.1 15.7 Z" fill="#e7f5ff" />
+            <path d="M37.2 24.5 L56.7 24.2 L56.5 36.7 L37.4 36.9 Z" fill="#e7f5ff" />
+            <path
+                d="M22 20 C28 20 29 9.4 35 9.4 M22 20 C28 20 29 30.6 35 30.6 M32.4 7.6 L35.2 9.4 L32.6 11.4 M32.6 28.6 L35.2 30.6 L32.4 32.4"
+                fill="none"
+                strokeLinecap="round"
+                className="stroke-current"
+            />
+        </g>
+    ),
     codeblock: (
         <>
             <rect x={4} y={3} width={52} height={34} rx={5} fill="#1e1e2e" />

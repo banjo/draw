@@ -13,6 +13,7 @@ import { useCollectionPalette } from "@/features/collection/hooks/use-collection
 import { useFeaturesIntro } from "@/features/features-intro/hooks/use-features-intro";
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
+import { useMermaid } from "@/features/mermaid/hooks/use-mermaid";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
@@ -93,6 +94,7 @@ export const Draw = ({ slug }: DrawProps) => {
     } = useSelectedElementVisuals();
 
     const { codeBlocks, updateCodeBlockElements, onDoubleClickCapture } = useCodeBlockElement();
+    const mermaid = useMermaid();
     const { render: renderAddElement } = useAddElement();
     const { render: renderFeatures } = useFeaturesIntro({ slug });
     const { render: renderPalette } = useCollectionPalette();
@@ -139,6 +141,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 cleanup(elements, appState, files);
             }
             updateCodeBlockElements(elements, appState, files);
+            mermaid.updateMermaidBlocks(elements, appState, files);
             handleSelectedElementVisuals(elements, appState, files);
         }
     );
@@ -183,6 +186,7 @@ export const Draw = ({ slug }: DrawProps) => {
             {renderAddElement()}
             {renderFeatures()}
             {renderPalette()}
+            {mermaid.render()}
             {showSignInModal ? (
                 <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
             ) : null}
@@ -192,7 +196,10 @@ export const Draw = ({ slug }: DrawProps) => {
                 onKeyDown={handleKeyDown}
                 onKeyDownCapture={handleKeyDownCapture}
                 onKeyUp={handleKeyUp}
-                onDoubleClickCapture={onDoubleClickCapture}
+                onDoubleClickCapture={event => {
+                    onDoubleClickCapture(event);
+                    if (!event.isPropagationStopped()) mermaid.onDoubleClickCapture(event);
+                }}
             >
                 {codeBlocks}
                 {renderSelectedElementVisuals()}

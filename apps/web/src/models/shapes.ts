@@ -15,6 +15,8 @@ export type Shape = {
     description?: string;
     /** Other words it's found by, e.g. "database" for a model */
     tags: string[];
+    /** Added from the palette, but not offered when changing a shape with Tab */
+    addOnly?: boolean;
 };
 
 export const shapes: Shape[] = [
@@ -137,6 +139,15 @@ export const shapes: Shape[] = [
         title: "Model",
         description: "A table for modelling simple entities",
         tags: ["table", "entity", "database", "schema", "class", "data"],
+    },
+    {
+        type: "mermaid",
+        kind: "block",
+        group: "Blocks",
+        title: "Mermaid",
+        description: "A diagram written in Mermaid",
+        tags: ["diagram", "flowchart", "sequence", "chart", "text", "graph", "uml"],
+        addOnly: true,
     },
 ];
 

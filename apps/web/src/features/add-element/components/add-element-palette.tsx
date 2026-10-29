@@ -1,6 +1,7 @@
 import { Hint, Keys } from "@/components/keys";
 import { Modal } from "@/components/modal";
 import { Highlight } from "@/features/collection/components/highlight";
+import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ChevronRight, Search } from "lucide-react";
@@ -250,11 +251,15 @@ const ScopeChips = ({ scope, onSelect }: { scope: Scope; onSelect: (scope: Scope
     </div>
 );
 
+const isMermaid = (item: Item) => item.kind === "element" && item.shape.type === "mermaid";
+
 type FooterProps = { current?: Item; canGoBack: boolean };
 
 /** What's selected, and what the keys do with it */
 const Footer = ({ current, canGoBack }: FooterProps) => {
     const isInsertable = current !== undefined && !isOpener(current);
+    // A Mermaid diagram is written in its own dialog, so it's one at a time
+    const canAddMore = isInsertable && current !== undefined && !isMermaid(current);
 
     return (
         <div className="hidden h-[42px] shrink-0 items-center gap-4 border-t border-black/[0.07] bg-black/[0.02] px-4 text-[12.5px] text-zinc-500 dark:border-white/[0.07] dark:bg-white/[0.02] dark:text-zinc-400 sm:flex">
@@ -269,7 +274,7 @@ const Footer = ({ current, canGoBack }: FooterProps) => {
                 ) : null}
             </span>
             <Hint keys={["↵"]}>{isInsertable ? "Add" : "Open"}</Hint>
-            {isInsertable ? <Hint keys={["⇧", "↵"]}>Add more</Hint> : null}
+            {canAddMore ? <Hint keys={["⇧", "↵"]}>Add more</Hint> : null}
             {canGoBack ? <Hint keys={["esc"]}>Back</Hint> : null}
         </div>
     );
@@ -410,6 +415,14 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
 
         const placement = lastAdded.current ?? getStartPlacement(startPointer);
         if (!placement) return;
+
+        // A diagram is written first, in its own dialog
+        if (isMermaid(item)) {
+            addRecent(getItemKey(item));
+            onClose();
+            useMermaidDialogStore.getState().open({ kind: "insert", placement });
+            return;
+        }
 
         try {
             const added = await insert(item, placement);
