@@ -27,6 +27,7 @@ export type CustomElementType =
     | "mermaid"
     | "swimlane"
     | "swimlane-part"
+    | "markdown"
     | "image"
     | ModelType;
 
@@ -82,8 +83,17 @@ export type CustomDataSwimlanePart = BaseCustomData & {
     hidden?: boolean;
 };
 
+/** A note written in Markdown, drawn as an image in one of two looks */
+export type CustomDataMarkdown = BaseCustomData & {
+    type: "markdown";
+    markdown: string;
+    look: "paper" | "hand";
+    width: number;
+};
+
 export type CustomData =
     | CustomDataDefault
+    | CustomDataMarkdown
     | CustomDataCodeblock
     | CustomDataModel
     | CustomDataMermaid

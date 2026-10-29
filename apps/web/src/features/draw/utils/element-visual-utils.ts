@@ -11,6 +11,7 @@ import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FrameUtil } from "@/features/draw/utils/frame-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
+import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
 import { isShapeType } from "@/models/shapes";
 import { first, Maybe, produce } from "@banjoanton/utils";
 import { PointBinding } from "@excalidraw/excalidraw/element/types";
@@ -412,16 +413,59 @@ const changeShapeType = (
         return draft;
     });
 
+/**
+ * A note in the shape's place, with the shape's label as its text, and its arrows. Made
+ * apart from the others, as drawing a note takes a moment.
+ */
+const changeToMarkdownNote = async (excalidrawApi: ExcalidrawApi, element: ExcalidrawElement) => {
+    // Already one, which keeps its Markdown
+    if (CustomDataUtil.isMarkdownNote(element)) return;
+    const label = excalidrawApi
+        .getSceneElements()
+        .find(
+            (text): text is ExcalidrawTextElement =>
+                ExcalidrawUtil.isTextElement(text) && text.containerId === element.id
+        );
+    const { element: note, file } = await MarkdownNote.create(
+        label?.text.trim() ? { markdown: label.text } : {}
+    );
+
+    // Read after drawing, as the drawing may have changed meanwhile
+    const elements = excalidrawApi.getSceneElements();
+    if (!ElementUtil.getElementById(elements, element.id)) return;
+    const [placed = note] = centerOn(element, [note]);
+    const rebound = rebindArrows(elements, element.id, placed);
+
+    excalidrawApi.addFiles([file]);
+    excalidrawApi.updateScene({
+        elements: [...ElementUtil.deleteElements(rebound.elements, [element.id]), rebound.target],
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        appState: ElementUtil.createNewElementSelection(
+            [rebound.target],
+            excalidrawApi.getAppState()
+        ).updatedState,
+    });
+};
+
+/** The one element selected, not counting its label */
+const getSelectedElement = (excalidrawApi: ExcalidrawApi) => {
+    const selected = ElementUtil.getSelectedElements(
+        excalidrawApi.getAppState(),
+        excalidrawApi.getSceneElements()
+    ).filter(element => !ElementUtil.isBoundText(element));
+    return selected.length === 1 ? first(selected) : undefined;
+};
+
 const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: CustomElementType) => {
     const state = excalidrawApi.getAppState();
     const elements = excalidrawApi.getSceneElements();
-
-    const selected = ElementUtil.getSelectedElements(state, elements).filter(
-        element => !ElementUtil.isBoundText(element)
-    );
-    if (selected.length !== 1) return;
-    const element = first(selected);
+    const element = getSelectedElement(excalidrawApi);
     if (!element) return;
+
+    if (type === "markdown") {
+        void changeToMarkdownNote(excalidrawApi, element);
+        return;
+    }
 
     // Between shapes, only the type changes, so arrows and the label stay attached
     const shapeType = getShapeType(element);

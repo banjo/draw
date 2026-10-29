@@ -25,9 +25,14 @@ type In = {
     slug?: string;
 };
 
-/** Images that are files, not code blocks: those are made from their code in every browser */
+/**
+ * Images that are files, not code blocks or Markdown notes: those are made from their code
+ * or Markdown in every browser
+ */
 const isFileImage = (element: ExcalidrawElement) =>
-    ExcalidrawUtil.isImageElement(element) && !CustomDataUtil.isCodeBlockElement(element);
+    ExcalidrawUtil.isImageElement(element) &&
+    !CustomDataUtil.isCodeBlockElement(element) &&
+    !CustomDataUtil.isMarkdownNote(element);
 
 const getImagesOnCanvas = (files: BinaryFiles, elements: ExcalidrawElements) =>
     Object.values(files)

@@ -1,6 +1,7 @@
 import { Hint, Keys } from "@/components/keys";
 import { Modal } from "@/components/modal";
 import { Highlight } from "@/features/collection/components/highlight";
+import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
 import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -438,6 +439,9 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
             // A new code block is for typing code in
             if (added.codeBlock) {
                 useCodeEditorStore.getState().setEditingElementId(added.codeBlock.id);
+            }
+            if (added.markdownNote) {
+                useMarkdownNoteStore.getState().setEditingId(added.markdownNote.id);
             }
         } catch {
             toast.error(`Couldn't add ${getItemTitle(item)}`);

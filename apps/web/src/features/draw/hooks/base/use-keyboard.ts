@@ -4,6 +4,7 @@ import {
     ElementExtensionShadow,
     ElementVisualUtils,
 } from "@/features/draw/utils/element-visual-utils";
+import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
 import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useAddElementStore } from "@/stores/use-add-element-store";
@@ -50,7 +51,7 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         isEditingCode ||
         isTypingTarget(event.target);
 
-    /** Enter edits a selected code block, like text, or Mermaid block, instead of cropping */
+    /** Enter edits a selected code block, like text, Mermaid block or note, instead of cropping */
     const openSelectedCodeBlock = (event: React.KeyboardEvent, api: ExcalidrawApi) => {
         const selected = ElementUtil.getSelectedElements(api.getAppState(), api.getSceneElements());
         const block = selected.length === 1 ? selected[0] : undefined;
@@ -60,6 +61,13 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
             event.preventDefault();
             event.stopPropagation();
             useMermaidDialogStore.getState().open({ kind: "edit", id: block.id });
+            return;
+        }
+
+        if (CustomDataUtil.isMarkdownNote(block)) {
+            event.preventDefault();
+            event.stopPropagation();
+            useMarkdownNoteStore.getState().setEditingId(block.id);
             return;
         }
 

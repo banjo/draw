@@ -160,6 +160,30 @@ const sketches: Partial<Record<CustomElementType, ReactElement>> = {
             />
         </g>
     ),
+    markdown: (
+        <g strokeLinecap="round">
+            <path
+                d="M6.3 3.4 L53.7 2.8 L54.2 37.2 L5.8 37.4 Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                strokeLinejoin="round"
+            />
+            <path d="M11 10h18" stroke="currentColor" strokeWidth={3} />
+            <rect x={11} y={17} width={5} height={5} rx={1} fill="#2f9e44" />
+            <rect
+                x={11}
+                y={26}
+                width={5}
+                height={5}
+                rx={1}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.2}
+            />
+            <path d="M20 19.5h22M20 28.5h16" stroke="currentColor" strokeWidth={2} />
+        </g>
+    ),
     codeblock: (
         <>
             <rect x={4} y={3} width={52} height={34} rx={5} fill="#1e1e2e" />

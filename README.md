@@ -18,7 +18,7 @@
 - 💾 Persistent boards: save as many boards and images as you want to your account
 - 🔐 Sign in with GitHub or Google, and your boards and favorites sync across devices
 - 🧱 Custom elements: database models, code blocks with syntax highlighting, Mermaid diagrams,
-  swimlanes, and smart copy and extend
+  swimlanes, Markdown notes, and smart copy and extend
 - 🖼️ Upload, share, and manage images right on the board
 - ⚡️ Add shapes, logos, emojis, flags, and thousands of icons from one search (⌘K)
 - ✏️ Everything else is plain Excalidraw, so it works the way you already know

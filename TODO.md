@@ -884,3 +884,27 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       with a shape inside, renaming a lane to a long name, deleting it and undo, ⌘D, ⌘+arrow
       and a circle from ⌘K inside a lane, Tab on it, light and dark, and SVG export. No
       console errors.
+
+## 23. Markdown note
+
+- [x] A Markdown note in Blocks: headings, bold, italic, strikethrough, links, inline code,
+      code blocks, quotes, lists (numbered, nested) and checkboxes. Two looks, chosen from
+      mockups: Paper (default, like GitHub) and Handwritten (Excalifont in a sketchy box),
+      and three widths. Both are in the footer while a note is selected.
+- [x] Double-click a note, press Enter, or add one from ⌘K to write in a panel on the right;
+      the note changes as you type, and the whole edit is one undo step. A click on a
+      checkbox ticks or unticks it, and on a link opens it in a new tab (web and mail
+      links only); the pointer turns to a hand over both.
+- [x] Tab changes a shape to a note, with the shape's label as its Markdown and its arrows
+      moved to the note.
+- [x] Like a code block, the note is an image made from its Markdown in every browser, so
+      nothing is uploaded. The image carries its fonts, Hanken Grotesk and Excalifont's Latin
+      part (`features/markdown-note/assets/`), and text is measured with the same files, so
+      a note looks the same everywhere. Drawing previews show notes too.
+- [x] Ticking a box showed Excalidraw's empty-image icon for a moment, while the note's new
+      image loaded. The Excalidraw patch now draws an image element with its last image
+      until the new one is ready, which also helps code blocks and Mermaid blocks.
+- [x] Tested (Oct 29): adding from ⌘K, the default note, typing every kind of block, both
+      looks and all widths, ticking a checkbox, opening a link (and not a `javascript:`
+      one), Tab on a labelled rectangle with an arrow, undo after each, reloading with a
+      note in the handwritten look, dark mode, and very long words. No console errors.

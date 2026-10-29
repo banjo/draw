@@ -1,13 +1,14 @@
 import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
+import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
 import { CodeBlockImage } from "@/features/selected-element-visuals/models/code-block-image";
 import { exportToSvg } from "@excalidraw/excalidraw";
 import { BinaryFileData } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement } from "common";
 
 /**
- * An SVG of a saved drawing, for a preview. Code blocks are drawn from their code, like on the
- * canvas. Uploaded images aren't loaded.
+ * An SVG of a saved drawing, for a preview. Code blocks and notes are drawn from their code
+ * and Markdown, like on the canvas. Uploaded images aren't loaded.
  */
 export const renderDrawingPreview = async (savedElements: unknown[], isDark: boolean) => {
     const elements = (savedElements as ExcalidrawElement[])
@@ -26,6 +27,14 @@ export const renderDrawingPreview = async (savedElements: unknown[], isDark: boo
             files[fileId] = CodeBlockImage.createFile({ ...element, fileId });
         }
     }
+    await Promise.all(
+        elements.filter(CustomDataUtil.isMarkdownNote).map(async element => {
+            const fileId = CodeBlockUtil.getFileId(element);
+            if (!fileId) return;
+            const { file } = await MarkdownNote.render(MarkdownNote.getContent(element));
+            files[fileId] = { ...file, id: fileId };
+        })
+    ).catch(() => undefined);
 
     const svg = await exportToSvg({
         // @ts-ignore - better local typings

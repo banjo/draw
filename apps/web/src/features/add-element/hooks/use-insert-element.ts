@@ -5,6 +5,7 @@ import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
 import { FrameUtil } from "@/features/draw/utils/frame-util";
+import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
 import { SwimlaneLayout } from "@/features/swimlane/models/swimlane-layout";
 import {
     CaptureUpdateAction,
@@ -72,19 +73,25 @@ export const useInsertElement = () => {
         return { elements: [element] as ExcalidrawElements, file };
     };
 
-    const createElement = ({ shape }: ElementItem) => ({
-        elements:
-            shape.type === "swimlane"
-                ? SwimlaneLayout.create()
-                : ElementCreationUtil.createElementFromType(shape.type, { x: 0, y: 0 }),
-        file: undefined,
-    });
+    const createElement = async ({ shape }: ElementItem) => {
+        if (shape.type === "markdown") {
+            const { element, file } = await MarkdownNote.create();
+            return { elements: [element] as ExcalidrawElements, file };
+        }
+        return {
+            elements:
+                shape.type === "swimlane"
+                    ? SwimlaneLayout.create()
+                    : ElementCreationUtil.createElementFromType(shape.type, { x: 0, y: 0 }),
+            file: undefined,
+        };
+    };
 
     /** Adds the item and selects it. Returns what was added. */
     const insert = async (item: ElementItem | IconItem, placement: Placement) => {
         if (!excalidrawApi) return undefined;
 
-        const created = item.kind === "icon" ? await createIcon(item) : createElement(item);
+        const created = item.kind === "icon" ? await createIcon(item) : await createElement(item);
         const elements = FrameUtil.addToFrame(
             placeElements(created.elements, placement),
             excalidrawApi.getSceneElements()
@@ -105,6 +112,7 @@ export const useInsertElement = () => {
         return {
             bounds: ExcalidrawUtil.getCommonBounds(elements) as Bounds,
             codeBlock: elements.find(CustomDataUtil.isCodeBlockElement),
+            markdownNote: elements.find(CustomDataUtil.isMarkdownNote),
         };
     };
 

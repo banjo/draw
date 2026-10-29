@@ -36,6 +36,7 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     mermaid: "rectangle", // wont happen, Mermaid blocks are images
     swimlane: "rectangle", // wont happen, swimlanes are frames
     "swimlane-part": "rectangle", // wont happen
+    markdown: "rectangle", // wont happen, notes are images
     diamond: "diamond",
     ellipse: "ellipse",
     rectangle: "rectangle",

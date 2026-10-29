@@ -197,12 +197,30 @@ type ShapeHooks = {
     ) => Drawable | undefined;
     /** Where the element is clicked, in its own coordinates, if not its box */
     outline: (element: ShapeElement) => Point[] | undefined;
+    /** The image an image element is drawn with, given the one Excalidraw has for it */
+    image: (element: { id: string }, image: unknown) => unknown;
 };
 
 declare global {
-    // Read by the patch to @excalidraw/excalidraw (patches/), where it draws rectangles
+    // Read by the patch to @excalidraw/excalidraw (patches/), where it draws rectangles and
+    // images
     var __banjoDrawShapes: ShapeHooks | undefined;
 }
+
+// The image each image element was last drawn with
+const lastImages = new Map<string, HTMLImageElement>();
+
+/**
+ * An image element's new image takes a moment to load, e.g. a note's after ticking a box.
+ * Meanwhile it's drawn with its last one, instead of Excalidraw's empty image.
+ */
+const getImage = (element: { id: string }, image: unknown) => {
+    if (image instanceof HTMLImageElement) {
+        lastImages.set(element.id, image);
+        return image;
+    }
+    return lastImages.get(element.id) ?? image;
+};
 
 /** Lets Excalidraw draw the shapes. Before the first drawing, as it keeps what it has drawn. */
 const register = () => {
@@ -218,6 +236,7 @@ const register = () => {
             if (!type) return undefined;
             return getGeometry(type, element.width, element.height).outline;
         },
+        image: getImage,
     };
 };
 

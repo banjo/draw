@@ -150,6 +150,14 @@ export const shapes: Shape[] = [
         addOnly: true,
     },
     {
+        type: "markdown",
+        kind: "block",
+        group: "Blocks",
+        title: "Markdown note",
+        description: "A note with headings, lists, checkboxes and links",
+        tags: ["note", "text", "markdown", "checklist", "todo", "rich text", "list"],
+    },
+    {
         type: "swimlane",
         kind: "block",
         group: "Blocks",

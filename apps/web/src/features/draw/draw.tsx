@@ -15,6 +15,7 @@ import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/u
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
 import { useMermaid } from "@/features/mermaid/hooks/use-mermaid";
 import { useSwimlane } from "@/features/swimlane/hooks/use-swimlane";
+import { useMarkdownNotes } from "@/features/markdown-note/hooks/use-markdown-notes";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
@@ -97,6 +98,8 @@ export const Draw = ({ slug }: DrawProps) => {
     const { codeBlocks, updateCodeBlockElements, onDoubleClickCapture } = useCodeBlockElement();
     const mermaid = useMermaid();
     const { updateSwimlanes, swimlaneMenu } = useSwimlane();
+    const notes = useMarkdownNotes();
+    const { handlePointerDownCapture, handleClickCapture, handlePointerMove } = notes;
     const { render: renderAddElement } = useAddElement();
     const { render: renderFeatures } = useFeaturesIntro({ slug });
     const { render: renderPalette } = useCollectionPalette();
@@ -145,6 +148,7 @@ export const Draw = ({ slug }: DrawProps) => {
             updateCodeBlockElements(elements, appState, files);
             mermaid.updateMermaidBlocks(elements, appState, files);
             updateSwimlanes(elements, appState, files);
+            notes.updateMarkdownNotes(elements, appState, files);
             handleSelectedElementVisuals(elements, appState, files);
         }
     );
@@ -202,10 +206,15 @@ export const Draw = ({ slug }: DrawProps) => {
                 onDoubleClickCapture={event => {
                     onDoubleClickCapture(event);
                     if (!event.isPropagationStopped()) mermaid.onDoubleClickCapture(event);
+                    if (!event.isPropagationStopped()) notes.onDoubleClickCapture(event);
                 }}
+                onPointerDownCapture={handlePointerDownCapture}
+                onClickCapture={handleClickCapture}
+                onPointerMove={handlePointerMove}
             >
                 {codeBlocks}
                 {swimlaneMenu}
+                {notes.markdownNotes}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}
