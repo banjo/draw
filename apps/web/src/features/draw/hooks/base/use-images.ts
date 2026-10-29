@@ -26,7 +26,7 @@ type In = {
 };
 
 /**
- * Images that are files, not code blocks, Markdown notes, tables or link cards: those are made
+ * Images that are files, not code blocks, Markdown notes, tables, charts or link cards: those are made
  * from their content in every browser
  */
 const isFileImage = (element: ExcalidrawElement) =>
@@ -34,7 +34,8 @@ const isFileImage = (element: ExcalidrawElement) =>
     !CustomDataUtil.isCodeBlockElement(element) &&
     !CustomDataUtil.isMarkdownNote(element) &&
     !CustomDataUtil.isTable(element) &&
-    !CustomDataUtil.isLinkCard(element);
+    !CustomDataUtil.isLinkCard(element) &&
+    !CustomDataUtil.isChart(element);
 
 const getImagesOnCanvas = (files: BinaryFiles, elements: ExcalidrawElements) =>
     Object.values(files)

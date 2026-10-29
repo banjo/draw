@@ -166,6 +166,15 @@ export const shapes: Shape[] = [
         tags: ["note", "text", "markdown", "checklist", "todo", "rich text", "list"],
     },
     {
+        type: "chart",
+        kind: "block",
+        group: "Blocks",
+        title: "Chart",
+        description: "Bars, lines or a pie from a few numbers",
+        tags: ["graph", "bar", "line", "pie", "donut", "plot", "numbers", "data", "statistics"],
+        addOnly: true,
+    },
+    {
         type: "link",
         kind: "block",
         group: "Blocks",

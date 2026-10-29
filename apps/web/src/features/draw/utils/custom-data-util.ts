@@ -13,6 +13,9 @@ const isMarkdownNote = (element: ExcalidrawElement) =>
 const isTable = (element: ExcalidrawElement) =>
     element.type === "image" && element.customData?.type === "table";
 
+const isChart = (element: ExcalidrawElement) =>
+    element.type === "image" && element.customData?.type === "chart";
+
 const isLinkCard = (element: ExcalidrawElement) =>
     element.type === "image" && element.customData?.type === "link";
 
@@ -64,6 +67,7 @@ const BLOCK_TYPES = new Set<string>([
     "markdown",
     "table",
     "link",
+    "chart",
     "swimlane",
     "swimlane-part",
 ]);
@@ -80,6 +84,7 @@ export const CustomDataUtil = {
     isMarkdownNote,
     isTable,
     isLinkCard,
+    isChart,
     isModelElements,
     isModelContainerElement,
     isAnyModelElement,

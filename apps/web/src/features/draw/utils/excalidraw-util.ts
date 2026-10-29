@@ -39,6 +39,7 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     markdown: "rectangle", // wont happen, notes are images
     table: "rectangle", // wont happen, tables are images
     link: "rectangle", // wont happen, link cards are images
+    chart: "rectangle", // wont happen, charts are images
     diamond: "diamond",
     ellipse: "ellipse",
     rectangle: "rectangle",

@@ -97,7 +97,8 @@ const update = async (element: ExcalidrawElement, changes: Partial<TableContent>
     const scale = element.width / previous.width;
 
     const updated = UpdateElementUtil.updateElement(element, draft => {
-        draft.customData = toCustomData(after);
+        // Keeps what a chart of it had, for when it's a chart again
+        draft.customData = { ...draft.customData, ...toCustomData(after) };
         (draft as Mutable<ExcalidrawImageElement>).fileId = rendered.file.id;
         draft.width = rendered.width * scale;
         draft.height = rendered.height * scale;
@@ -143,6 +144,7 @@ const parsePasted = (text: string) => {
 };
 
 export const Table = {
+    toCustomData,
     getContent,
     getFileId,
     render,

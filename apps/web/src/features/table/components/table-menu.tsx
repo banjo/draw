@@ -2,7 +2,8 @@ import { useGlobal } from "@/contexts/global-context";
 import { NativeBlockMenu } from "@/features/draw/models/native/native-block-menu";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
-import { Minus, Plus } from "lucide-react";
+import { BarChart3, Minus, Plus } from "lucide-react";
+import { Chart } from "@/features/chart/models/chart";
 import { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
@@ -153,6 +154,17 @@ const TableMenu = ({ id, look, headerRow, headerColumn, rows, columns }: Props) 
                     }))
                 }
             />
+            <div className={GROUP_CLASS}>
+                <button
+                    type="button"
+                    onClick={() => excalidrawApi && void Chart.switchView(excalidrawApi, id)}
+                    title="Show as a chart"
+                    className="flex h-full items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 hover:bg-black/5 dark:hover:bg-white/10"
+                >
+                    <BarChart3 className="h-4 w-4" />
+                    Chart
+                </button>
+            </div>
         </div>
     );
 };

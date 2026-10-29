@@ -4,6 +4,7 @@ import { Highlight } from "@/features/collection/components/highlight";
 import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
 import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
 import { useTableStore } from "@/features/table/stores/use-table-store";
+import { useChartStore } from "@/features/chart/stores/use-chart-store";
 import { useLinkCardStore } from "@/features/link-card/stores/use-link-card-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -452,6 +453,7 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
             if (added.table) {
                 useTableStore.getState().setEditing({ id: added.table.id, row: 0, column: 0 });
             }
+            if (added.chart) useChartStore.getState().setEditingId(added.chart.id);
         } catch {
             toast.error(`Couldn't add ${getItemTitle(item)}`);
         }

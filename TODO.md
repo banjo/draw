@@ -964,3 +964,24 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       and link cards, with an illustration of a table, a note and a link card. It has a new
       id, so everyone who has seen the others gets it as What's new.
 - [x] Add shapes and Change a shape mention blocks, notes and tables.
+
+## 27. Chart
+
+- [x] A Chart block, chosen from mockups (`~/Downloads/banjodraw-charts-designs/`): bar,
+      stacked bar, horizontal bar, line, pie and donut, in a Sketchy (default) or Clean look,
+      with three color sets, and the legend and values on or off, all in the footer.
+- [x] Its numbers are a table: the first row has the series' names, the first column the
+      labels. "1,234", "12%", "$8" and "3,5" are numbers; negatives go below zero.
+- [x] Edit data (double-click, Enter, or adding one from ⌘K) opens a panel at the side with
+      the title and a grid, and the chart changes as you type. Tab and Enter move between
+      cells, rows and series can be added and removed, pasted rows fill the grid, and the
+      whole edit is one undo step.
+- [x] A table's footer has Chart, and a chart's Table: one block with two views, each keeping
+      the other's settings. Pasting rows with numbers makes a table, with a "Show as chart"
+      button for a few seconds.
+- [x] Like tables, the image is made in every browser, so nothing is uploaded. Tab doesn't
+      change it, and it's in What's new's Blocks.
+- [x] Tested (Oct 29): adding from ⌘K, typing, a cell that isn't a number, undo, all six types
+      in both looks and three color sets, legend and values, a long title, negative numbers,
+      table to chart and back, pasting numbers (button) and text (no button), Tab, Enter,
+      dark mode, reloading and PNG export. No console errors.

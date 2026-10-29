@@ -11,6 +11,8 @@ import { LinkCard } from "@/features/link-card/models/link-card";
 import { useLinkCardStore } from "@/features/link-card/stores/use-link-card-store";
 import toast from "react-hot-toast";
 import { Table } from "@/features/table/models/table";
+import { Chart } from "@/features/chart/models/chart";
+import { showAsChartToast } from "@/features/chart/components/show-as-chart-toast";
 import { CaptureUpdateAction, getVisibleSceneBounds } from "@excalidraw/excalidraw";
 import { UpdateElementUtil } from "../../utils/update-element-util";
 
@@ -37,6 +39,7 @@ export const useOnPaste = () => {
                 .updatedState,
             captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
+        if (Chart.hasNumbers(rows)) showAsChartToast(excalidrawApi, element.id);
     };
 
     /** A link as a card, in the middle of the screen, once the page's title and icon are in */

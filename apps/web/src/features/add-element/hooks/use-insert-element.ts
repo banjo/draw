@@ -8,6 +8,7 @@ import { FrameUtil } from "@/features/draw/utils/frame-util";
 import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
 import { SwimlaneLayout } from "@/features/swimlane/models/swimlane-layout";
 import { Table } from "@/features/table/models/table";
+import { Chart } from "@/features/chart/models/chart";
 import {
     CaptureUpdateAction,
     getVisibleSceneBounds,
@@ -83,6 +84,10 @@ export const useInsertElement = () => {
             const { element, file } = await Table.create();
             return { elements: [element] as ExcalidrawElements, file };
         }
+        if (shape.type === "chart") {
+            const { element, file } = await Chart.create();
+            return { elements: [element] as ExcalidrawElements, file };
+        }
         return {
             elements:
                 shape.type === "swimlane"
@@ -119,6 +124,7 @@ export const useInsertElement = () => {
             codeBlock: elements.find(CustomDataUtil.isCodeBlockElement),
             markdownNote: elements.find(CustomDataUtil.isMarkdownNote),
             table: elements.find(CustomDataUtil.isTable),
+            chart: elements.find(CustomDataUtil.isChart),
         };
     };
 

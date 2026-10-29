@@ -171,6 +171,19 @@ const sketches: Partial<Record<CustomElementType, ReactElement>> = {
             />
         </g>
     ),
+    chart: (
+        <g strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 35 V20 H19 V35 Z" fill="#a5d8ff" stroke="currentColor" strokeWidth={1.3} />
+            <path d="M24 35 V11 H31 V35 Z" fill="#ffc9c9" stroke="currentColor" strokeWidth={1.3} />
+            <path d="M36 35 V24 H43 V35 Z" fill="#b2f2bb" stroke="currentColor" strokeWidth={1.3} />
+            <path
+                d="M7.2 4.5 L6.8 35.4 L54.6 35.1"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.6}
+            />
+        </g>
+    ),
     link: (
         <g strokeLinecap="round" strokeLinejoin="round">
             <path

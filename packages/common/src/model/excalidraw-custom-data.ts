@@ -30,6 +30,7 @@ export type CustomElementType =
     | "markdown"
     | "table"
     | "link"
+    | "chart"
     | "image"
     | ModelType;
 
@@ -115,8 +116,25 @@ export type CustomDataLink = BaseCustomData & {
     look: "compact" | "chip" | "sketchy";
 };
 
+/**
+ * A chart of a table's numbers: the first row has the series' names, the first column the
+ * labels. It turns into a table and back, keeping the other's settings.
+ */
+export type CustomDataChart = BaseCustomData & {
+    type: "chart";
+    /** Every row has the same number of cells */
+    rows: string[][];
+    look: "sketchy" | "clean";
+    chartType: "bar" | "stacked" | "hbar" | "line" | "pie" | "donut";
+    title: string;
+    legend: boolean;
+    values: boolean;
+    palette: "default" | "cool" | "warm";
+};
+
 export type CustomData =
     | CustomDataDefault
+    | CustomDataChart
     | CustomDataTable
     | CustomDataLink
     | CustomDataMarkdown
