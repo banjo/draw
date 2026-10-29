@@ -14,6 +14,7 @@ import { useFeaturesIntro } from "@/features/features-intro/hooks/use-features-i
 import { useCodeBlockElement } from "@/features/selected-element-visuals/hooks/use-code-block-element";
 import { useSelectedElementVisuals } from "@/features/selected-element-visuals/hooks/use-selected-element-visuals";
 import { useMermaid } from "@/features/mermaid/hooks/use-mermaid";
+import { useSwimlane } from "@/features/swimlane/hooks/use-swimlane";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
@@ -95,6 +96,7 @@ export const Draw = ({ slug }: DrawProps) => {
 
     const { codeBlocks, updateCodeBlockElements, onDoubleClickCapture } = useCodeBlockElement();
     const mermaid = useMermaid();
+    const { updateSwimlanes, swimlaneMenu } = useSwimlane();
     const { render: renderAddElement } = useAddElement();
     const { render: renderFeatures } = useFeaturesIntro({ slug });
     const { render: renderPalette } = useCollectionPalette();
@@ -142,6 +144,7 @@ export const Draw = ({ slug }: DrawProps) => {
             }
             updateCodeBlockElements(elements, appState, files);
             mermaid.updateMermaidBlocks(elements, appState, files);
+            updateSwimlanes(elements, appState, files);
             handleSelectedElementVisuals(elements, appState, files);
         }
     );
@@ -202,6 +205,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 }}
             >
                 {codeBlocks}
+                {swimlaneMenu}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}

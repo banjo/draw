@@ -864,3 +864,23 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       dark, a mistake and fixing it, editing a resized block, turning a block into shapes,
       undo after each, reloading the offline drawing with a block, and exporting it to PNG.
       No console errors.
+
+## 22. Swimlane
+
+- [x] A Swimlane block, with lanes across (option A of the mockups) and a pale color for each
+      lane. It's an Excalidraw frame, so shapes drawn or dropped in it are held by it and move
+      with it, it's named like a frame, and exports like one. It starts with three lanes,
+      "Lane 1" to "Lane 3", in a column of names on the left.
+- [x] Double-click a lane's name to rename it; long names wrap in the column. Resizing the
+      swimlane resizes its lanes. While it's selected, the footer has − and + for the lanes:
+      a new lane is added at the bottom, and removing one leaves the swimlane as tall, so
+      nothing in it ends up hidden.
+- [x] The lanes' colors and lines are locked, so clicks go to the shapes in front, and they're
+      kept in place after undo, copies and deleting (undo brings them back with the swimlane).
+- [x] Shapes added inside any frame from ⌘K, ⌘+arrow or the extend buttons, or a Mermaid
+      diagram, are added to it, like shapes drawn there. Tab, ⌘+arrow and the extend buttons
+      are off for frames and lane names.
+- [x] Tested (Oct 29): adding from ⌘K, adding and removing lanes, resizing and undo, moving it
+      with a shape inside, renaming a lane to a long name, deleting it and undo, ⌘D, ⌘+arrow
+      and a circle from ⌘K inside a lane, Tab on it, light and dark, and SVG export. No
+      console errors.

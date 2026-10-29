@@ -149,6 +149,15 @@ export const shapes: Shape[] = [
         tags: ["diagram", "flowchart", "sequence", "chart", "text", "graph", "uml"],
         addOnly: true,
     },
+    {
+        type: "swimlane",
+        kind: "block",
+        group: "Blocks",
+        title: "Swimlane",
+        description: "Lanes that hold shapes, for a process across people or systems",
+        tags: ["lanes", "pool", "process", "bpmn", "frame", "container", "flow"],
+        addOnly: true,
+    },
 ];
 
 const SHAPE_TYPES = new Set(shapes.filter(s => s.kind === "shape").map(s => s.type));

@@ -1,5 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
-import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
+import { NativeBlockMenu } from "@/features/draw/models/native/native-block-menu";
 import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { CodeBlockImage } from "@/features/selected-element-visuals/models/code-block-image";
@@ -15,16 +15,6 @@ import { createPortal } from "react-dom";
 
 type Props = {
     element: ExcalidrawElement;
-};
-
-const CUSTOM_CODEBLOCK_MENU_ID = "custom-codeblock-menu";
-
-export const initCodeblockMenuElement = () => {
-    ExcalidrawUtil.createCustomNativeElement(
-        CUSTOM_CODEBLOCK_MENU_ID,
-        ".layer-ui__wrapper footer",
-        1
-    );
 };
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
@@ -89,7 +79,7 @@ const CodeEditorMenu = ({ element }: Props) => {
 };
 
 export const CodeEditorMenuContainer = ({ element }: Props) => {
-    const container = document.getElementById(CUSTOM_CODEBLOCK_MENU_ID);
+    const container = NativeBlockMenu.getContainer();
     if (!container) return null;
     return createPortal(<CodeEditorMenu element={element} />, container);
 };

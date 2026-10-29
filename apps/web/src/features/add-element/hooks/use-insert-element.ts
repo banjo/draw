@@ -4,6 +4,8 @@ import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
+import { FrameUtil } from "@/features/draw/utils/frame-util";
+import { SwimlaneLayout } from "@/features/swimlane/models/swimlane-layout";
 import {
     CaptureUpdateAction,
     getVisibleSceneBounds,
@@ -70,24 +72,26 @@ export const useInsertElement = () => {
         return { elements: [element] as ExcalidrawElements, file };
     };
 
+    const createElement = ({ shape }: ElementItem) => ({
+        elements:
+            shape.type === "swimlane"
+                ? SwimlaneLayout.create()
+                : ElementCreationUtil.createElementFromType(shape.type, { x: 0, y: 0 }),
+        file: undefined,
+    });
+
     /** Adds the item and selects it. Returns what was added. */
     const insert = async (item: ElementItem | IconItem, placement: Placement) => {
         if (!excalidrawApi) return undefined;
 
-        const created =
-            item.kind === "icon"
-                ? await createIcon(item)
-                : {
-                      elements: ElementCreationUtil.createElementFromType(item.shape.type, {
-                          x: 0,
-                          y: 0,
-                      }),
-                      file: undefined,
-                  };
-
-        const elements = placeElements(created.elements, placement);
+        const created = item.kind === "icon" ? await createIcon(item) : createElement(item);
+        const elements = FrameUtil.addToFrame(
+            placeElements(created.elements, placement),
+            excalidrawApi.getSceneElements()
+        );
+        // A swimlane is selected as a whole, by its frame
         const { updatedState } = ElementUtil.createNewElementSelection(
-            elements,
+            elements.filter(element => !SwimlaneLayout.isPart(element)),
             excalidrawApi.getAppState()
         );
 

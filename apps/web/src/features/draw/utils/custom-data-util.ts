@@ -35,6 +35,15 @@ const isModelElements = (elements: ExcalidrawElement[]) => {
     return Boolean(container);
 };
 
+/**
+ * Whether Tab, ⌘/Ctrl+arrow and the extend buttons work on it: not on frames, like a
+ * swimlane, or the parts a swimlane is drawn with
+ */
+const hasShapeActions = (element: ExcalidrawElement) =>
+    element.type !== "frame" &&
+    element.type !== "magicframe" &&
+    element.customData?.type !== "swimlane-part";
+
 const isShadowElement = (element: ExcalidrawElement) => element.customData?.shadow === true;
 
 export const CustomDataUtil = {
@@ -45,4 +54,5 @@ export const CustomDataUtil = {
     isAnyModelElement,
     isModelTextElement,
     isShadowElement,
+    hasShapeActions,
 };

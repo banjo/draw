@@ -25,6 +25,8 @@ export type CustomElementType =
     | "line"
     | "codeblock"
     | "mermaid"
+    | "swimlane"
+    | "swimlane-part"
     | "image"
     | ModelType;
 
@@ -61,8 +63,32 @@ export type CustomDataMermaid = BaseCustomData & {
     definition: string;
 };
 
+/** A swimlane: a frame split into lanes, which hold the shapes inside them */
+export type CustomDataSwimlane = BaseCustomData & {
+    type: "swimlane";
+    lanes: number;
+};
+
+/** What a swimlane is drawn with: a lane's color, the lines, and the lane's name */
+export type SwimlanePart = "tint" | "line" | "divider" | "label";
+
+/** One of the elements a swimlane is drawn with, kept in place by the swimlane */
+export type CustomDataSwimlanePart = BaseCustomData & {
+    type: "swimlane-part";
+    swimlaneId: string;
+    part: SwimlanePart;
+    lane: number;
+    /** Deleted with its swimlane, so it comes back when the swimlane does */
+    hidden?: boolean;
+};
+
 export type CustomData =
-    CustomDataDefault | CustomDataCodeblock | CustomDataModel | CustomDataMermaid;
+    | CustomDataDefault
+    | CustomDataCodeblock
+    | CustomDataModel
+    | CustomDataMermaid
+    | CustomDataSwimlane
+    | CustomDataSwimlanePart;
 
 type Props = {
     shadow: boolean;

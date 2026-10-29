@@ -93,7 +93,7 @@ export const useSelectedElementVisuals = () => {
 
         const selectedElement = ElementUtil.getParentElementOfGroup(selected) ?? first(selected);
 
-        if (!selectedElement) {
+        if (!selectedElement || !CustomDataUtil.hasShapeActions(selectedElement)) {
             hideAllElements();
             return;
         }

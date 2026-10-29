@@ -9,6 +9,7 @@ import {
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
+import { FrameUtil } from "@/features/draw/utils/frame-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { isShapeType } from "@/models/shapes";
 import { first, Maybe, produce } from "@banjoanton/utils";
@@ -278,11 +279,11 @@ const createElementExtensionFromShadow = (
         return;
     }
 
-    const {
-        arrow,
-        element,
-        source: updatedSource,
-    } = createExtension(shadow.direction, source, false);
+    const extension = createExtension(shadow.direction, source, false);
+    const { source: updatedSource } = extension;
+    // In the frame, like a swimlane, they're added inside of
+    const [element = extension.element] = FrameUtil.addToFrame([extension.element], elements);
+    const [arrow = extension.arrow] = FrameUtil.addToFrame([extension.arrow], elements);
 
     DrawingUtil.focusCanvas();
 

@@ -3,6 +3,7 @@ import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FileUtil } from "@/features/draw/utils/file-util";
+import { FrameUtil } from "@/features/draw/utils/frame-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { BinaryFileData } from "@excalidraw/excalidraw/types";
@@ -73,7 +74,10 @@ const insert = async (
     const created = await create(definition, mode);
     add(api, api.getSceneElementsIncludingDeleted(), {
         ...created,
-        elements: placeElements(created.elements, placement),
+        elements: FrameUtil.addToFrame(
+            placeElements(created.elements, placement),
+            api.getSceneElements()
+        ),
     });
 };
 
@@ -100,7 +104,10 @@ const update = async (api: ExcalidrawApi, { id, definition, mode }: Diagram & { 
         // Marked as deleted, instead of left out, so the deletion reaches the server
         add(api, ElementUtil.deleteElements(elements, [id]), {
             ...created,
-            elements: placeElements(created.elements, { center }),
+            elements: FrameUtil.addToFrame(
+                placeElements(created.elements, { center }),
+                api.getSceneElements()
+            ),
         });
         return;
     }

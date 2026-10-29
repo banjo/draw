@@ -1,6 +1,6 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { initCodeblockMenuElement } from "@/features/selected-element-visuals/components/code-editor-menu";
+import { NativeBlockMenu } from "@/features/draw/models/native/native-block-menu";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { isEmpty, Maybe } from "@banjoanton/utils";
 import { elementsOverlappingBBox } from "@excalidraw/excalidraw";
@@ -39,7 +39,7 @@ export const useInit = ({ slug }: Props) => {
 
         const init = () => {
             removeShadows();
-            initCodeblockMenuElement();
+            NativeBlockMenu.init();
         };
 
         init();

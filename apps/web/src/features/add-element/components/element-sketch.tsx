@@ -141,6 +141,25 @@ const sketches: Partial<Record<CustomElementType, ReactElement>> = {
             />
         </g>
     ),
+    swimlane: (
+        <g strokeLinejoin="round">
+            <path d="M5 4 H55 V14.7 H5 Z" fill="#e7f5ff" />
+            <path d="M5 14.7 H55 V25.3 H5 Z" fill="#ebfbee" />
+            <path d="M5 25.3 H55 V36 H5 Z" fill="#fff9db" />
+            <path
+                d="M5.3 4.2 L54.7 3.8 L55.2 36.1 L4.8 35.8 Z M5 14.7 H55 M5 25.3 H55 M16 4 V36"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+            />
+            <path
+                d="M24 9.4 h9 M37 20 h10 M27 30.6 h12"
+                stroke="currentColor"
+                strokeWidth={2.4}
+                strokeLinecap="round"
+            />
+        </g>
+    ),
     codeblock: (
         <>
             <rect x={4} y={3} width={52} height={34} rx={5} fill="#1e1e2e" />

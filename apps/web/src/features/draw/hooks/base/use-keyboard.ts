@@ -89,8 +89,9 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
 
         const state = excalidrawApi.getAppState();
         const selected = ElementUtil.getSelectedElements(state, excalidrawApi.getSceneElements());
-        // do not allow extensions on model elements
+        // do not allow extensions on model elements, frames and swimlanes
         if (CustomDataUtil.isModelElements(selected)) return;
+        if (!selected.every(CustomDataUtil.hasShapeActions)) return;
 
         setShadowElements(
             ElementVisualUtils.createElementExtensionShadow(
@@ -129,7 +130,12 @@ export const useKeyboard = ({ handleChangeElementDialogClick }: In) => {
         }
 
         // If one element selected, allow change element type
-        if (ElementUtil.getSelectedElementIds(state).length === 1 && event.key === "Tab") {
+        const isChangeable =
+            ElementUtil.getSelectedElementIds(state).length === 1 &&
+            ElementUtil.getSelectedElements(state, excalidrawApi.getSceneElements()).every(
+                CustomDataUtil.hasShapeActions
+            );
+        if (isChangeable && event.key === "Tab") {
             // Or the browser moves the focus on, out of the dialog that just opened
             event.preventDefault();
             handleChangeElementDialogClick();
