@@ -24,10 +24,16 @@ export const FEATURES: Feature[] = [
         keys: [MODIFIER_LABEL, "→"],
     },
     {
+        id: "blocks",
+        title: "Blocks",
+        short: "Code, notes, tables, diagrams, and links.",
+        description: `Code blocks, database models, Markdown notes, tables, Mermaid diagrams, swimlanes, and link cards. Add one with ${MODIFIER_LABEL} K, double-click or press Enter to edit it, and change its look at the bottom. Paste a link or rows from a spreadsheet to make one.`,
+    },
+    {
         id: "add-element",
         title: "Add shapes and icons",
-        short: "Shapes, code, models, and thousands of icons.",
-        description: `Search shapes, code blocks, models, and thousands of logos, emojis, flags, and icons, or browse one set. ${MODIFIER_LABEL} K adds it where the mouse is. It's also the + in the toolbar.`,
+        short: "Shapes, blocks, and thousands of icons.",
+        description: `Search shapes, blocks, and thousands of logos, emojis, flags, and icons, or browse one set. ${MODIFIER_LABEL} K adds it where the mouse is. It's also the + in the toolbar.`,
         keys: [MODIFIER_LABEL, "K"],
     },
     {
@@ -42,21 +48,8 @@ export const FEATURES: Feature[] = [
         title: "Change a shape",
         short: "Swap a shape, keep its place.",
         description:
-            "With one shape selected, turn it into another shape, a code block, or a model.",
+            "With one shape selected, turn it into another shape, a code block, a model, a note, or a table.",
         keys: ["Tab"],
-    },
-    {
-        id: "code-blocks",
-        title: "Code blocks",
-        short: "Highlighted code on the canvas.",
-        description:
-            "Code with syntax highlighting. Double-click one or press Enter to edit it, and pick the language at the bottom.",
-    },
-    {
-        id: "models",
-        title: "Models",
-        short: "Database tables, sketched.",
-        description: `Database models with a title and fields. Select one and press ${MODIFIER_LABEL} Enter to add a field.`,
     },
     {
         id: "collaboration",

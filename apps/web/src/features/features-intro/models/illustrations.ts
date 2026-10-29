@@ -5,7 +5,6 @@ import type { Options } from "roughjs/bin/core";
 const SVG_NS = "http://www.w3.org/2000/svg";
 const INK = "#1e1e1e";
 const HAND_FONT = "Excalifont, Virgil, cursive";
-const CODE_FONT = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 // Excalidraw's palette
 const COLORS = {
@@ -213,61 +212,41 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
         add(rc.circle(189, 148, 20, options({ strokeWidth: 1.3 })));
     },
 
-    "code-blocks": ({ box, text, add, rc, options }) => {
-        box(0, 0, 290, 132, "#f6f8fa", { stroke: "#d0d7de", roughness: 0.5 });
-        const lines: [string, string][][] = [
-            [
-                ["const ", "#cf222e"],
-                ["greet", "#8250df"],
-                [" = (name) =>", "#1f2328"],
-            ],
-            [
-                ["  `Hello, ", "#0a3069"],
-                ["${name}", "#1f2328"],
-                ["!`", "#0a3069"],
-            ],
-            [["// say hi", "#6e7781"]],
-            [
-                ["greet", "#8250df"],
-                ["(", "#1f2328"],
-                ['"Banjo"', "#0a3069"],
-                [");", "#1f2328"],
-            ],
-        ];
-        lines.forEach((parts, row) => {
-            const node = text(20, 28 + row * 26, "", {
-                anchor: "start",
-                size: 14,
-                font: CODE_FONT,
-            });
-            parts.forEach(([value, color]) => {
-                const span = document.createElementNS(SVG_NS, "tspan");
-                span.setAttribute("fill", color);
-                span.setAttribute("xml:space", "preserve");
-                span.textContent = value;
-                node.appendChild(span);
-            });
+    blocks: ({ box, text, line }) => {
+        // A table with a header row
+        box(0, 0, 210, 30, COLORS.blue, { stroke: "transparent", roughness: 0.4 });
+        box(0, 0, 210, 120, "transparent", { strokeWidth: 1.8 });
+        line(0, 30, 210, 30, { strokeWidth: 1.8 });
+        line(0, 75, 210, 75, { strokeWidth: 1 });
+        line(105, 0, 105, 120, { strokeWidth: 1 });
+        [
+            ["Task", "Who"],
+            ["Tables", "Anna"],
+            ["Links", "Sam"],
+        ].forEach(([task, who], row) => {
+            const y = row === 0 ? 16 : 53 + (row - 1) * 45;
+            text(14, y, task!, { anchor: "start", size: 16 });
+            text(119, y, who!, { anchor: "start", size: 16 });
         });
-        add(
-            rc.rectangle(
-                176,
-                146,
-                114,
-                30,
-                options({ fill: "#ffffff", fillStyle: "solid", roughness: 0.5, strokeWidth: 1.3 })
-            )
-        );
-        text(190, 162, "JavaScript ▾", { anchor: "start", size: 14 });
-    },
 
-    models: ({ box, text, line }) => {
-        box(0, 0, 140, 150, COLORS.peach);
-        box(0, 0, 140, 36, COLORS.orange);
-        text(70, 19, "User", { size: 18 });
-        line(0, 36, 140, 36);
-        ["id", "name", "email"].forEach((field, i) =>
-            text(16, 58 + i * 30, field, { anchor: "start" })
-        );
+        // A Markdown note with checkboxes
+        box(236, 0, 170, 120, "#ffffff", { roughness: 0.6 });
+        text(252, 22, "# Launch", { anchor: "start", size: 17 });
+        box(252, 46, 13, 13, COLORS.green, { roughness: 0.4, strokeWidth: 1.2 });
+        line(254, 53, 258, 57, { strokeWidth: 1.5, roughness: 0.2 });
+        line(258, 57, 263, 49, { strokeWidth: 1.5, roughness: 0.2 });
+        text(274, 53, "Draw it", { anchor: "start", size: 15 });
+        box(252, 76, 13, 13, "#ffffff", { roughness: 0.4, strokeWidth: 1.2 });
+        text(274, 83, "Ship it", { anchor: "start", size: 15 });
+
+        // A link card
+        box(60, 146, 290, 44, "#ffffff", { roughness: 0.5 });
+        box(72, 156, 24, 24, "#1971c2", { stroke: "#1971c2", roughness: 0.3 });
+        line(79, 173, 89, 163, { stroke: "#ffffff", strokeWidth: 1.8, roughness: 0.2 });
+        line(83, 163, 89, 163, { stroke: "#ffffff", strokeWidth: 1.8, roughness: 0.2 });
+        line(89, 163, 89, 169, { stroke: "#ffffff", strokeWidth: 1.8, roughness: 0.2 });
+        text(108, 162, "BanjoDraw", { anchor: "start", size: 15 });
+        text(108, 180, "draw.banjoanton.com", { anchor: "start", size: 12, fill: COLORS.gray });
     },
 
     collaboration: ({ rc, add, box, text, arrow, options }) => {

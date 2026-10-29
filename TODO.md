@@ -956,3 +956,11 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       doesn't exist, changing and removing the link in Excalidraw's editor, Tab (nothing),
       dark mode, reloading and PNG export. The API refuses 169.254.169.254, [::1] and a name
       that resolves to 127.0.0.1. No console errors.
+
+## 26. What's new: Blocks
+
+- [x] One "Blocks" feature in What's in BanjoDraw, second (the wide card), instead of the
+      Code blocks and Models cards: code blocks, models, notes, tables, Mermaid, swimlanes
+      and link cards, with an illustration of a table, a note and a link card. It has a new
+      id, so everyone who has seen the others gets it as What's new.
+- [x] Add shapes and Change a shape mention blocks, notes and tables.
