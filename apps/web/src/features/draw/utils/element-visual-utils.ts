@@ -12,6 +12,8 @@ import { ExcalidrawUtil } from "@/features/draw/utils/excalidraw-util";
 import { FrameUtil } from "@/features/draw/utils/frame-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
+import { Table } from "@/features/table/models/table";
+import { BinaryFileData } from "@excalidraw/excalidraw/types";
 import { isShapeType } from "@/models/shapes";
 import { first, Maybe, produce } from "@banjoanton/utils";
 import { PointBinding } from "@excalidraw/excalidraw/element/types";
@@ -413,27 +415,42 @@ const changeShapeType = (
         return draft;
     });
 
-/**
- * A note in the shape's place, with the shape's label as its text, and its arrows. Made
- * apart from the others, as drawing a note takes a moment.
- */
-const changeToMarkdownNote = async (excalidrawApi: ExcalidrawApi, element: ExcalidrawElement) => {
-    // Already one, which keeps its Markdown
-    if (CustomDataUtil.isMarkdownNote(element)) return;
+/** Blocks drawn as images made from their content, which takes a moment to draw */
+const IMAGE_BLOCKS: Partial<
+    Record<
+        CustomElementType,
+        (label: string | undefined) => Promise<{ element: ExcalidrawElement; file: BinaryFileData }>
+    >
+> = {
+    // The label as its Markdown
+    markdown: label => MarkdownNote.create(label ? { markdown: label } : {}),
+    // The label in the first cell, under a header
+    table: label => Table.create(label ? { rows: [[label], [""]], headerRow: true } : {}),
+};
+
+/** A block in the shape's place, made from the shape's label, with the shape's arrows */
+const changeToImageBlock = async (
+    excalidrawApi: ExcalidrawApi,
+    element: ExcalidrawElement,
+    type: CustomElementType
+) => {
+    const create = IMAGE_BLOCKS[type];
+    // Already one, which keeps its content
+    if (!create || element.customData?.type === type) return;
+
     const label = excalidrawApi
         .getSceneElements()
         .find(
             (text): text is ExcalidrawTextElement =>
                 ExcalidrawUtil.isTextElement(text) && text.containerId === element.id
-        );
-    const { element: note, file } = await MarkdownNote.create(
-        label?.text.trim() ? { markdown: label.text } : {}
-    );
+        )
+        ?.text.trim();
+    const { element: block, file } = await create(label || undefined);
 
     // Read after drawing, as the drawing may have changed meanwhile
     const elements = excalidrawApi.getSceneElements();
     if (!ElementUtil.getElementById(elements, element.id)) return;
-    const [placed = note] = centerOn(element, [note]);
+    const [placed = block] = centerOn(element, [block]);
     const rebound = rebindArrows(elements, element.id, placed);
 
     excalidrawApi.addFiles([file]);
@@ -462,8 +479,8 @@ const updateElementFromTypeSelection = (excalidrawApi: ExcalidrawApi, type: Cust
     const element = getSelectedElement(excalidrawApi);
     if (!element) return;
 
-    if (type === "markdown") {
-        void changeToMarkdownNote(excalidrawApi, element);
+    if (IMAGE_BLOCKS[type]) {
+        void changeToImageBlock(excalidrawApi, element, type);
         return;
     }
 

@@ -138,7 +138,7 @@ export const shapes: Shape[] = [
         group: "Blocks",
         title: "Model",
         description: "A table for modelling simple entities",
-        tags: ["table", "entity", "database", "schema", "class", "data"],
+        tags: ["entity", "database", "schema", "class", "data", "erd"],
     },
     {
         type: "mermaid",
@@ -148,6 +148,14 @@ export const shapes: Shape[] = [
         description: "A diagram written in Mermaid",
         tags: ["diagram", "flowchart", "sequence", "chart", "text", "graph", "uml"],
         addOnly: true,
+    },
+    {
+        type: "table",
+        kind: "block",
+        group: "Blocks",
+        title: "Table",
+        description: "Rows and columns to type in",
+        tags: ["grid", "rows", "columns", "spreadsheet", "matrix", "compare", "data"],
     },
     {
         type: "markdown",

@@ -1,6 +1,6 @@
 import { marked, Token, Tokens } from "marked";
 import rough from "roughjs";
-import { NOTE_FONTS, NoteFontFiles } from "./note-fonts";
+import { BLOCK_FONTS, BlockFontFiles, getFontFaces } from "@/features/draw/models/block-fonts";
 
 /** "paper" is clean, like GitHub; "hand" is handwritten in a sketchy box, like the canvas */
 export type NoteLook = "paper" | "hand";
@@ -32,7 +32,7 @@ type Theme = {
 
 const THEMES: Record<NoteLook, Theme> = {
     paper: {
-        family: NOTE_FONTS.sans,
+        family: BLOCK_FONTS.sans,
         size: 15,
         lineHeight: 1.5,
         headingSizes: [24, 20, 17, 15, 15, 15],
@@ -48,7 +48,7 @@ const THEMES: Record<NoteLook, Theme> = {
         check: "#1f883d",
     },
     hand: {
-        family: NOTE_FONTS.hand,
+        family: BLOCK_FONTS.hand,
         size: 18,
         lineHeight: 1.45,
         headingSizes: [28, 24, 21, 18, 18, 18],
@@ -137,7 +137,7 @@ class Layout {
 
     private measure(text: string, style: Style) {
         if (style.code) return text.length * style.size * MONO_CHAR_WIDTH;
-        const italic = style.italic && this.theme.family === NOTE_FONTS.sans ? "italic " : "";
+        const italic = style.italic && this.theme.family === BLOCK_FONTS.sans ? "italic " : "";
         this.context.font = `${italic}${style.weight} ${style.size}px ${this.theme.family}`;
         return this.context.measureText(text).width;
     }
@@ -470,18 +470,6 @@ class Layout {
     }
 }
 
-const fontFaces = (look: NoteLook, fonts: NoteFontFiles, hasItalic: boolean) =>
-    look === "hand"
-        ? [`@font-face{font-family:${NOTE_FONTS.hand};src:url(${fonts.hand}) format("woff2")}`]
-        : [
-              `@font-face{font-family:${NOTE_FONTS.sans};src:url(${fonts.sans}) format("woff2");font-weight:100 900}`,
-              ...(hasItalic
-                  ? [
-                        `@font-face{font-family:${NOTE_FONTS.sans};src:url(${fonts.sansItalic}) format("woff2");font-weight:100 900;font-style:italic}`,
-                    ]
-                  : []),
-          ];
-
 const generator = rough.generator();
 
 const roughPaths = (drawable: ReturnType<typeof generator.rectangle>) =>
@@ -499,9 +487,9 @@ const drawShape = (shape: Shape, layout: Layout, look: NoteLook): string => {
         case "text": {
             const { piece } = shape;
             const { style } = piece;
-            const family = style.code ? NOTE_FONTS.mono : theme.family;
+            const family = style.code ? BLOCK_FONTS.mono : theme.family;
             const italic =
-                style.italic && theme.family === NOTE_FONTS.sans ? ` font-style="italic"` : "";
+                style.italic && theme.family === BLOCK_FONTS.sans ? ` font-style="italic"` : "";
             const weight =
                 style.weight === 400 || look === "hand" ? "" : ` font-weight="${style.weight}"`;
             // Each run as wide as measured, so it fits however the font is drawn
@@ -539,7 +527,7 @@ const drawShape = (shape: Shape, layout: Layout, look: NoteLook): string => {
 const PLACEHOLDER = "Double-click to write in Markdown";
 
 /** The note as an SVG, its size, and where its checkboxes are */
-export const renderNote = ({ markdown, look, width }: NoteContent, fonts: NoteFontFiles) => {
+export const renderNote = ({ markdown, look, width }: NoteContent, fonts: BlockFontFiles) => {
     const theme = THEMES[look];
     const layout = new Layout(theme, width);
     const tokens = marked.lexer(markdown.trim() ? markdown : PLACEHOLDER, { gfm: true });
@@ -563,7 +551,7 @@ export const renderNote = ({ markdown, look, width }: NoteContent, fonts: NoteFo
 
     const svg = [
         `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
-        `<defs><style>${fontFaces(look, fonts, hasItalic).join("")}</style></defs>`,
+        `<defs><style>${getFontFaces(fonts, { sans: look === "paper", sansItalic: look === "paper" && hasItalic, hand: look === "hand" })}</style></defs>`,
         background,
         `<g dominant-baseline="central">`,
         ...layout.shapes.map(shape => drawShape(shape, layout, look)),

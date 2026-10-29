@@ -28,6 +28,7 @@ export type CustomElementType =
     | "swimlane"
     | "swimlane-part"
     | "markdown"
+    | "table"
     | "image"
     | ModelType;
 
@@ -91,8 +92,19 @@ export type CustomDataMarkdown = BaseCustomData & {
     width: number;
 };
 
+/** A table of text, drawn as an image in one of two looks */
+export type CustomDataTable = BaseCustomData & {
+    type: "table";
+    /** Every row has the same number of cells */
+    rows: string[][];
+    look: "sketchy" | "clean";
+    headerRow: boolean;
+    headerColumn: boolean;
+};
+
 export type CustomData =
     | CustomDataDefault
+    | CustomDataTable
     | CustomDataMarkdown
     | CustomDataCodeblock
     | CustomDataModel

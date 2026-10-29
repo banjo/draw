@@ -3,6 +3,7 @@ import { Modal } from "@/components/modal";
 import { Highlight } from "@/features/collection/components/highlight";
 import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
 import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
+import { useTableStore } from "@/features/table/stores/use-table-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ChevronRight, Search } from "lucide-react";
@@ -442,6 +443,9 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
             }
             if (added.markdownNote) {
                 useMarkdownNoteStore.getState().setEditingId(added.markdownNote.id);
+            }
+            if (added.table) {
+                useTableStore.getState().setEditing({ id: added.table.id, row: 0, column: 0 });
             }
         } catch {
             toast.error(`Couldn't add ${getItemTitle(item)}`);

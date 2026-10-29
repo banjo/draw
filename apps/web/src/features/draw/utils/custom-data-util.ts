@@ -10,6 +10,9 @@ const isMermaidElement = (element: ExcalidrawElement) =>
 const isMarkdownNote = (element: ExcalidrawElement) =>
     element.type === "image" && element.customData?.type === "markdown";
 
+const isTable = (element: ExcalidrawElement) =>
+    element.type === "image" && element.customData?.type === "table";
+
 const isAnyModelElement = (element: ExcalidrawElement) => {
     if (!element.customData) return false;
     const modelElements: ModelType[] = ["model", "model-child", "model-line", "model-title"];
@@ -47,16 +50,36 @@ const hasShapeActions = (element: ExcalidrawElement) =>
     element.type !== "magicframe" &&
     element.customData?.type !== "swimlane-part";
 
+// Blocks with content of their own, which changing to another type would lose
+const BLOCK_TYPES = new Set<string>([
+    "codeblock",
+    "model",
+    "model-child",
+    "model-line",
+    "model-title",
+    "mermaid",
+    "markdown",
+    "table",
+    "swimlane",
+    "swimlane-part",
+]);
+
+/** Whether Tab changes it to another type: shapes, not blocks like a table or a note */
+const canChangeType = (element: ExcalidrawElement) =>
+    hasShapeActions(element) && !BLOCK_TYPES.has(element.customData?.type ?? "");
+
 const isShadowElement = (element: ExcalidrawElement) => element.customData?.shadow === true;
 
 export const CustomDataUtil = {
     isCodeBlockElement,
     isMermaidElement,
     isMarkdownNote,
+    isTable,
     isModelElements,
     isModelContainerElement,
     isAnyModelElement,
     isModelTextElement,
     isShadowElement,
     hasShapeActions,
+    canChangeType,
 };

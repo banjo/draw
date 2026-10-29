@@ -12,6 +12,7 @@ import { MarkdownNoteMenuContainer } from "../components/markdown-note-menu";
 import { MarkdownNote } from "../models/markdown-note";
 import type { CheckboxBox, LinkBox } from "../models/note-render";
 import { useMarkdownNoteStore } from "../stores/use-markdown-note-store";
+import { useGeneratedImages } from "@/features/draw/hooks/utils/use-generated-images";
 
 const NOTE_SELECTED_CLASS = "markdown-note-selected";
 // Further than this between pressing and letting go is a drag, not a click
@@ -63,34 +64,14 @@ const toSafeUrl = (href: string) => {
  */
 export const useMarkdownNotes = () => {
     const { excalidrawApi } = useGlobal();
-    // The images being made, and where each image's checkboxes and links are
-    const rendering = useRef(new Set<string>());
-    const hitAreas = useRef(new Map<string, HitAreas>());
+    // Each image's checkboxes and links
+    const { renderMissing, getAreas } = useGeneratedImages<HitAreas>(async note => {
+        const { file, checkboxes, links } = await MarkdownNote.render(
+            MarkdownNote.getContent(note)
+        );
+        return { file, areas: { checkboxes, links } };
+    });
     const pointerDown = useRef<{ x: number; y: number }>();
-
-    /** Makes the image of each note that doesn't have one yet */
-    const renderMissing = (notes: ExcalidrawElement[]) => {
-        if (!excalidrawApi) return;
-        const files = excalidrawApi.getFiles();
-
-        for (const note of notes) {
-            if (!ExcalidrawUtil.isImageElement(note) || !note.fileId) continue;
-            const fileId = note.fileId;
-            if (rendering.current.has(fileId)) continue;
-            if (files[fileId] && hitAreas.current.has(fileId)) continue;
-
-            rendering.current.add(fileId);
-            MarkdownNote.render(MarkdownNote.getContent(note))
-                .then(({ file, checkboxes, links }) => {
-                    hitAreas.current.set(fileId, { checkboxes, links });
-                    // Under the note's id, which another browser may have made from older code
-                    if (!excalidrawApi.getFiles()[fileId])
-                        excalidrawApi.addFiles([{ ...file, id: fileId }]);
-                })
-                .catch(() => undefined)
-                .finally(() => rendering.current.delete(fileId));
-        }
-    };
 
     const updateMarkdownNotes: OnChangeCallback = (elements, appState) => {
         const notes = elements.filter(isLiveNote);
@@ -146,7 +127,7 @@ export const useMarkdownNotes = () => {
         if (!at || !ExcalidrawUtil.isImageElement(at.note)) return undefined;
 
         const { note } = at;
-        const areas = hitAreas.current.get(note.fileId ?? "");
+        const areas = getAreas(note);
         // The image's own size, as the note may have been resized
         const scale = MarkdownNote.getContent(note).width / note.width;
         const x = (at.x - note.x) * scale;

@@ -10,7 +10,7 @@ import { useExtendElementsButtons } from "@/features/selected-element-visuals/ho
 import { useSelectElementDialog } from "@/features/selected-element-visuals/hooks/use-select-element-dialog";
 import { useVisualElementStore } from "@/stores/use-visual-element-store";
 import { first, noop } from "@banjoanton/utils";
-import { ElementMeasurement } from "common";
+import { ElementMeasurement, ExcalidrawElement } from "common";
 import { useChangeElementKeyDialog } from "./use-change-element-dialog";
 import { useSmartCopyKeyDialog } from "./use-smart-copy-key-dialog";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
@@ -57,6 +57,15 @@ export const useSelectedElementVisuals = () => {
     };
 
     const metaKeyIsDown = useVisualElementStore(s => s.metaKeyIsDown);
+
+    /** The "Tab · Change shape" hint, not on blocks like a table or a note, which keep their type */
+    const updateChangeHint = (element: ExcalidrawElement) => {
+        if (!CustomDataUtil.canChangeType(element)) {
+            setShowChangeElementKeyDialog(false);
+        } else if (!showSelectElementDialog && !metaKeyIsDown) {
+            setShowChangeElementKeyDialog(true);
+        }
+    };
 
     const handleSelectedElementVisuals: OnChangeCallback = (elements, appState) => {
         if (!excalidrawApi) return;
@@ -124,9 +133,7 @@ export const useSelectedElementVisuals = () => {
             return;
         }
 
-        if (!showSelectElementDialog && !metaKeyIsDown) {
-            setShowChangeElementKeyDialog(true);
-        }
+        updateChangeHint(selectedElement);
 
         applyChangeElementPosition(selectedElement);
         applySelectElementPosition(selectedElement);

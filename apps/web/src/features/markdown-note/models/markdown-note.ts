@@ -2,10 +2,10 @@ import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { hashString } from "@excalidraw/excalidraw";
 import { FileId } from "@excalidraw/excalidraw/element/types";
-import { BinaryFileData, DataURL } from "@excalidraw/excalidraw/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import { CustomDataMarkdown, ExcalidrawElement, ExcalidrawImageElement } from "common";
-import { loadNoteFonts } from "./note-fonts";
+import { toSvgFile } from "@/features/draw/models/block-image";
+import { loadBlockFonts } from "@/features/draw/models/block-fonts";
 import type { NoteContent, NoteLook } from "./note-render";
 
 /** The widths a note can have, narrow to wide */
@@ -42,24 +42,12 @@ const getContent = (element: ExcalidrawElement): NoteContent => {
 const getFileId = ({ markdown, look, width }: NoteContent) =>
     `markdown-${IMAGE_VERSION}-${hashString(`${look}\n${width}\n${markdown}`)}-${markdown.length}` as FileId;
 
-const toBase64 = (text: string) => {
-    const bytes = new TextEncoder().encode(text);
-    let binary = "";
-    bytes.forEach(byte => (binary += String.fromCharCode(byte)));
-    return btoa(binary);
-};
-
 /** The note drawn, with its file and size at scale 1 */
 const render = async (content: NoteContent) => {
     // Loaded with the first note, as Markdown's parser is large
-    const [fonts, { renderNote }] = await Promise.all([loadNoteFonts(), import("./note-render")]);
+    const [fonts, { renderNote }] = await Promise.all([loadBlockFonts(), import("./note-render")]);
     const { svg, width, height, checkboxes, links } = renderNote(content, fonts);
-    const file: BinaryFileData = {
-        id: getFileId(content),
-        mimeType: "image/svg+xml",
-        dataURL: `data:image/svg+xml;base64,${toBase64(svg)}` as DataURL,
-        created: Date.now(),
-    };
+    const file = toSvgFile(svg, getFileId(content));
     return { file, width, height, checkboxes, links };
 };
 

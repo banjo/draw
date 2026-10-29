@@ -4,16 +4,48 @@ import { ClipboardData } from "@excalidraw/excalidraw/clipboard";
 import { CustomDataUtil } from "../../utils/custom-data-util";
 import { CustomData, ExcalidrawElement } from "common";
 import { ElementUtil } from "../../utils/element-util";
+import { FrameUtil } from "../../utils/frame-util";
+import { placeElements } from "@/features/add-element/hooks/use-insert-element";
+import { Table } from "@/features/table/models/table";
+import { CaptureUpdateAction, getVisibleSceneBounds } from "@excalidraw/excalidraw";
 import { UpdateElementUtil } from "../../utils/update-element-util";
 
 export const useOnPaste = () => {
     const { excalidrawApi } = useGlobal();
+    /** Rows from a spreadsheet as a table, in the middle of the screen */
+    const pasteTable = async (rows: string[][]) => {
+        if (!excalidrawApi) return;
+        const { element, file } = await Table.create({ rows });
+        const [minX, minY, maxX, maxY] = getVisibleSceneBounds(excalidrawApi.getAppState());
+        const elements = FrameUtil.addToFrame(
+            placeElements([element], { center: { x: (minX + maxX) / 2, y: (minY + maxY) / 2 } }),
+            excalidrawApi.getSceneElements()
+        );
+        excalidrawApi.addFiles([file]);
+        excalidrawApi.updateScene({
+            elements: [...excalidrawApi.getSceneElementsIncludingDeleted(), ...elements],
+            appState: ElementUtil.createNewElementSelection(elements, excalidrawApi.getAppState())
+                .updatedState,
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
+    };
+
     const handleOnPaste = (
         data: ClipboardData,
-        _: ClipboardEvent | null
+        event: ClipboardEvent | null
     ): Promise<boolean> | boolean => {
         if (!excalidrawApi) return true;
         const copiedElements = data.elements as Maybe<ExcalidrawElement[]>;
+
+        // Rows copied from Excel, Sheets or Numbers, instead of Excalidraw's chart
+        const rows =
+            isEmpty(copiedElements ?? []) &&
+            Table.parsePasted(event?.clipboardData?.getData("text/plain") ?? data.text ?? "");
+        if (rows) {
+            void pasteTable(rows);
+            return false;
+        }
+
         if (!isDefined(copiedElements) || isEmpty(copiedElements)) return true;
 
         const allElements = excalidrawApi.getSceneElements();

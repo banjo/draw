@@ -1,12 +1,9 @@
 import { Hint } from "@/components/keys";
 import { useGlobal } from "@/contexts/global-context";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
-import { ElementUtil } from "@/features/draw/utils/element-util";
-import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
+import { BlockEditUtil } from "@/features/draw/utils/block-edit-util";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
-import { CaptureUpdateAction } from "@excalidraw/excalidraw";
-import { Mutable } from "@excalidraw/excalidraw/utility-types";
-import { ExcalidrawElement, ExcalidrawImageElement } from "common";
+import { ExcalidrawElement } from "common";
 import { X } from "lucide-react";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { MarkdownNote } from "../models/markdown-note";
@@ -50,51 +47,16 @@ export const MarkdownNoteEditor = ({ element }: { element: ExcalidrawElement }) 
             });
             excalidrawApi.addFiles([file]);
             // Sent to collaborators, but kept out of undo until the editor closes
-            excalidrawApi.updateScene({
-                elements: ElementUtil.mergeElements(
-                    excalidrawApi.getSceneElementsIncludingDeleted(),
-                    [updated]
-                ),
-                captureUpdate: CaptureUpdateAction.NEVER,
-            });
+            BlockEditUtil.applyUnrecorded(excalidrawApi, updated);
             changed.current = true;
         });
         return lastCommit.current;
     });
 
-    /**
-     * Make the whole edit one undo step: put back the old note without recording it, then
-     * the new one with recording, as the code block's editor does.
-     */
     const recordUndoStep = useLatestCallback(() => {
-        const current = getCurrent();
-        if (!excalidrawApi || !changed.current || !current) return;
+        if (!excalidrawApi || !changed.current) return;
         changed.current = false;
-
-        const withContentOf = (target: ExcalidrawElement, source: ExcalidrawElement) =>
-            UpdateElementUtil.updateElement(target, draft => {
-                draft.customData = source.customData;
-                (draft as Mutable<ExcalidrawImageElement>).fileId = (
-                    source as ExcalidrawImageElement
-                ).fileId;
-                draft.width = source.width;
-                draft.height = source.height;
-                return draft;
-            });
-
-        const before = withContentOf(current, original.current);
-        excalidrawApi.updateScene({
-            elements: ElementUtil.mergeElements(excalidrawApi.getSceneElementsIncludingDeleted(), [
-                before,
-            ]),
-            captureUpdate: CaptureUpdateAction.NEVER,
-        });
-        excalidrawApi.updateScene({
-            elements: ElementUtil.mergeElements(excalidrawApi.getSceneElementsIncludingDeleted(), [
-                withContentOf(before, current),
-            ]),
-            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-        });
+        BlockEditUtil.recordUndoStep(excalidrawApi, original.current);
     });
 
     const finish = useLatestCallback(async () => {

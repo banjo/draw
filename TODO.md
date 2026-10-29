@@ -908,3 +908,27 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       looks and all widths, ticking a checkbox, opening a link (and not a `javascript:`
       one), Tab on a labelled rectangle with an arrow, undo after each, reloading with a
       note in the handwritten look, dark mode, and very long words. No console errors.
+
+## 24. Table
+
+- [x] A Table block, chosen from mockups: Sketchy by default (Excalifont, hand-drawn lines,
+      a hatched header), or Clean (straight lines, like GitHub), with a header row, a header
+      column, or both. Columns fit their text up to a width, then wrap it.
+- [x] The footer, while a table is selected, switches the look and the headers, and adds or
+      removes the last row and column.
+- [x] Double-click a cell, press Enter, or add a table from ⌘K to type over the cell. Tab and
+      Shift+Tab go to the next and previous cell, Enter to the one below, and past the end
+      they add a row. Escape or clicking away closes it, and the whole edit is one undo step.
+- [x] Rows copied from Excel, Sheets or Numbers (tab-separated) paste as a table, instead of
+      Excalidraw's chart. Tab changes a shape to a table, with its label in the first cell.
+- [x] Tab and its hint only change shapes now: on a block, like a code block, model, Mermaid
+      block, note, table or swimlane, they did nothing useful or lost what was in it. A
+      shape can still be changed into a block.
+- [x] Like notes, a table is an image made in every browser, with its fonts inside, so
+      nothing is uploaded. The notes' fonts and the code that makes and caches these images
+      are now shared (`features/draw/`).
+- [x] Tested (Oct 29): adding from ⌘K, typing with Tab, Shift+Tab and Enter, adding rows past
+      the end, a long cell that wraps, double-clicking a cell, both looks, both headers, rows
+      and columns, undo, Tab on a labelled rectangle, pasting rows, reloading, dark mode, and
+      PNG export. Tab and its hint on a table, note, code block and model (nothing) and on a
+      hexagon (the palette). No console errors.

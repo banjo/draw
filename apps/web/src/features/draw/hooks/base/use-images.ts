@@ -26,13 +26,14 @@ type In = {
 };
 
 /**
- * Images that are files, not code blocks or Markdown notes: those are made from their code
- * or Markdown in every browser
+ * Images that are files, not code blocks, Markdown notes or tables: those are made from their
+ * content in every browser
  */
 const isFileImage = (element: ExcalidrawElement) =>
     ExcalidrawUtil.isImageElement(element) &&
     !CustomDataUtil.isCodeBlockElement(element) &&
-    !CustomDataUtil.isMarkdownNote(element);
+    !CustomDataUtil.isMarkdownNote(element) &&
+    !CustomDataUtil.isTable(element);
 
 const getImagesOnCanvas = (files: BinaryFiles, elements: ExcalidrawElements) =>
     Object.values(files)

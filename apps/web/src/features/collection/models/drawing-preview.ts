@@ -1,14 +1,15 @@
 import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
+import { Table } from "@/features/table/models/table";
 import { CodeBlockImage } from "@/features/selected-element-visuals/models/code-block-image";
 import { exportToSvg } from "@excalidraw/excalidraw";
 import { BinaryFileData } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement } from "common";
 
 /**
- * An SVG of a saved drawing, for a preview. Code blocks and notes are drawn from their code
- * and Markdown, like on the canvas. Uploaded images aren't loaded.
+ * An SVG of a saved drawing, for a preview. Code blocks, notes and tables are drawn from their
+ * content, like on the canvas. Uploaded images aren't loaded.
  */
 export const renderDrawingPreview = async (savedElements: unknown[], isDark: boolean) => {
     const elements = (savedElements as ExcalidrawElement[])
@@ -28,11 +29,16 @@ export const renderDrawingPreview = async (savedElements: unknown[], isDark: boo
         }
     }
     await Promise.all(
-        elements.filter(CustomDataUtil.isMarkdownNote).map(async element => {
+        elements.map(async element => {
             const fileId = CodeBlockUtil.getFileId(element);
             if (!fileId) return;
-            const { file } = await MarkdownNote.render(MarkdownNote.getContent(element));
-            files[fileId] = { ...file, id: fileId };
+            if (CustomDataUtil.isMarkdownNote(element)) {
+                const { file } = await MarkdownNote.render(MarkdownNote.getContent(element));
+                files[fileId] = { ...file, id: fileId };
+            } else if (CustomDataUtil.isTable(element)) {
+                const { file } = await Table.render(Table.getContent(element));
+                files[fileId] = { ...file, id: fileId };
+            }
         })
     ).catch(() => undefined);
 

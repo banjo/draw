@@ -37,6 +37,7 @@ const elementToCustomElementType: Record<CustomElementType, ElementType> = {
     swimlane: "rectangle", // wont happen, swimlanes are frames
     "swimlane-part": "rectangle", // wont happen
     markdown: "rectangle", // wont happen, notes are images
+    table: "rectangle", // wont happen, tables are images
     diamond: "diamond",
     ellipse: "ellipse",
     rectangle: "rectangle",

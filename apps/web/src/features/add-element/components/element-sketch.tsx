@@ -160,6 +160,17 @@ const sketches: Partial<Record<CustomElementType, ReactElement>> = {
             />
         </g>
     ),
+    table: (
+        <g strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 4 H55 V14 H5 Z" fill="#a5d8ff" />
+            <path
+                d="M5.3 4.2 L54.7 3.8 L55.2 36.1 L4.8 35.8 Z M5 14 H55 M5 25 H55 M22 4 V36 M39 4 V36"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+            />
+        </g>
+    ),
     markdown: (
         <g strokeLinecap="round">
             <path

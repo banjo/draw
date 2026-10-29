@@ -7,6 +7,7 @@ import { FileUtil } from "@/features/draw/utils/file-util";
 import { FrameUtil } from "@/features/draw/utils/frame-util";
 import { MarkdownNote } from "@/features/markdown-note/models/markdown-note";
 import { SwimlaneLayout } from "@/features/swimlane/models/swimlane-layout";
+import { Table } from "@/features/table/models/table";
 import {
     CaptureUpdateAction,
     getVisibleSceneBounds,
@@ -78,6 +79,10 @@ export const useInsertElement = () => {
             const { element, file } = await MarkdownNote.create();
             return { elements: [element] as ExcalidrawElements, file };
         }
+        if (shape.type === "table") {
+            const { element, file } = await Table.create();
+            return { elements: [element] as ExcalidrawElements, file };
+        }
         return {
             elements:
                 shape.type === "swimlane"
@@ -113,6 +118,7 @@ export const useInsertElement = () => {
             bounds: ExcalidrawUtil.getCommonBounds(elements) as Bounds,
             codeBlock: elements.find(CustomDataUtil.isCodeBlockElement),
             markdownNote: elements.find(CustomDataUtil.isMarkdownNote),
+            table: elements.find(CustomDataUtil.isTable),
         };
     };
 
