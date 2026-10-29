@@ -212,41 +212,165 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
         add(rc.circle(189, 148, 20, options({ strokeWidth: 1.3 })));
     },
 
-    blocks: ({ box, text, line }) => {
-        // A table with a header row
-        box(0, 0, 210, 30, COLORS.blue, { stroke: "transparent", roughness: 0.4 });
-        box(0, 0, 210, 120, "transparent", { strokeWidth: 1.8 });
-        line(0, 30, 210, 30, { strokeWidth: 1.8 });
-        line(0, 75, 210, 75, { strokeWidth: 1 });
-        line(105, 0, 105, 120, { strokeWidth: 1 });
+    blocks: ({ rc, add, box, text, line, arrow, options }) => {
+        // Eight tiles, four on a row, each with its name under it
+        const W = 120;
+        const H = 84;
+        const at = (index: number) => ({
+            x: (index % 4) * (W + 18),
+            y: Math.floor(index / 4) * (H + 40),
+        });
+        const caption = (index: number, name: string) => {
+            const { x, y } = at(index);
+            text(x + W / 2, y + H + 16, name, { size: 14, fill: COLORS.gray });
+        };
+        const flat = { roughness: 0.2, strokeWidth: 3 };
+
+        // Code block
+        let { x, y } = at(0);
+        box(x, y, W, H, "#1e1e2e", { stroke: "#1e1e2e", roughness: 0.4 });
+        const code: [number, number, string][][] = [
+            [
+                [12, 26, "#c678dd"],
+                [32, 62, "#61afef"],
+            ],
+            [
+                [20, 46, "#98c379"],
+                [52, 88, "#e5c07b"],
+            ],
+            [
+                [20, 38, "#e06c75"],
+                [44, 76, "#abb2bf"],
+            ],
+            [[12, 22, "#abb2bf"]],
+        ];
+        code.forEach((parts, row) =>
+            parts.forEach(([from, to, color]) =>
+                line(x + from, y + 18 + row * 16, x + to, y + 18 + row * 16, {
+                    ...flat,
+                    stroke: color,
+                })
+            )
+        );
+        caption(0, "Code");
+
+        // Table
+        ({ x, y } = at(1));
+        box(x, y, W, 22, COLORS.blue, { stroke: "transparent", roughness: 0.4 });
+        box(x, y, W, H, "transparent", { strokeWidth: 1.5 });
+        line(x, y + 22, x + W, y + 22, { strokeWidth: 1.5 });
+        line(x, y + 53, x + W, y + 53, { strokeWidth: 1 });
+        line(x + 58, y, x + 58, y + H, { strokeWidth: 1 });
         [
             ["Task", "Who"],
-            ["Tables", "Anna"],
-            ["Links", "Sam"],
+            ["Plan", "Anna"],
+            ["Ship", "Sam"],
         ].forEach(([task, who], row) => {
-            const y = row === 0 ? 16 : 53 + (row - 1) * 45;
-            text(14, y, task!, { anchor: "start", size: 16 });
-            text(119, y, who!, { anchor: "start", size: 16 });
+            const rowY = row === 0 ? y + 12 : y + 38 + (row - 1) * 31;
+            text(x + 8, rowY, task!, { anchor: "start", size: 13 });
+            text(x + 66, rowY, who!, { anchor: "start", size: 13 });
         });
+        caption(1, "Table");
 
-        // A Markdown note with checkboxes
-        box(236, 0, 170, 120, "#ffffff", { roughness: 0.6 });
-        text(252, 22, "# Launch", { anchor: "start", size: 17 });
-        box(252, 46, 13, 13, COLORS.green, { roughness: 0.4, strokeWidth: 1.2 });
-        line(254, 53, 258, 57, { strokeWidth: 1.5, roughness: 0.2 });
-        line(258, 57, 263, 49, { strokeWidth: 1.5, roughness: 0.2 });
-        text(274, 53, "Draw it", { anchor: "start", size: 15 });
-        box(252, 76, 13, 13, "#ffffff", { roughness: 0.4, strokeWidth: 1.2 });
-        text(274, 83, "Ship it", { anchor: "start", size: 15 });
+        // Chart
+        ({ x, y } = at(2));
+        line(x + 6, y, x + 6, y + H, { strokeWidth: 1.5 });
+        line(x + 6, y + H, x + W, y + H, { strokeWidth: 1.5 });
+        [
+            [16, 46, COLORS.blue],
+            [42, 22, COLORS.red],
+            [68, 54, COLORS.green],
+            [94, 8, COLORS.yellow],
+        ].forEach(([dx, top, fill]) =>
+            add(
+                rc.rectangle(
+                    x + (dx as number),
+                    y + (top as number),
+                    18,
+                    H - (top as number),
+                    options({ fill: fill as string, fillStyle: "solid", strokeWidth: 1.3 })
+                )
+            )
+        );
+        caption(2, "Chart");
 
-        // A link card
-        box(60, 146, 290, 44, "#ffffff", { roughness: 0.5 });
-        box(72, 156, 24, 24, "#1971c2", { stroke: "#1971c2", roughness: 0.3 });
-        line(79, 173, 89, 163, { stroke: "#ffffff", strokeWidth: 1.8, roughness: 0.2 });
-        line(83, 163, 89, 163, { stroke: "#ffffff", strokeWidth: 1.8, roughness: 0.2 });
-        line(89, 163, 89, 169, { stroke: "#ffffff", strokeWidth: 1.8, roughness: 0.2 });
-        text(108, 162, "BanjoDraw", { anchor: "start", size: 15 });
-        text(108, 180, "draw.banjoanton.com", { anchor: "start", size: 12, fill: COLORS.gray });
+        // Markdown note
+        ({ x, y } = at(3));
+        box(x, y, W, H, "#ffffff", { roughness: 0.6 });
+        text(x + 10, y + 16, "# Notes", { anchor: "start", size: 15 });
+        text(x + 10, y + 38, "**bold**", { anchor: "start", size: 13, fill: COLORS.gray });
+        box(x + 10, y + 54, 11, 11, COLORS.green, { roughness: 0.4, strokeWidth: 1.2 });
+        line(x + 12, y + 60, x + 15, y + 63, { strokeWidth: 1.4, roughness: 0.2 });
+        line(x + 15, y + 63, x + 20, y + 56, { strokeWidth: 1.4, roughness: 0.2 });
+        text(x + 28, y + 60, "Draw it", { anchor: "start", size: 13 });
+        caption(3, "Markdown");
+
+        // Mermaid diagram
+        ({ x, y } = at(4));
+        box(x, y + 6, 46, 26, COLORS.violet, { roughness: 0.6, strokeWidth: 1.3 });
+        text(x + 23, y + 20, "Start", { size: 12 });
+        add(
+            rc.polygon(
+                [
+                    [x + 94, y + 2],
+                    [x + 120, y + 19],
+                    [x + 94, y + 36],
+                    [x + 68, y + 19],
+                ],
+                options({ fill: COLORS.yellow, fillStyle: "solid", strokeWidth: 1.3 })
+            )
+        );
+        text(x + 94, y + 20, "OK?", { size: 12 });
+        arrow(x + 48, y + 19, x + 66, y + 19, { strokeWidth: 1.3 });
+        box(x + 68, y + 58, 52, 26, COLORS.green, { roughness: 0.6, strokeWidth: 1.3 });
+        text(x + 94, y + 72, "Done", { size: 12 });
+        arrow(x + 94, y + 38, x + 94, y + 56, { strokeWidth: 1.3 });
+        caption(4, "Mermaid");
+
+        // Database model
+        ({ x, y } = at(5));
+        box(x, y, W, H, COLORS.peach, { roughness: 0.6 });
+        box(x, y, W, 24, COLORS.orange, { roughness: 0.6 });
+        text(x + W / 2, y + 13, "User", { size: 14 });
+        ["id", "email"].forEach((field, i) =>
+            text(x + 10, y + 40 + i * 22, field, { anchor: "start", size: 13 })
+        );
+        caption(5, "Model");
+
+        // Swimlane
+        ({ x, y } = at(6));
+        box(x, y, W, H / 2, "#e7f5ff", { roughness: 0.5, strokeWidth: 1.3 });
+        box(x, y + H / 2, W, H / 2, "#ebfbee", { roughness: 0.5, strokeWidth: 1.3 });
+        line(x + 28, y, x + 28, y + H, { strokeWidth: 1.3 });
+        text(x + 14, y + H / 4, "A", { size: 13 });
+        text(x + 14, y + (H * 3) / 4, "B", { size: 13 });
+        box(x + 38, y + 9, 30, 24, "#ffffff", { roughness: 0.5, strokeWidth: 1.2 });
+        box(x + 82, y + 51, 30, 24, "#ffffff", { roughness: 0.5, strokeWidth: 1.2 });
+        arrow(x + 68, y + 21, x + 90, y + 49, { strokeWidth: 1.2 });
+        caption(6, "Swimlane");
+
+        // Link card
+        ({ x, y } = at(7));
+        box(x, y + 22, W, 40, "#ffffff", { roughness: 0.5 });
+        box(x + 8, y + 30, 24, 24, "#1971c2", { stroke: "#1971c2", roughness: 0.3 });
+        line(x + 15, y + 47, x + 25, y + 37, {
+            stroke: "#ffffff",
+            strokeWidth: 1.8,
+            roughness: 0.2,
+        });
+        line(x + 19, y + 37, x + 25, y + 37, {
+            stroke: "#ffffff",
+            strokeWidth: 1.8,
+            roughness: 0.2,
+        });
+        line(x + 25, y + 37, x + 25, y + 43, {
+            stroke: "#ffffff",
+            strokeWidth: 1.8,
+            roughness: 0.2,
+        });
+        text(x + 40, y + 36, "BanjoDraw", { anchor: "start", size: 13 });
+        text(x + 40, y + 51, "banjoanton.com", { anchor: "start", size: 10, fill: COLORS.gray });
+        caption(7, "Link card");
     },
 
     collaboration: ({ rc, add, box, text, arrow, options }) => {
@@ -276,7 +400,7 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
         cursor(40, 95, "#1971c2", "Sam");
     },
 
-    collection: ({ rc, options, group, text }) => {
+    collection: ({ rc, add, options, group, text, box, line, arrow }) => {
         const cards: [string, string, number][] = [
             ["Roadmap", COLORS.yellow, -6],
             ["Architecture", COLORS.blue, 2],
@@ -294,6 +418,33 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
             );
             card.appendChild(text(x + 10, y + 13, title, { anchor: "start", size: 14 }));
         });
+
+        // The same drawings on a laptop and a phone, kept in sync
+        box(330, 40, 120, 76, "#ffffff", { roughness: 0.6 });
+        box(338, 48, 104, 14, COLORS.blue, { stroke: "transparent", roughness: 0.3 });
+        add(
+            rc.polygon(
+                [
+                    [318, 124],
+                    [462, 124],
+                    [452, 116],
+                    [328, 116],
+                ],
+                options({ fill: "#e9ecef", fillStyle: "solid", roughness: 0.5 })
+            )
+        );
+        line(346, 76, 404, 76, { strokeWidth: 1.2, stroke: COLORS.gray });
+        line(346, 92, 386, 92, { strokeWidth: 1.2, stroke: COLORS.gray });
+
+        box(372, 168, 50, 88, "#ffffff", { roughness: 0.6 });
+        box(378, 178, 38, 10, COLORS.blue, { stroke: "transparent", roughness: 0.3 });
+        line(382, 202, 410, 202, { strokeWidth: 1.2, stroke: COLORS.gray });
+        line(382, 216, 402, 216, { strokeWidth: 1.2, stroke: COLORS.gray });
+        line(390, 246, 404, 246, { strokeWidth: 1.6, roughness: 0.2 });
+
+        arrow(372, 134, 382, 160, { stroke: COLORS.accent });
+        arrow(412, 160, 404, 134, { stroke: COLORS.accent });
+        text(440, 148, "synced", { anchor: "start", size: 15, fill: COLORS.accent });
     },
 
     folders: ({ rc, add, box, text, line, options }) => {

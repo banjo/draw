@@ -43,19 +43,23 @@ const getHeading = (mode: FeaturesModalMode, isFirstVisit: boolean) => {
 // Five, so every feature fits on screen without scrolling
 const COLUMNS = 5;
 
-/**
- * The first card is big and the second wide. The last cards widen to fill the last row. A few
- * cards share the space equally.
- */
-const getSize = (index: number, count: number): CardSize => {
-    if (count < 4) return "few";
-    if (index === 0) return "hero";
-    if (index === 1) return "wide";
+const CELLS: Record<Exclude<CardSize, "few">, number> = { hero: 4, wide: 2, single: 1 };
 
-    // The big card takes four cells, the wide one two, and each widened card one more
-    const cells = count + 4;
-    const emptyCells = (COLUMNS - (cells % COLUMNS)) % COLUMNS;
-    return index >= count - emptyCells ? "wide" : "single";
+/**
+ * Each card's size: the important ones big, the others single. The last single cards widen
+ * to fill the last row. A few cards share the space equally.
+ */
+const getSizes = (features: Feature[]): CardSize[] => {
+    if (features.length < 4) return features.map(() => "few");
+    const sizes = features.map(feature => feature.size ?? "single");
+    const cells = sizes.reduce((sum, size) => sum + CELLS[size], 0);
+    let emptyCells = (COLUMNS - (cells % COLUMNS)) % COLUMNS;
+    for (let i = sizes.length - 1; i >= 0 && emptyCells > 0; i--) {
+        if (sizes[i] !== "single") continue;
+        sizes[i] = "wide";
+        emptyCells--;
+    }
+    return sizes;
 };
 
 const Keys = ({ keys }: { keys: string[] }) => (
@@ -157,6 +161,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
     const isFirstVisit = useMemo(() => SeenFeatures.getSeenIds().length === 0, []);
     const { lead, accent, sub } = getHeading(mode, isFirstVisit);
     const isFew = features.length < 4;
+    const sizes = useMemo(() => getSizes(features), [features]);
 
     const close = () => {
         SeenFeatures.markSeen(features);
@@ -225,7 +230,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                         "grid gap-3 p-4 sm:p-[22px] sm:pt-5",
                         isFew
                             ? cn("auto-rows-[360px] grid-cols-1", FEW_COLUMNS[features.length])
-                            : "auto-rows-[176px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
+                            : "auto-rows-[176px] grid-flow-row-dense grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
                     )}
                 >
                     {features.map((feature, index) => (
@@ -233,7 +238,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                             key={feature.id}
                             feature={feature}
                             index={index}
-                            size={getSize(index, features.length)}
+                            size={sizes[index] ?? "single"}
                         />
                     ))}
                 </div>

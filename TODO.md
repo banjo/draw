@@ -985,3 +985,13 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       in both looks and three color sets, legend and values, a long title, negative numbers,
       table to chart and back, pasting numbers (button) and text (no button), Tab, Enter,
       dark mode, reloading and PNG export. No console errors.
+
+## 28. What's in BanjoDraw: the important ones biggest
+
+- [x] Each feature can be big (two by two, with its whole description). Blocks and Your
+      collection are, then Add shapes and icons and Draw together; the rest are single, in
+      order of how useful they are. The last single cards still widen to fill the last row.
+- [x] Blocks' picture has all eight blocks, each with its name: code, table, chart, Markdown,
+      Mermaid, model, swimlane and link card.
+- [x] Your collection says you can keep many drawings, synced between your devices, and its
+      picture has a laptop and a phone with the same drawing.
