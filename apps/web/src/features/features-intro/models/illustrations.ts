@@ -417,9 +417,9 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
                         [x - r * 0.3, y - r * 0.3],
                     ],
                     options({
-                        fill: "#b4529c",
+                        fill: "#de9239",
                         fillStyle: "solid",
-                        stroke: "#b4529c",
+                        stroke: "#de9239",
                         roughness: 0.4,
                     })
                 )

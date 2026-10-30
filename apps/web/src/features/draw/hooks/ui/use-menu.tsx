@@ -6,23 +6,11 @@ import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
-import { useAiDialogStore } from "@/features/ai/stores/use-ai-dialog-store";
-import { usePaletteStore } from "@/features/collection/stores/use-palette-store";
 import { useFeaturesModalStore } from "@/features/features-intro/stores/use-features-modal-store";
 import { copyToClipboard } from "@/utils/clipboard";
-import { formatShortcut } from "@/utils/platform";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
-import { MainMenu } from "@excalidraw/excalidraw";
-import {
-    BrushIcon,
-    CopyIcon,
-    FolderIcon,
-    PlusIcon,
-    SaveIcon,
-    SearchIcon,
-    Sparkles,
-    WandSparkles,
-} from "lucide-react";
+import { MainMenu, useDevice } from "@excalidraw/excalidraw";
+import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon, Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -35,23 +23,61 @@ type In = {
     uploadImagesOnCanvas: () => Promise<boolean>;
 };
 
+/**
+ * On phones there's no account menu at the top right, so its items are at the end of the
+ * main menu
+ */
+const PhoneItems = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+    const { editor } = useDevice();
+    const { isAuthenticated } = useAuth();
+    const showFeatures = useFeaturesModalStore(s => s.show);
+    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
+    if (!editor.isMobile) return null;
+
+    return (
+        <>
+            <MainMenu.Separator />
+            {isAuthenticated ? (
+                <MainMenu.Item onSelect={toggleSidebar} icon={<ResponsiveIcon Icon={BrushIcon} />}>
+                    My collection
+                </MainMenu.Item>
+            ) : null}
+            <MainMenu.DefaultItems.ToggleTheme />
+            <MainMenu.Item
+                onSelect={() => showFeatures("all")}
+                icon={<ResponsiveIcon Icon={Sparkles} />}
+            >
+                Features
+            </MainMenu.Item>
+            <MainMenu.DefaultItems.Help />
+            <MainMenu.Separator />
+            {isAuthenticated ? (
+                <MainMenu.Item
+                    onSelect={async () => await authService.signOut()}
+                    icon={<ResponsiveIcon Icon={Icons.signOut} />}
+                >
+                    Sign out
+                </MainMenu.Item>
+            ) : (
+                <MainMenu.Item
+                    onSelect={() => setShowSignInModal(true)}
+                    icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
+                >
+                    Sign in
+                </MainMenu.Item>
+            )}
+        </>
+    );
+};
+
 export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanvas }: In) => {
     const { excalidrawApi } = useGlobal();
-    const showFeatures = useFeaturesModalStore(s => s.show);
-    const openPalette = usePaletteStore(s => s.setIsOpen);
     const navigate = useNavigate();
-
-    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
 
     const { isAuthenticated } = useAuth();
     const { handleError } = useError();
 
     const utils = trpc.useUtils();
-    const { data: aiStatus } = trpc.ai.status.useQuery(undefined, { enabled: isAuthenticated });
-    // The plan, and for free accounts what's left today
-    const aiPlan =
-        aiStatus &&
-        (aiStatus.limit === null ? "Pro" : `${Math.max(aiStatus.limit - aiStatus.used, 0)} left`);
 
     /** Create a new drawing from what's on the canvas, and return its slug. */
     const createDrawingFromCanvas = useLatestCallback(async () => {
@@ -134,39 +160,6 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
     const menu = useMemo(
         () => (
             <MainMenu>
-                {isAuthenticated ? (
-                    <MainMenu.Item
-                        onSelect={async () => await authService.signOut()}
-                        icon={<ResponsiveIcon Icon={Icons.signOut} />}
-                    >
-                        Sign out
-                    </MainMenu.Item>
-                ) : (
-                    <MainMenu.Item
-                        onSelect={() => {
-                            setShowSignInModal(true);
-                        }}
-                        icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
-                    >
-                        Sign in
-                    </MainMenu.Item>
-                )}
-
-                <MainMenu.Separator />
-
-                {slug ? (
-                    <>
-                        <MainMenu.Item
-                            onSelect={goToLocalDrawing}
-                            icon={<ResponsiveIcon Icon={FolderIcon} />}
-                        >
-                            Offline mode
-                        </MainMenu.Item>
-
-                        <MainMenu.Separator />
-                    </>
-                ) : null}
-
                 <MainMenu.Item
                     onSelect={createNewDrawing}
                     icon={<ResponsiveIcon Icon={PlusIcon} />}
@@ -181,9 +174,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                     >
                         Create copy
                     </MainMenu.Item>
-                ) : null}
-
-                {!slug && (
+                ) : (
                     <MainMenu.Item
                         onSelect={shareDrawing}
                         icon={<ResponsiveIcon Icon={Icons.link} />}
@@ -192,58 +183,35 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                     </MainMenu.Item>
                 )}
 
-                <MainMenu.Separator />
-
                 {isAuthenticated ? (
+                    <MainMenu.Item
+                        onSelect={saveToCollection}
+                        icon={<ResponsiveIcon Icon={SaveIcon} />}
+                    >
+                        Save to my collection
+                    </MainMenu.Item>
+                ) : null}
+
+                <MainMenu.Separator />
+                <MainMenu.DefaultItems.SaveAsImage />
+                <MainMenu.DefaultItems.Export />
+
+                {slug ? (
                     <>
-                        <MainMenu.Item
-                            onSelect={onToggleSidebar}
-                            icon={<ResponsiveIcon Icon={BrushIcon} />}
-                        >
-                            Collection
-                        </MainMenu.Item>
-
-                        <MainMenu.Item
-                            onSelect={() => openPalette(true)}
-                            icon={<ResponsiveIcon Icon={SearchIcon} />}
-                            shortcut={formatShortcut("O")}
-                        >
-                            Find a drawing
-                        </MainMenu.Item>
-
-                        <MainMenu.Item
-                            onSelect={saveToCollection}
-                            icon={<ResponsiveIcon Icon={SaveIcon} />}
-                        >
-                            Save to my collection
-                        </MainMenu.Item>
-
-                        <MainMenu.Item
-                            onSelect={() => useAiDialogStore.getState().open()}
-                            icon={<ResponsiveIcon Icon={WandSparkles} />}
-                            shortcut={aiPlan}
-                        >
-                            Create with AI
-                        </MainMenu.Item>
-
                         <MainMenu.Separator />
+                        <MainMenu.Item
+                            onSelect={goToLocalDrawing}
+                            icon={<ResponsiveIcon Icon={FolderIcon} />}
+                        >
+                            Offline mode
+                        </MainMenu.Item>
                     </>
                 ) : null}
 
-                <MainMenu.DefaultItems.SaveAsImage />
-                <MainMenu.DefaultItems.Export />
-                <MainMenu.Separator />
-                <MainMenu.DefaultItems.ToggleTheme />
-                <MainMenu.Item
-                    onSelect={() => showFeatures("all")}
-                    icon={<ResponsiveIcon Icon={Sparkles} />}
-                >
-                    Features
-                </MainMenu.Item>
-                <MainMenu.DefaultItems.Help />
+                <PhoneItems toggleSidebar={onToggleSidebar} />
             </MainMenu>
         ),
-        [isAuthenticated, slug, aiPlan]
+        [isAuthenticated, slug]
     );
 
     return {

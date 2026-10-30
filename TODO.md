@@ -1060,3 +1060,18 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       the last, so there are no gaps.
 - [x] Tested (Oct 30): both pages, the buttons, the arrow keys, and What's new with only the
       AI card. No console errors.
+
+## 32. Account menu
+
+- [x] Your avatar at the top right, after Library, opens an account menu: a cover in the
+      logo's orange, your name, email and plan (Pro or Free), a bar with today's AI requests
+      left (Pro: unlimited, with how many you've made), My collection, Find a drawing, a
+      Light/Dark/System theme switch, Features, Shortcuts and help, and Sign out. Signed out,
+      it's a "Sign in" button with the theme, Features and help.
+- [x] ☰ only has the drawing: new, copy or share, save to collection, export, offline mode.
+      On phones, where the avatar doesn't fit, the account items stay at the end of ☰.
+- [x] Pro and AI use the logo's orange instead of purple and pink: the Pro badge, sparkles,
+      the AI dialog's buttons, tabs, messages, quota dots and input focus, and the ⌘K row.
+      Shared in `apps/web/src/models/brand.ts`.
+- [x] Tested (Oct 30): Pro and free, dark mode, help, collection, sign out and in, phone
+      width, the AI dialog in light and dark, ⌘K. No console errors.

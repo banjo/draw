@@ -6,6 +6,7 @@ import { useImages } from "@/features/draw/hooks/base/use-images";
 import { useInit } from "@/features/draw/hooks/base/use-init";
 import { useKeyboard } from "@/features/draw/hooks/base/use-keyboard";
 import { useLibrary } from "@/features/draw/hooks/base/use-library";
+import { AccountMenu } from "@/features/account/components/account-menu";
 import { useCollaboration } from "@/features/draw/hooks/collaboration/use-collaboration";
 import { useMenu } from "@/features/draw/hooks/ui/use-menu";
 import { useSidebar } from "@/features/draw/hooks/ui/use-sidebar";
@@ -181,13 +182,15 @@ export const Draw = ({ slug }: DrawProps) => {
         [setExcalidrawApi]
     );
     const renderTopRightUI = useCallback(
-        () => (
+        (isMobile: boolean) => (
             <>
                 {collabButton}
                 {sidebarButton}
+                {/* Phones have no room for it; its items are in the main menu there */}
+                {isMobile ? null : <AccountMenu toggleSidebar={toggleSidebar} />}
             </>
         ),
-        [collabButton, sidebarButton]
+        [collabButton, sidebarButton, toggleSidebar]
     );
     const children = useMemo(
         () => (

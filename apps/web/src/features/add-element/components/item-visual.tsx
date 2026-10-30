@@ -1,3 +1,4 @@
+import { BRAND_TEXT } from "@/models/brand";
 import { Sparkles } from "lucide-react";
 import { cn } from "ui";
 import { useIconImage } from "../hooks/use-icon-image";
@@ -49,7 +50,7 @@ export const ItemThumb = ({ item }: { item: Item }) => (
             <IconImage set={item.set} name={item.name} className="h-5 w-5" />
         ) : null}
         {item.kind === "ai" && item.mode === "diagram" ? (
-            <Sparkles className="h-[18px] w-[18px] text-[#b4529c] dark:text-[#f09ad8]" />
+            <Sparkles className={cn("h-[18px] w-[18px]", BRAND_TEXT)} />
         ) : null}
         {item.kind === "ai" && item.mode === "mermaid" ? <ElementSketch type="mermaid" /> : null}
     </span>

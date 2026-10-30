@@ -1,3 +1,4 @@
+import { BRAND_BUTTON, BRAND_GRADIENT, BRAND_SOFT, BRAND_TEXT } from "@/models/brand";
 import { Modal } from "@/components/modal";
 import { useAuth } from "@/contexts/auth-context";
 import { useGlobal } from "@/contexts/global-context";
@@ -79,7 +80,7 @@ const Segment = ({
         className={cn(
             "h-7 rounded-md px-2.5 text-[12.5px] font-medium transition-colors",
             isActive
-                ? "bg-[#ecebff] font-semibold text-[#4a47b1] dark:bg-[#a8a5ff]/15 dark:text-[#b7b5ff]"
+                ? cn("font-semibold", BRAND_SOFT)
                 : "text-zinc-500 hover:text-[#1b1b1f] dark:text-zinc-400 dark:hover:text-white"
         )}
     >
@@ -93,7 +94,12 @@ const Quota = ({ status }: { status: AiStatus | undefined }) => {
     if (status.limit === null) {
         return (
             <span className="flex items-center gap-2">
-                <span className="rounded bg-gradient-to-br from-[#6965db] to-[#b4529c] px-1.5 py-px text-[10px] font-bold uppercase tracking-wider text-white">
+                <span
+                    className={cn(
+                        "rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider text-white",
+                        BRAND_GRADIENT
+                    )}
+                >
                     Pro
                 </span>
                 Unlimited
@@ -111,7 +117,7 @@ const Quota = ({ status }: { status: AiStatus | undefined }) => {
                             "h-[7px] w-[7px] rounded-full",
                             i < status.used
                                 ? "bg-black/10 dark:bg-white/15"
-                                : "bg-[#6965db] dark:bg-[#a8a5ff]"
+                                : "bg-[#de9239] dark:bg-[#f0a650]"
                         )}
                     />
                 ))}
@@ -338,7 +344,7 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
             >
                 <section className="flex min-h-0 flex-col border-black/[0.07] dark:border-white/[0.07] sm:w-[360px] sm:shrink-0 sm:border-r">
                     <header className="flex h-[52px] shrink-0 items-center gap-2 px-4">
-                        <Sparkles className="h-[18px] w-[18px] text-[#b4529c] dark:text-[#f09ad8]" />
+                        <Sparkles className={cn("h-[18px] w-[18px]", BRAND_TEXT)} />
                         <h2 className="text-[15px] font-semibold">Create with AI</h2>
                         <span className="ml-auto inline-flex rounded-lg p-0.5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
                             {MODES.map(option => (
@@ -416,7 +422,10 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                         onClose();
                                         setShowSignIn(true);
                                     }}
-                                    className="flex h-8 items-center rounded-lg bg-[#6965db] px-3.5 text-[13px] font-semibold text-white dark:bg-[#a8a5ff] dark:text-[#121212]"
+                                    className={cn(
+                                        "flex h-8 items-center rounded-lg px-3.5 text-[13px] font-semibold",
+                                        BRAND_BUTTON
+                                    )}
                                 >
                                     Sign in
                                 </button>
@@ -427,8 +436,7 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                 key={i}
                                 className={cn(
                                     "rounded-xl px-3 py-2 text-[13px] leading-relaxed",
-                                    message.role === "user" &&
-                                        "ml-8 bg-[#ecebff] text-[#4a47b1] dark:bg-[#a8a5ff]/15 dark:text-[#cfcdff]",
+                                    message.role === "user" && cn("ml-8", BRAND_SOFT),
                                     message.role === "ai" &&
                                         "mr-4 bg-black/[0.04] dark:bg-white/[0.05]",
                                     message.role === "error" &&
@@ -453,7 +461,7 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
 
                     {isAuthenticated ? (
                         <div className="shrink-0 px-4 pb-1">
-                            <div className="flex items-end gap-2 rounded-xl px-3 py-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)] focus-within:shadow-[inset_0_0_0_2px_#6965db] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)] dark:focus-within:shadow-[inset_0_0_0_2px_#a8a5ff]">
+                            <div className="flex items-end gap-2 rounded-xl px-3 py-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)] focus-within:shadow-[inset_0_0_0_2px_#de9239] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)] dark:focus-within:shadow-[inset_0_0_0_2px_#f0a650]">
                                 <textarea
                                     autoFocus
                                     value={prompt}
@@ -471,7 +479,10 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                     onClick={() => void send(prompt)}
                                     disabled={isBusy || !prompt.trim() || isOutOfRequests}
                                     aria-label="Send"
-                                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#6965db] text-white transition-opacity disabled:opacity-40 dark:bg-[#a8a5ff] dark:text-[#121212]"
+                                    className={cn(
+                                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-opacity disabled:opacity-40",
+                                        BRAND_BUTTON
+                                    )}
                                 >
                                     <ArrowUp className="h-4 w-4" />
                                 </button>
@@ -509,7 +520,7 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                         </div>
                     ) : null}
                     {isBusy && !result ? (
-                        <div className="absolute inset-12 animate-pulse rounded-xl border-2 border-dashed border-[#6965db]/40" />
+                        <div className="absolute inset-12 animate-pulse rounded-xl border-2 border-dashed border-[#de9239]/40" />
                     ) : null}
                     {showCode && result?.mode === "mermaid" ? (
                         <pre className="absolute inset-x-4 bottom-16 top-[57%] overflow-auto rounded-lg bg-[#f6f8fa] p-3 font-mono text-[12px] leading-relaxed dark:bg-[#18181d]">
@@ -542,7 +553,10 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                 type="button"
                                 onClick={insert}
                                 disabled={isBusy}
-                                className="flex h-8 items-center gap-2 rounded-lg bg-[#6965db] px-3.5 text-[13px] font-semibold text-white transition-opacity disabled:opacity-40 dark:bg-[#a8a5ff] dark:text-[#121212]"
+                                className={cn(
+                                    "flex h-8 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold transition-opacity disabled:opacity-40",
+                                    BRAND_BUTTON
+                                )}
                             >
                                 {selection ? "Replace" : "Insert"}
                                 <span className="text-[11px] opacity-70">
