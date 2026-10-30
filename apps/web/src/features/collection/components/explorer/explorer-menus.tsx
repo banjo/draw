@@ -4,6 +4,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { FOLDER_COLORS } from "common";
 import {
     Check,
+    CopyPlus,
     ExternalLink,
     Folder,
     FolderInput,
@@ -149,6 +150,11 @@ export const DrawingMenu = ({
                 <DropdownMenuItem className={ITEM} onSelect={copyLink}>
                     <Link /> Copy link
                 </DropdownMenuItem>
+                {drawing.hasAccess ? (
+                    <DropdownMenuItem className={ITEM} onSelect={() => actions.copyDrawing(slug)}>
+                        <CopyPlus /> Make a copy
+                    </DropdownMenuItem>
+                ) : null}
                 <MoveToMenu
                     currentId={tree.folderOf(drawing)}
                     noneLabel={drawing.isOwner ? "Unsorted" : "Shared with me"}

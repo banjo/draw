@@ -17,6 +17,7 @@ const causeLog: Record<Cause, Maybe<string>> = {
     EXPIRED_TOKEN: undefined,
     NOT_OWNER: "You are not the owner of this drawing",
     DRAWING_NOT_FOUND: "Drawing not found",
+    NO_ACCESS: "You don't have access to this drawing",
 };
 
 export const useError = () => {

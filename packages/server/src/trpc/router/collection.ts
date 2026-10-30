@@ -10,6 +10,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { createContextLogger } from "../../lib/context-logger";
 import { CollectionRepository } from "../../repositories/collection-repository";
+import { requireAccess } from "../require-access";
 
 const logger = createContextLogger("collection-router");
 
@@ -37,6 +38,7 @@ export const collectionRouter = createTRPCRouter({
         unwrap(await CollectionRepository.getCollection(ctx.session.userId), "get collection")
     ),
     add: protectedProcedure.input(SlugInput).mutation(async ({ input, ctx }) => {
+        await requireAccess(input.slug, ctx.session.userId, "view");
         unwrap(
             await CollectionRepository.addToCollection(ctx.session.userId, input.slug),
             "add drawing to collection"

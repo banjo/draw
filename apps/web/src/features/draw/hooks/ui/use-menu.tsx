@@ -7,10 +7,11 @@ import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { useFeaturesModalStore } from "@/features/features-intro/stores/use-features-modal-store";
-import { copyToClipboard } from "@/utils/clipboard";
+import { useCopyToCollection } from "@/features/share/hooks/use-copy-to-collection";
+import { useShareDialogStore } from "@/features/share/stores/use-share-dialog-store";
 import { Maybe, wrapAsync } from "@banjoanton/utils";
 import { MainMenu, useDevice } from "@excalidraw/excalidraw";
-import { BrushIcon, CopyIcon, FolderIcon, PlusIcon, SaveIcon, Sparkles } from "lucide-react";
+import { BrushIcon, CopyPlus, FolderIcon, PlusIcon, SaveIcon, Sparkles } from "lucide-react";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -85,6 +86,8 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
     const { handleError } = useError();
 
     const utils = trpc.useUtils();
+    const openShareDialog = useShareDialogStore(s => s.open);
+    const copyToCollection = useCopyToCollection();
 
     /** Create a new drawing from what's on the canvas, and return its slug. */
     const createDrawingFromCanvas = useLatestCallback(async () => {
@@ -100,24 +103,17 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
         return await createDrawing(elements, order);
     });
 
-    /** Copy the drawing's link. On the start page, it's saved as a new drawing first. */
+    /** Open the share window. On the start page, the drawing is saved first. */
     const shareDrawing = useLatestCallback(async () => {
         if (!excalidrawApi) return;
 
         const updatedSlug = slug ?? (await createDrawingFromCanvas());
         if (!updatedSlug) return;
 
-        // Not awaited: a clipboard write can wait for focus, and shouldn't hold up the drawing
-        const link = `${window.location.origin}/draw/${updatedSlug}`;
-        void copyToClipboard(link).then(copied =>
-            copied
-                ? toast.success("Link copied to clipboard")
-                : toast.error("Could not copy the link, copy it from the address bar")
-        );
-
         if (slug !== updatedSlug) {
             navigate(`/draw/${updatedSlug}`);
         }
+        openShareDialog(updatedSlug);
     });
 
     const saveToCollection = useLatestCallback(async () => {
@@ -143,12 +139,8 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
         navigate(`/draw/${currentSlug}`);
     });
 
-    const copyToNewDrawing = useLatestCallback(async () => {
-        const newSlug = await createDrawingFromCanvas();
-        if (newSlug) {
-            toast.success("Drawing copied to new drawing");
-            navigate(`/draw/${newSlug}`);
-        }
+    const copyToMyCollection = useLatestCallback(async () => {
+        if (slug) await copyToCollection(slug);
     });
 
     const createNewDrawing = useLatestCallback(async () => {
@@ -176,10 +168,10 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
 
                 {slug ? (
                     <MainMenu.Item
-                        onSelect={copyToNewDrawing}
-                        icon={<ResponsiveIcon Icon={CopyIcon} />}
+                        onSelect={copyToMyCollection}
+                        icon={<ResponsiveIcon Icon={CopyPlus} />}
                     >
-                        Create copy
+                        Copy to my collection
                     </MainMenu.Item>
                 ) : (
                     <MainMenu.Item

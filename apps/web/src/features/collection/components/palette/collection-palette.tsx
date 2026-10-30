@@ -10,11 +10,13 @@ import {
     createCollectionTree,
     describeLocation,
     matchesQuery,
+    NO_ACCESS_MESSAGE,
 } from "@/features/collection/models/collection-tree";
 import { formatAge } from "@/features/collection/models/format-age";
 import { MODIFIER_LABEL } from "@/utils/platform";
-import { File, Folder, PenLine, Plus, Search, Users } from "lucide-react";
+import { File, Folder, Lock, PenLine, Plus, Search, Users } from "lucide-react";
 import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { useMatch, useNavigate } from "react-router-dom";
 import { cn } from "ui";
 
@@ -87,7 +89,13 @@ const DrawingDetails = ({
 
     return (
         <>
-            <DrawingPreview slug={drawing.slug} />
+            {drawing.hasAccess ? (
+                <DrawingPreview slug={drawing.slug} />
+            ) : (
+                <div className="grid aspect-[16/10] place-items-center rounded-xl bg-black/[0.03] px-6 text-center text-sm text-zinc-400 dark:bg-white/[0.03]">
+                    {NO_ACCESS_MESSAGE}
+                </div>
+            )}
             <h3 className="truncate text-lg font-bold">{drawing.name}</h3>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[13px]">
                 <Detail label="Folder">
@@ -150,6 +158,7 @@ const ItemIcon = ({ item, currentSlug }: { item: Item; currentSlug?: string }) =
     const { drawing } = item;
     let Icon = File;
     if (drawing.slug === currentSlug) Icon = PenLine;
+    else if (!drawing.hasAccess) Icon = Lock;
     else if (!drawing.isOwner) Icon = Users;
 
     return (
@@ -254,6 +263,10 @@ export const CollectionPalette = ({ onClose }: { onClose: () => void }) => {
         if (!item) return;
         if ("folder" in item) {
             enterFolder(item.folder.id);
+            return;
+        }
+        if (!item.drawing.hasAccess) {
+            toast.error(NO_ACCESS_MESSAGE);
             return;
         }
 

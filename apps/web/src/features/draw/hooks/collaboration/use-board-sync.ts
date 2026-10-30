@@ -1,8 +1,10 @@
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
+import { canEditDrawing } from "@/features/share/stores/use-drawing-access-store";
 import { trpc } from "@/lib/trpc";
 import { logger } from "@/utils/logger";
 import { isEqual, Maybe } from "@banjoanton/utils";
-import { ExcalidrawApi, ExcalidrawElement, ExcalidrawElements } from "common";
+import { TRPCClientError } from "@trpc/client";
+import { Cause, ExcalidrawApi, ExcalidrawElement, ExcalidrawElements } from "common";
 import { useCallback, useLayoutEffect, useRef } from "react";
 
 const SYNC_DELAY = 30;
@@ -45,7 +47,7 @@ export const useBoardSync = ({ slug, excalidrawApi }: In) => {
 
     const send = () => {
         timer.current = undefined;
-        if (!slug || !excalidrawApi) return;
+        if (!slug || !excalidrawApi || !canEditDrawing()) return;
 
         const elements = getSyncableElements(excalidrawApi);
         const changed = elements.filter(element => {
@@ -92,6 +94,14 @@ export const useBoardSync = ({ slug, excalidrawApi }: In) => {
                 });
                 if (orderChanged && syncedOrder.current === order) {
                     syncedOrder.current = previousOrder;
+                }
+
+                // You can't change the drawing anymore, so trying again won't help
+                if (
+                    error instanceof TRPCClientError &&
+                    Cause.fromClientError(error) === Cause.NO_ACCESS
+                ) {
+                    return;
                 }
 
                 schedule(RETRY_DELAY);

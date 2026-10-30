@@ -1,6 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { isTypingTarget } from "@/features/draw/hooks/base/use-keyboard";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
+import { canEditDrawing } from "@/features/share/stores/use-drawing-access-store";
 import { useAddElementStore } from "@/stores/use-add-element-store";
 import { useEffect, useRef } from "react";
 import { AddElementPalette, PALETTE_ATTRIBUTE } from "../components/add-element-palette";
@@ -38,6 +39,8 @@ export const useAddElement = () => {
 
         const onKeyDown = (event: KeyboardEvent) => {
             if (!isPaletteShortcut(event)) return;
+            // Adding needs a drawing you can change
+            if (!canEditDrawing()) return;
             const inPalette =
                 event.target instanceof Element && event.target.closest(`[${PALETTE_ATTRIBUTE}]`);
             if (!inPalette && isTypingTarget(event.target)) return;

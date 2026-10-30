@@ -22,6 +22,10 @@ import { useLinkCards } from "@/features/link-card/hooks/use-link-cards";
 import { useCharts } from "@/features/chart/hooks/use-charts";
 import { AiDialogContainer } from "@/features/ai/components/ai-dialog";
 import { DockContainer } from "@/features/dock/components/dock";
+import { ShareDialogContainer } from "@/features/share/components/share-dialog";
+import { ViewOnlyBadge } from "@/features/share/components/view-only-badge";
+import { useDrawingAccess } from "@/features/share/hooks/use-drawing-access";
+import { canEditDrawing } from "@/features/share/stores/use-drawing-access-store";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
@@ -92,6 +96,7 @@ export const Draw = ({ slug }: DrawProps) => {
         slug,
         onShare: shareDrawing,
     });
+    const { role, canEdit } = useDrawingAccess(slug);
 
     useHistory({ slug });
 
@@ -175,7 +180,10 @@ export const Draw = ({ slug }: DrawProps) => {
 
     // Excalidraw is memoised and re-renders when any prop changes identity, so everything
     // passed to it is kept stable
-    const onPaste = useLatestCallback(handleOnPaste);
+    const onPaste = useLatestCallback((...args: Parameters<typeof handleOnPaste>) =>
+        // False keeps Excalidraw from pasting too
+        canEditDrawing() ? handleOnPaste(...args) : false
+    );
     const onLibraryChangeStable = useLatestCallback(onLibraryChange);
     const excalidrawAPI = useCallback(
         (api: unknown) => setExcalidrawApi(api as ExcalidrawApi),
@@ -184,13 +192,14 @@ export const Draw = ({ slug }: DrawProps) => {
     const renderTopRightUI = useCallback(
         (isMobile: boolean) => (
             <>
+                {slug && role === "viewer" && !isMobile ? <ViewOnlyBadge slug={slug} /> : null}
                 {collabButton}
                 {sidebarButton}
                 {/* Phones have no room for it; its items are in the main menu there */}
                 {isMobile ? null : <AccountMenu toggleSidebar={toggleSidebar} />}
             </>
         ),
-        [collabButton, sidebarButton, toggleSidebar]
+        [collabButton, sidebarButton, toggleSidebar, slug, role]
     );
     const children = useMemo(
         () => (
@@ -211,13 +220,16 @@ export const Draw = ({ slug }: DrawProps) => {
             {showSignInModal ? (
                 <SignInModal setShow={setShowSignInModal} show={showSignInModal} />
             ) : null}
+            <ShareDialogContainer />
             <div
                 // Hidden overflow, so the code editor can't scroll the page
                 style={{ height: "100dvh", overflow: "hidden" }}
-                onKeyDown={handleKeyDown}
-                onKeyDownCapture={handleKeyDownCapture}
+                // Shortcuts and double-clicks that change the drawing are off when you can only view it
+                onKeyDown={canEdit ? handleKeyDown : undefined}
+                onKeyDownCapture={canEdit ? handleKeyDownCapture : undefined}
                 onKeyUp={handleKeyUp}
                 onDoubleClickCapture={event => {
+                    if (!canEdit) return;
                     onDoubleClickCapture(event);
                     if (!event.isPropagationStopped()) mermaid.onDoubleClickCapture(event);
                     if (!event.isPropagationStopped()) notes.onDoubleClickCapture(event);
@@ -236,7 +248,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 {links.linkCards}
                 {charts}
                 {excalidrawApi ? <DockContainer /> : null}
-                {excalidrawApi ? <AiDialogContainer /> : null}
+                {excalidrawApi && canEdit ? <AiDialogContainer /> : null}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}
@@ -246,6 +258,7 @@ export const Draw = ({ slug }: DrawProps) => {
                     onLibraryChange={onLibraryChangeStable}
                     isCollaborating={isCollaborating}
                     onPointerUpdate={onPointerUpdate}
+                    viewModeEnabled={!canEdit}
                     handleKeyboardGlobally={false}
                     autoFocus
                     initialData={{

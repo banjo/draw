@@ -1,3 +1,4 @@
+import { accessRouter } from "./router/access";
 import { aiRouter } from "./router/ai";
 import { collaborationRouter } from "./router/collaboration";
 import { collectionRouter } from "./router/collection";
@@ -8,6 +9,7 @@ import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
     draw: drawRouter,
+    access: accessRouter,
     collection: collectionRouter,
     file: fileRouter,
     collaboration: collaborationRouter,

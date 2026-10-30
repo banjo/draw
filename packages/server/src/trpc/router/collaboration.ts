@@ -4,9 +4,9 @@ import {
     BoardDeltaUpdate,
     BoardDeltaUpdateSchema,
     BoardUpdateResponse,
-    Cause,
     Collaborator,
     CollaboratorUpdateSchema,
+    DrawingAccess,
     ExistingSlugSchema,
 } from "common";
 import { z } from "zod";
@@ -14,16 +14,11 @@ import { createContextLogger } from "../../lib/context-logger";
 import { CollaboratorsEmitter } from "../../model/collaborators-emitter";
 import { DrawingEmitter } from "../../model/drawing-emitter";
 import { collaboratorsEmitter, drawingEmitter } from "../../model/emitters";
+import { AccessService } from "../../services/access-service";
+import { drawingNotFound, noAccess, requireAccess } from "../require-access";
 import { createTRPCRouter, publicProcedure, TRPCContext } from "../trpc";
 
 const logger = createContextLogger("collaboration-router");
-
-const drawingNotFound = () =>
-    new TRPCError({
-        code: "NOT_FOUND",
-        message: "Drawing not found",
-        cause: Cause.DRAWING_NOT_FOUND,
-    });
 
 /** Collaboration identifies each browser tab by its WebSocket connection. */
 const getConnectionId = (ctx: TRPCContext) => {
@@ -42,6 +37,7 @@ export const collaborationRouter = createTRPCRouter({
         .mutation(async ({ input, ctx }) => {
             const { collaborator, slug } = input;
             const id = getConnectionId(ctx);
+            await requireAccess(slug, ctx.userId, "view");
 
             // The name and avatar come from the session, never from the client
             collaboratorsEmitter.update(slug, {
@@ -57,6 +53,7 @@ export const collaborationRouter = createTRPCRouter({
         .mutation(async ({ input, ctx }) => {
             const { deltaBoardUpdate, slug } = input;
             const origin = getConnectionId(ctx);
+            await requireAccess(slug, ctx.userId, "edit");
             logger.trace({ slug }, "Updating board");
 
             const result = await drawingEmitter.update(slug, deltaBoardUpdate, origin);
@@ -67,9 +64,10 @@ export const collaborationRouter = createTRPCRouter({
         }),
     onCollaboratorChange: publicProcedure
         .input(z.object({ slug: ExistingSlugSchema }))
-        .subscription(({ input, ctx }) => {
+        .subscription(async ({ input, ctx }) => {
             const { slug } = input;
             const id = getConnectionId(ctx);
+            await requireAccess(slug, ctx.userId, "view");
             const event = CollaboratorsEmitter.changeEvent(slug);
 
             return observable<Collaborator[]>(emit => {
@@ -87,7 +85,12 @@ export const collaborationRouter = createTRPCRouter({
                 collaboratorsEmitter.on(event, onChange);
                 onChange(collaboratorsEmitter.get(slug));
 
+                const stopWatchingAccess = AccessService.onRoleChange(slug, ctx.userId, role => {
+                    if (!DrawingAccess.canView(role)) emit.error(noAccess());
+                });
+
                 return () => {
+                    stopWatchingAccess();
                     collaboratorsEmitter.off(event, onChange);
                     // Remove the cursor for everyone else
                     collaboratorsEmitter.remove(slug, id);
@@ -96,9 +99,10 @@ export const collaborationRouter = createTRPCRouter({
         }),
     onBoardChange: publicProcedure
         .input(z.object({ slug: ExistingSlugSchema }))
-        .subscription(({ input, ctx }) => {
+        .subscription(async ({ input, ctx }) => {
             const { slug } = input;
             const connectionId = getConnectionId(ctx);
+            await requireAccess(slug, ctx.userId, "view");
             const event = DrawingEmitter.updateEvent(slug);
 
             return observable<BoardUpdateResponse>(emit => {
@@ -110,6 +114,15 @@ export const collaborationRouter = createTRPCRouter({
                     if (origin === connectionId) return;
                     emit.next(BoardUpdateResponse.from(deltaUpdate));
                 };
+
+                // The owner changed who can open the drawing while it's open
+                const stopWatchingAccess = AccessService.onRoleChange(slug, ctx.userId, role => {
+                    if (!DrawingAccess.canView(role)) {
+                        emit.error(noAccess());
+                        return;
+                    }
+                    emit.next(BoardUpdateResponse.access(role));
+                });
 
                 drawingEmitter
                     .join(slug)
@@ -138,6 +151,7 @@ export const collaborationRouter = createTRPCRouter({
 
                 return () => {
                     closed = true;
+                    stopWatchingAccess();
                     if (!joined) return;
 
                     drawingEmitter.off(event, onUpdate);

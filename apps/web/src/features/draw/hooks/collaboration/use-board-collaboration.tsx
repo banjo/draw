@@ -1,13 +1,17 @@
 import { useBoardSync } from "@/features/draw/hooks/collaboration/use-board-sync";
+import { useAuth } from "@/contexts/auth-context";
+import { canEditDrawing } from "@/features/share/stores/use-drawing-access-store";
 import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useError } from "@/hooks/use-error";
 import { trpc } from "@/lib/trpc";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
+import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { isDefined, Maybe } from "@banjoanton/utils";
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { AppState } from "@excalidraw/excalidraw/types";
 import {
     BoardUpdateResponse,
+    Cause,
     DeltaUpdateUtil,
     ExcalidrawApi,
     ExcalidrawSimpleElement,
@@ -38,6 +42,9 @@ const getBusyElementIds = (appState: AppState) =>
 export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
     const navigate = useNavigate();
     const { handleError } = useError();
+    const utils = trpc.useUtils();
+    const { isAuthenticated } = useAuth();
+    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
     const { schedule, setSynced, markSynced } = useBoardSync({
         slug,
         excalidrawApi,
@@ -72,6 +79,15 @@ export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
         enabled: isDefined(slug) && isDefined(excalidrawApi),
         onData: update => {
             if (!slug || !excalidrawApi) return;
+
+            // The owner changed who can open the drawing while you're on it
+            if (BoardUpdateResponse.isAccess(update)) {
+                utils.access.get.setData({ slug }, data =>
+                    data ? { ...data, role: update.role } : data
+                );
+                void utils.access.get.invalidate({ slug });
+                return;
+            }
 
             if (BoardUpdateResponse.isFullBoard(update)) {
                 const boardElements = ExcalidrawSimpleElement.toExcalidrawElements(
@@ -111,13 +127,17 @@ export const useBoardCollaboration = ({ slug, excalidrawApi }: In) => {
         onError: error => {
             setIsLoading(false);
             handleError(error, { toast: true });
+            // Signing in may give access, if it's your own drawing
+            if (error.shape?.cause === Cause.NO_ACCESS && !isAuthenticated) {
+                setShowSignInModal(true);
+            }
             navigate("/");
         },
     });
 
     /** Call when the elements changed. The changes are found and sent on a timer. */
     const onDrawingChange = () => {
-        if (!slug || isLoading) return;
+        if (!slug || isLoading || !canEditDrawing()) return;
         schedule();
     };
 

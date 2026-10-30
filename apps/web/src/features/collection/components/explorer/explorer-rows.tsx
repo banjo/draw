@@ -7,12 +7,14 @@ import {
     CollectionDrawing,
     CollectionFolder,
     describeLocation,
+    NO_ACCESS_MESSAGE,
 } from "@/features/collection/models/collection-tree";
 import { formatAge } from "@/features/collection/models/format-age";
 import { ActiveRow, useActiveRowStore } from "@/features/collection/stores/use-active-row-store";
 import { DraggedItem } from "@/features/collection/stores/use-collection-drag-store";
-import { ChevronRight, File, Folder, FolderOpen, PenLine, Pin, Users } from "lucide-react";
+import { ChevronRight, File, Folder, FolderOpen, Lock, PenLine, Pin, Users } from "lucide-react";
 import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { cn } from "ui";
 
@@ -106,6 +108,7 @@ const DrawingIcon = ({ drawing, variant, isCurrent }: DrawingIconProps) => {
     if (variant === "pinned") {
         return <Pin className={cn(className, "text-[#e8590c] dark:text-[#ff922b]")} />;
     }
+    if (!drawing.hasAccess) return <Lock className={cn(className, MUTED)} />;
     if (!drawing.isOwner) return <Users className={cn(className, MUTED)} />;
     if (isCurrent) return <PenLine className={cn(className, "text-[--color-primary]")} />;
     return <File className={cn(className, MUTED)} />;
@@ -114,6 +117,30 @@ const DrawingIcon = ({ drawing, variant, isCurrent }: DrawingIconProps) => {
 const PINNED_ROW = "pinned:list";
 // Where the open drawing is highlighted, unless it was opened from its pinned row
 const DEFAULT_ROW = "default:list";
+const HIGHLIGHTED =
+    "bg-[--color-primary-light] !font-semibold !text-[--color-primary] hover:bg-[--color-primary-light] dark:hover:bg-[--color-primary-light]";
+
+const getRowClassName = (
+    drawing: CollectionDrawing,
+    { showPath, isHighlighted }: { showPath: boolean; isHighlighted: boolean }
+) =>
+    cn(
+        ROW,
+        showPath && "h-auto py-1.5",
+        !drawing.hasAccess && "!text-zinc-400 dark:!text-zinc-500",
+        isHighlighted && HIGHLIGHTED
+    );
+
+const getLockedTitle = (drawing: CollectionDrawing) =>
+    drawing.hasAccess ? undefined : NO_ACCESS_MESSAGE;
+
+/** A saved drawing the owner has made private can't be opened, so say why instead */
+const explainLocked = (drawing: CollectionDrawing, event: MouseEvent) => {
+    if (drawing.hasAccess) return false;
+    event.preventDefault();
+    toast.error(NO_ACCESS_MESSAGE);
+    return true;
+};
 
 /** Whether the open drawing shows as open in this row: the one it was clicked in, or its folder */
 const isRowHighlighted = (activeRow: ActiveRow | null, drawing: CollectionDrawing, row: string) => {
@@ -151,12 +178,7 @@ export const DrawingRow = ({
     const isHighlighted = isCurrent && isRowHighlighted(activeRow, drawing, row);
 
     const folderId = tree.folderOf(drawing);
-    const className = cn(
-        ROW,
-        showPath && "h-auto py-1.5",
-        isHighlighted &&
-            "bg-[--color-primary-light] !font-semibold !text-[--color-primary] hover:bg-[--color-primary-light] dark:hover:bg-[--color-primary-light]"
-    );
+    const className = getRowClassName(drawing, { showPath, isHighlighted });
 
     const content = (
         <>
@@ -187,8 +209,11 @@ export const DrawingRow = ({
                     to={`/draw/${slug}`}
                     className={className}
                     style={indent(depth + 0.25)}
+                    title={getLockedTitle(drawing)}
                     onKeyDown={onKeyDown}
-                    onClick={() => setActiveRow({ slug, row })}
+                    onClick={event => {
+                        if (!explainLocked(drawing, event)) setActiveRow({ slug, row });
+                    }}
                     {...getDragProps({
                         type: "drawing",
                         slug,

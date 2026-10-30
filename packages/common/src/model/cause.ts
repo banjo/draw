@@ -3,7 +3,7 @@ import { TRPCClientError } from "@trpc/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-export const causes = ["EXPIRED_TOKEN", "NOT_OWNER", "DRAWING_NOT_FOUND"] as const;
+export const causes = ["EXPIRED_TOKEN", "NOT_OWNER", "DRAWING_NOT_FOUND", "NO_ACCESS"] as const;
 export type Cause = (typeof causes)[number];
 
 const select: Record<Cause, Cause> = causes.reduce(

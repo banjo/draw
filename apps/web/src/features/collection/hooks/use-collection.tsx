@@ -208,6 +208,21 @@ export const useCollectionActions = () => {
         navigate(`/draw/${slug}`);
     });
 
+    /** Make a private copy of a drawing in the collection, and open it */
+    const copyDrawing = useLatestCallback(async (slug: string) => {
+        const [copy, error] = await wrapAsync(() =>
+            utils.client.draw.copyToCollection.mutate({ slug })
+        );
+        if (error) {
+            await handleError(error, { toast: true, errorMessage: "Could not copy the drawing" });
+            return;
+        }
+
+        void utils.collection.get.invalidate();
+        toast.success("Copied to your collection");
+        navigate(`/draw/${copy.slug}`);
+    });
+
     // The callbacks are stable, so the object can be too
     return useMemo(
         () => ({
@@ -220,6 +235,7 @@ export const useCollectionActions = () => {
             updateFolder,
             deleteFolder,
             createCollectionDrawing,
+            copyDrawing,
         }),
         [
             moveDrawing,
@@ -231,6 +247,7 @@ export const useCollectionActions = () => {
             updateFolder,
             deleteFolder,
             createCollectionDrawing,
+            copyDrawing,
         ]
     );
 };

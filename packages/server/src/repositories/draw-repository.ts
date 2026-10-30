@@ -1,5 +1,5 @@
 import { isDefined } from "@banjoanton/utils";
-import { Board, ExcalidrawSimpleElement, Result } from "common";
+import { Board, ExcalidrawSimpleElement, LinkAccess, Result } from "common";
 import { Prisma, prisma } from "db";
 import { createContextLogger } from "../lib/context-logger";
 
@@ -162,9 +162,91 @@ const updateDrawingName = async (slug: string, name: string, userId: number) => 
     }
 };
 
+/** Who owns a drawing and what anyone with the link can do, or undefined if it doesn't exist */
+const getAccessSettings = async (slug: string) => {
+    try {
+        const drawing = await prisma.drawing.findUnique({
+            where: { slug },
+            select: { ownerId: true, linkAccess: true },
+        });
+        return Result.ok(drawing ?? undefined);
+    } catch (error) {
+        logger.error({ error, slug }, `Error getting access of drawing: ${slug}`);
+        return Result.error("Error getting access of drawing");
+    }
+};
+
+const updateLinkAccess = async (slug: string, linkAccess: LinkAccess) => {
+    try {
+        await prisma.drawing.update({ where: { slug }, data: { linkAccess } });
+        return Result.ok();
+    } catch (error) {
+        logger.error({ error, slug }, `Error updating access of drawing: ${slug}`);
+        return Result.error("Error updating access of drawing");
+    }
+};
+
+const getDrawingName = async (slug: string) => {
+    try {
+        const drawing = await prisma.drawing.findUnique({
+            where: { slug },
+            select: { name: true },
+        });
+        return Result.ok(drawing?.name ?? undefined);
+    } catch (error) {
+        logger.error({ error, slug }, `Error getting name of drawing: ${slug}`);
+        return Result.error("Error getting name of drawing");
+    }
+};
+
+type CopyOptions = {
+    elements: ExcalidrawSimpleElement[];
+    name: string;
+    ownerId: number;
+};
+
+/**
+ * A new private drawing owned by the user, with the elements, in the user's collection. Its
+ * elements keep their ids, which only have to be unique within a drawing.
+ */
+const createCopy = async ({ elements, name, ownerId }: CopyOptions) => {
+    const toSave = elements.filter(element => !element.isDeleted);
+
+    try {
+        const created = await prisma.$transaction(async tx => {
+            const drawing = await tx.drawing.create({
+                data: {
+                    name,
+                    order: toSave.map(element => element.id.toString()),
+                    owner: { connect: { id: ownerId } },
+                    linkAccess: "private",
+                    elements: {
+                        create: toSave.map(element => ({
+                            data: element as Prisma.InputJsonValue,
+                            elementId: element.id.toString(),
+                            version: element.version,
+                        })),
+                    },
+                },
+            });
+            await tx.collectionEntry.create({ data: { userId: ownerId, drawingId: drawing.id } });
+            return drawing;
+        });
+
+        return Result.ok(created.slug);
+    } catch (error) {
+        logger.error({ error, ownerId }, "Error copying drawing");
+        return Result.error("Error copying drawing");
+    }
+};
+
 export const DrawRepository = {
     getDrawingBySlug,
     createDrawing,
     saveDrawingFromBoard,
     updateDrawingName,
+    getAccessSettings,
+    updateLinkAccess,
+    getDrawingName,
+    createCopy,
 };

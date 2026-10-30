@@ -1,4 +1,4 @@
-import { FolderColor, MAX_FOLDERS, Result } from "common";
+import { DrawingAccess, FolderColor, MAX_FOLDERS, Result } from "common";
 import { prisma } from "db";
 import { createContextLogger } from "../lib/context-logger";
 import { isWithin } from "../model/folder-tree";
@@ -35,6 +35,7 @@ const getCollection = async (userId: number) => {
                             slug: true,
                             name: true,
                             ownerId: true,
+                            linkAccess: true,
                             updatedAt: true,
                             owner: { select: { name: true, avatarUrl: true } },
                         },
@@ -56,6 +57,8 @@ const getCollection = async (userId: number) => {
                 name: drawing.name ?? "Untitled",
                 updatedAt: drawing.updatedAt,
                 isOwner,
+                // The owner made it private after it was saved. Kept, so it doesn't just vanish.
+                hasAccess: DrawingAccess.canView(DrawingAccess.roleFor(drawing, userId)),
                 // Shown on drawings someone else shared
                 owner: isOwner || !drawing.owner ? null : drawing.owner,
                 folderId,

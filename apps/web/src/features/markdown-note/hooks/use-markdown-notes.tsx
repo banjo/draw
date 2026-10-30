@@ -13,6 +13,7 @@ import { MarkdownNote } from "../models/markdown-note";
 import type { CheckboxBox, LinkBox } from "../models/note-render";
 import { useMarkdownNoteStore } from "../stores/use-markdown-note-store";
 import { useGeneratedImages } from "@/features/draw/hooks/utils/use-generated-images";
+import { canEditDrawing } from "@/features/share/stores/use-drawing-access-store";
 
 const NOTE_SELECTED_CLASS = "markdown-note-selected";
 // Further than this between pressing and letting go is a drag, not a click
@@ -122,7 +123,11 @@ export const useMarkdownNotes = () => {
 
     /** The checkbox or link at the pointer, on a note */
     const findHit = (event: React.MouseEvent) => {
-        if (excalidrawApi?.getAppState().activeTool.type !== "selection") return undefined;
+        const appState = excalidrawApi?.getAppState();
+        // View mode only has the hand, and links still open there
+        if (appState?.activeTool.type !== "selection" && !appState?.viewModeEnabled) {
+            return undefined;
+        }
         const at = findNoteAt(event);
         if (!at || !ExcalidrawUtil.isImageElement(at.note)) return undefined;
 
@@ -177,7 +182,7 @@ export const useMarkdownNotes = () => {
         if (!found) return;
 
         if (found.hit.kind === "checkbox") {
-            toggle(found.note, found.hit.box);
+            if (canEditDrawing()) toggle(found.note, found.hit.box);
             return;
         }
         const url = toSafeUrl(found.hit.box.href);

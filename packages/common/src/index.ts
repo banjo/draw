@@ -7,6 +7,7 @@ export * from "./model/board-update-response";
 export * from "./model/cause";
 export * from "./model/collaborator";
 export * from "./model/collection";
+export * from "./model/drawing-access";
 export * from "./model/element-position";
 export * from "./model/excalidraw-api";
 export * from "./model/excalidraw-custom-data";

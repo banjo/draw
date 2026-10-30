@@ -4,6 +4,9 @@ export type Collection = RouterOutputs["collection"]["get"];
 export type CollectionDrawing = Collection["drawings"][number];
 export type CollectionFolder = Collection["folders"][number];
 
+/** For a saved drawing the owner has made private since, which can't be opened */
+export const NO_ACCESS_MESSAGE = "The owner doesn't share this drawing anymore";
+
 const byName = (a: CollectionFolder, b: CollectionFolder) =>
     a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
 

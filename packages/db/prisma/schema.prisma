@@ -54,10 +54,12 @@ model OauthAccount {
 }
 
 // APPLICATION
-enum Access {
-  public
+/// What anyone with the link to a drawing can do. The owner can always edit.
+enum LinkAccess {
+  edit
+  view
+  /// Only the owner
   private
-  restricted
 }
 
 model Drawing {
@@ -69,7 +71,7 @@ model Drawing {
   owner       User?             @relation("OwnerDrawings", fields: [ownerId], references: [id])
   ownerId     Int?
   collectedBy CollectionEntry[]
-  access      Access            @default(public)
+  linkAccess  LinkAccess        @default(edit)
   order       String[]
   elements    DrawingElement[]
 
