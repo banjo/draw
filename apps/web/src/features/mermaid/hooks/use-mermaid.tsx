@@ -4,9 +4,10 @@ import { NativeContainer } from "@/features/draw/models/native/native-container"
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { viewportCoordsToSceneCoords } from "@excalidraw/excalidraw";
-import { ExcalidrawElement } from "common";
+import { CustomData, ExcalidrawElement } from "common";
 import React from "react";
 import { MermaidDialog } from "../components/mermaid-dialog";
+import { MermaidMenuContainer } from "../components/mermaid-menu";
 import { useMermaidDialogStore } from "../stores/use-mermaid-dialog-store";
 
 const MERMAID_SELECTED_CLASS = "mermaid-block-selected";
@@ -25,11 +26,18 @@ export const useMermaid = () => {
         NativeContainer.focus();
     };
 
-    /** Excalidraw's hint is about cropping, which a block's image isn't for */
+    /** The selected block's settings. Excalidraw's hint is about cropping, which it isn't for. */
     const updateMermaidBlocks: OnChangeCallback = (elements, appState) => {
-        const selected = ElementUtil.getSelectedElements(appState, elements);
-        const isBlockSelected = selected.length === 1 && selected.every(isLiveMermaidBlock);
-        document.body.classList.toggle(MERMAID_SELECTED_CLASS, isBlockSelected);
+        const selection = ElementUtil.getSelectedElements(appState, elements);
+        const [block] = selection;
+        const isBlockSelected = selection.length === 1 && block && isLiveMermaidBlock(block);
+        document.body.classList.toggle(MERMAID_SELECTED_CLASS, Boolean(isBlockSelected));
+
+        const store = useMermaidDialogStore.getState();
+        const definition = block && CustomData.getMermaidDefinition(block.customData);
+        const next =
+            isBlockSelected && definition !== undefined ? { id: block.id, definition } : undefined;
+        if (JSON.stringify(next) !== JSON.stringify(store.selected)) store.setSelected(next);
     };
 
     /** Double-clicking a block changes its diagram, instead of cropping the image */
@@ -48,8 +56,12 @@ export const useMermaid = () => {
         useMermaidDialogStore.getState().open({ kind: "edit", id: hit.id });
     };
 
-    const render = () =>
-        excalidrawApi && target ? <MermaidDialog target={target} onClose={close} /> : null;
+    const render = () => (
+        <>
+            {excalidrawApi && target ? <MermaidDialog target={target} onClose={close} /> : null}
+            {excalidrawApi ? <MermaidMenuContainer /> : null}
+        </>
+    );
 
     return { render, updateMermaidBlocks, onDoubleClickCapture };
 };

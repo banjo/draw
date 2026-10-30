@@ -1,17 +1,12 @@
 import { Hint, Keys } from "@/components/keys";
 import { Modal } from "@/components/modal";
 import { Highlight } from "@/features/collection/components/highlight";
-import { useMarkdownNoteStore } from "@/features/markdown-note/stores/use-markdown-note-store";
-import { useMermaidDialogStore } from "@/features/mermaid/stores/use-mermaid-dialog-store";
-import { useTableStore } from "@/features/table/stores/use-table-store";
-import { useChartStore } from "@/features/chart/stores/use-chart-store";
-import { useLinkCardStore } from "@/features/link-card/stores/use-link-card-store";
-import { useCodeEditorStore } from "@/features/selected-element-visuals/stores/use-code-editor-store";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ChevronRight, Search } from "lucide-react";
 import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { cn } from "ui";
+import { hasDialog, openAddDialog, startEditing } from "../hooks/use-add-item";
 import { Bounds, ClientPoint, Placement, useInsertElement } from "../hooks/use-insert-element";
 import {
     ALL_SCOPE,
@@ -255,11 +250,6 @@ const ScopeChips = ({ scope, onSelect }: { scope: Scope; onSelect: (scope: Scope
     </div>
 );
 
-const isMermaid = (item: Item) => item.kind === "element" && item.shape.type === "mermaid";
-const isLinkCard = (item: Item) => item.kind === "element" && item.shape.type === "link";
-// Written in their own dialog first, so they're added one at a time
-const hasDialog = (item: Item) => isMermaid(item) || isLinkCard(item);
-
 type FooterProps = { current?: Item; canGoBack: boolean };
 
 /** What's selected, and what the keys do with it */
@@ -426,9 +416,7 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
         if (hasDialog(item)) {
             addRecent(getItemKey(item));
             onClose();
-            if (isMermaid(item))
-                useMermaidDialogStore.getState().open({ kind: "insert", placement });
-            else useLinkCardStore.getState().open({ kind: "insert", placement });
+            openAddDialog(item, placement);
             return;
         }
 
@@ -443,17 +431,7 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
             }
 
             onClose();
-            // A new code block is for typing code in
-            if (added.codeBlock) {
-                useCodeEditorStore.getState().setEditingElementId(added.codeBlock.id);
-            }
-            if (added.markdownNote) {
-                useMarkdownNoteStore.getState().setEditingId(added.markdownNote.id);
-            }
-            if (added.table) {
-                useTableStore.getState().setEditing({ id: added.table.id, row: 0, column: 0 });
-            }
-            if (added.chart) useChartStore.getState().setEditingId(added.chart.id);
+            startEditing(added);
         } catch {
             toast.error(`Couldn't add ${getItemTitle(item)}`);
         }

@@ -12,9 +12,12 @@ type MermaidDialogStore = {
     target: MermaidTarget | undefined;
     /** The last mode a diagram was added with, kept between visits */
     mode: MermaidMode;
+    /** The block selected on its own, for its settings */
+    selected: { id: string; definition: string } | undefined;
     open: (target: MermaidTarget) => void;
     close: () => void;
     setMode: (mode: MermaidMode) => void;
+    setSelected: (selected: MermaidDialogStore["selected"]) => void;
 };
 
 export const useMermaidDialogStore = create<MermaidDialogStore>()(
@@ -25,6 +28,8 @@ export const useMermaidDialogStore = create<MermaidDialogStore>()(
             open: target => set({ target }),
             close: () => set({ target: undefined }),
             setMode: mode => set({ mode }),
+            selected: undefined,
+            setSelected: selected => set({ selected }),
         }),
         { name: "banjo-mermaid", partialize: ({ mode }) => ({ mode }) }
     )

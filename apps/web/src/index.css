@@ -88,6 +88,32 @@
     display: none;
 }
 
+/* Our dock replaces Excalidraw's toolbar, except on phones, and its hints stay */
+.excalidraw:not(.excalidraw--mobile) .App-menu_top .App-toolbar {
+    visibility: hidden;
+}
+.excalidraw:not(.excalidraw--mobile) .App-menu_top .App-toolbar .HintViewer {
+    visibility: visible;
+}
+
+/* Over the footer, without taking a place in its row */
+.excalidraw #custom-dock {
+    position: absolute;
+    inset: 0;
+    justify-self: stretch;
+    pointer-events: none;
+}
+
+/* Blocks are images, but cropping them makes no sense */
+.code-block-selected .excalidraw button[aria-label="Crop image"],
+.mermaid-block-selected .excalidraw button[aria-label="Crop image"],
+.markdown-note-selected .excalidraw button[aria-label="Crop image"],
+.table-selected .excalidraw button[aria-label="Crop image"],
+.link-card-selected .excalidraw button[aria-label="Crop image"],
+.chart-selected .excalidraw button[aria-label="Crop image"] {
+    display: none;
+}
+
 /* Set while a code block, Mermaid block, note, table, chart or link card is selected, as the hint is about cropping */
 .code-block-selected .excalidraw .HintViewer,
 .mermaid-block-selected .excalidraw .HintViewer,

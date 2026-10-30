@@ -1,7 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
 import { OnChangeCallback } from "@/features/draw/draw";
-import { NativeAppMenuLeft } from "@/features/draw/models/native/native-app-menu-left";
-import { NativeToolbar } from "@/features/draw/models/native/native-toolbar";
 import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
 import { CustomDataUtil } from "@/features/draw/utils/custom-data-util";
 import { ElementPositionUtil } from "@/features/draw/utils/element-position-util";
@@ -123,15 +121,6 @@ export const useCodeBlockElement = () => {
 
             // Excalidraw's hint says double-click or Enter crops the image
             document.body.classList.toggle(CODE_BLOCK_SELECTED_CLASS, Boolean(selected));
-
-            NativeAppMenuLeft.parse();
-            if (selected) {
-                NativeAppMenuLeft.hide();
-                NativeToolbar.hideEditButton();
-            } else {
-                NativeAppMenuLeft.show();
-                NativeToolbar.showEditButton();
-            }
         }
     );
 

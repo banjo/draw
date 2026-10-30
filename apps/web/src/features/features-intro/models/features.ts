@@ -25,7 +25,7 @@ export const FEATURES: Feature[] = [
         id: "blocks",
         title: "Blocks",
         short: "Code, Markdown, tables, charts, diagrams, and more.",
-        description: `Code blocks, database models, Markdown notes, tables, charts, Mermaid diagrams, swimlanes, and link cards. Add one with ${MODIFIER_LABEL} K, double-click or press Enter to edit it, and change its look at the bottom. Paste a link or rows from a spreadsheet to make one.`,
+        description: `Code blocks, database models, Markdown notes, tables, charts, Mermaid diagrams, swimlanes, and link cards. Add one from Blocks at the bottom or with ${MODIFIER_LABEL} K, double-click or press Enter to edit it, and change its settings in the sidebar. Paste a link or rows from a spreadsheet to make one.`,
         size: "hero",
     },
     {
@@ -40,7 +40,7 @@ export const FEATURES: Feature[] = [
         id: "add-element",
         title: "Add shapes and icons",
         short: "Shapes, blocks, and thousands of icons.",
-        description: `Search shapes, blocks, and thousands of logos, emojis, flags, and icons, or browse one set. ${MODIFIER_LABEL} K adds it where the mouse is. It's also the + in the toolbar.`,
+        description: `Search shapes, blocks, and thousands of logos, emojis, flags, and icons, or browse one set. ${MODIFIER_LABEL} K adds it where the mouse is. It's also the Add button at the bottom.`,
         keys: [MODIFIER_LABEL, "K"],
     },
     {

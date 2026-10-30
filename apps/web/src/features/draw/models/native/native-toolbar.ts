@@ -30,20 +30,6 @@ class NativeToolbarClass {
         this.element?.setAttribute("style", "display: block");
     }
 
-    public hideEditButton() {
-        const editButton = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
-        if (editButton) {
-            editButton.setAttribute("style", "display: none");
-        }
-    }
-
-    public showEditButton() {
-        const editButton = document.querySelector('.ToolIcon_type_button[aria-label="Edit"]');
-        if (editButton) {
-            editButton.setAttribute("style", "display: block");
-        }
-    }
-
     public addNewButton(props: AddNewButtonProps) {
         const { position, button } = props;
         if (!this.element) {

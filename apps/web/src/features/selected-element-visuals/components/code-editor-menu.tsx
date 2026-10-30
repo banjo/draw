@@ -1,5 +1,12 @@
 import { useGlobal } from "@/contexts/global-context";
-import { NativeBlockMenu } from "@/features/draw/models/native/native-block-menu";
+import {
+    ActionButton,
+    BlockSettings,
+    Select,
+    Setting,
+    Stepper,
+} from "@/features/draw/components/block-settings";
+import { NativeBlockSettings } from "@/features/draw/models/native/native-block-settings";
 import { CodeBlockUtil } from "@/features/draw/utils/code-block-util";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { CodeBlockImage } from "@/features/selected-element-visuals/models/code-block-image";
@@ -8,17 +15,20 @@ import {
     CodeEditorLanguage,
     getCodeBlockSettings,
 } from "@/features/selected-element-visuals/models/code-editor-langauges";
-import { parseNumber } from "@banjoanton/utils";
 import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { ExcalidrawElement } from "common";
+import { Pencil } from "lucide-react";
 import { createPortal } from "react-dom";
+import { useCodeEditorStore } from "../stores/use-code-editor-store";
 
 type Props = {
     element: ExcalidrawElement;
 };
 
-const FONT_SIZES = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+const MIN_FONT_SIZE = 12;
+const MAX_FONT_SIZE = 30;
 
+/** A code block's language and font size, in Excalidraw's sidebar */
 const CodeEditorMenu = ({ element }: Props) => {
     const { excalidrawApi } = useGlobal();
     const { language, fontSize } = getCodeBlockSettings(element.customData);
@@ -40,46 +50,37 @@ const CodeEditorMenu = ({ element }: Props) => {
         });
     };
 
-    const updateFontSize = (value: string) => {
-        const size = parseNumber(value);
-        if (!size) return;
-        updateCodeblock({ fontSize: size });
-    };
-
     return (
-        <div className="flex gap-2 items-center absolute z-[3] pointer-events-auto h-full ">
-            <div className="bg-[#ECECF4] dark:bg-[#23232A] rounded-lg flex items-center gap-4">
-                <select
+        <BlockSettings>
+            <Setting label="Language">
+                <Select
+                    label="Language"
                     value={language}
-                    className="p-2 bg-[#ECECF4] dark:bg-[#23232A] rounded-lg border-none focus:outline-none focus-visible:outline-none"
-                    onChange={e =>
-                        updateCodeblock({ language: e.target.value as CodeEditorLanguage })
-                    }
-                >
-                    {CODE_EDITOR_LANGUAGES.map(option => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <select
-                value={fontSize}
-                className="p-2 bg-[#ECECF4] dark:bg-[#23232A] rounded-lg border-none focus:outline-none focus-visible:outline-none"
-                onChange={e => updateFontSize(e.target.value)}
+                    options={CODE_EDITOR_LANGUAGES}
+                    onChange={value => updateCodeblock({ language: value })}
+                />
+            </Setting>
+            <Setting label="Font size">
+                <Stepper
+                    name="size"
+                    value={fontSize}
+                    min={MIN_FONT_SIZE}
+                    max={MAX_FONT_SIZE}
+                    step={2}
+                    onChange={value => updateCodeblock({ fontSize: value })}
+                />
+            </Setting>
+            <ActionButton
+                isPrimary
+                shortcut="↵"
+                icon={<Pencil className="h-3.5 w-3.5" />}
+                onClick={() => useCodeEditorStore.getState().setEditingElementId(element.id)}
             >
-                {FONT_SIZES.map(fontSizes => (
-                    <option key={fontSizes} value={fontSizes}>
-                        {fontSizes}
-                    </option>
-                ))}
-            </select>
-        </div>
+                Edit code
+            </ActionButton>
+        </BlockSettings>
     );
 };
 
-export const CodeEditorMenuContainer = ({ element }: Props) => {
-    const container = NativeBlockMenu.getContainer();
-    if (!container) return null;
-    return createPortal(<CodeEditorMenu element={element} />, container);
-};
+export const CodeEditorMenuContainer = ({ element }: Props) =>
+    createPortal(<CodeEditorMenu element={element} />, NativeBlockSettings.container);

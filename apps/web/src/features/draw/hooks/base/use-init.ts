@@ -1,6 +1,7 @@
 import { useGlobal } from "@/contexts/global-context";
 import { ElementUtil } from "@/features/draw/utils/element-util";
-import { NativeBlockMenu } from "@/features/draw/models/native/native-block-menu";
+import { NativeBlockSettings } from "@/features/draw/models/native/native-block-settings";
+import { NativeDock } from "@/features/draw/models/native/native-dock";
 import { useGlobalLoadingStore } from "@/stores/use-global-loading-store";
 import { isEmpty, Maybe } from "@banjoanton/utils";
 import { elementsOverlappingBBox } from "@excalidraw/excalidraw";
@@ -37,11 +38,14 @@ export const useInit = ({ slug }: Props) => {
             excalidrawApi.updateScene({ elements: updated });
         };
 
-        const init = () => {
-            removeShadows();
-            NativeBlockMenu.init();
+        removeShadows();
+        if (!excalidrawApi) return;
+        // Our toolbar and the selected block's settings, in Excalidraw's UI
+        const stopSettings = NativeBlockSettings.watch();
+        const stopDock = NativeDock.watch();
+        return () => {
+            stopSettings();
+            stopDock();
         };
-
-        init();
     }, [excalidrawApi]);
 };

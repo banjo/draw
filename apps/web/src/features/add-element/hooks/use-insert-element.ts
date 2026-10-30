@@ -97,8 +97,15 @@ export const useInsertElement = () => {
         };
     };
 
-    /** Adds the item and selects it. Returns what was added. */
-    const insert = async (item: ElementItem | IconItem, placement: Placement) => {
+    /**
+     * Adds the item and selects it. Returns what was added. With `isPending` it's kept out of
+     * undo, for placing it with the pointer first.
+     */
+    const insert = async (
+        item: ElementItem | IconItem,
+        placement: Placement,
+        { isPending = false }: { isPending?: boolean } = {}
+    ) => {
         if (!excalidrawApi) return undefined;
 
         const created = item.kind === "icon" ? await createIcon(item) : await createElement(item);
@@ -116,10 +123,11 @@ export const useInsertElement = () => {
         excalidrawApi.updateScene({
             elements: [...excalidrawApi.getSceneElements(), ...elements],
             appState: updatedState,
-            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            captureUpdate: isPending ? CaptureUpdateAction.NEVER : CaptureUpdateAction.IMMEDIATELY,
         });
 
         return {
+            ids: elements.map(element => element.id),
             bounds: ExcalidrawUtil.getCommonBounds(elements) as Bounds,
             codeBlock: elements.find(CustomDataUtil.isCodeBlockElement),
             markdownNote: elements.find(CustomDataUtil.isMarkdownNote),

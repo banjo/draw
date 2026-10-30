@@ -995,3 +995,28 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       Mermaid, model, swimlane and link card.
 - [x] Your collection says you can keep many drawings, synced between your devices, and its
       picture has a laptop and a phone with the same drawing.
+
+## 29. Our own toolbar at the bottom, and block settings in the sidebar
+
+- [x] Chosen from mockups (`~/Downloads/banjodraw-toolbar-designs/`): a dock at the bottom
+      with names under the tools, instead of Excalidraw's toolbar at the top. Select, Hand,
+      Shapes (rectangle, diamond, ellipse, line, frame, and a sticky note), Arrow, Text, Draw
+      (pen, eraser, laser), Blocks (a tray of all eight), Image and Add (⌘K). Shapes and Draw show
+      the one used last; clicking again shows the others. Keys still work, and the dock
+      follows them. Below 1280 px only the icons show, and it moves right of the zoom
+      buttons when there's no room. Phones keep Excalidraw's toolbar.
+- [x] A sticky note or block added from the dock follows the pointer until a click puts it
+      down (then its editor opens), with a hint to say so; Esc takes it away. The tool goes
+      back to Select, e.g. from the rectangle picked to open the shapes. It's one undo
+      step, where it was put down, and it goes into a frame it's put down in.
+- [x] Every block's settings moved from the bottom into Excalidraw's sidebar, above its own:
+      code (language, font size, Edit code), table (look, headers, rows, columns, Edit
+      cells, Show as chart), chart (type, look, legend, values, colors, Edit data, Show as
+      table), note (look, width, Edit text), link card (look, link, Edit, Open), swimlane
+      (lanes) and Mermaid (diagram type, Edit diagram). On phones they're in Excalidraw's
+      style panel. Crop is hidden for blocks, and code blocks now show the sidebar too.
+- [x] Tested (Oct 30): every tool from the dock and with keys, the menus, lock (Q), adding
+      every block from the tray and a sticky note (following the pointer, putting down,
+      Esc, undo), the palette, every setting of every
+      block with undo, the editors from the sidebar, dark mode, 1100 and 800 px wide, and a
+      phone-sized window. No console errors.
