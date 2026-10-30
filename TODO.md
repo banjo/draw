@@ -1075,3 +1075,12 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       Shared in `apps/web/src/models/brand.ts`.
 - [x] Tested (Oct 30): Pro and free, dark mode, help, collection, sign out and in, phone
       width, the AI dialog in light and dark, ⌘K. No console errors.
+
+## 33. Sign-in window
+
+- [x] A new sign-in window in two halves. On the left, a hand-drawn picture on a warm canvas:
+      drawing cards, an AI sparkle and two people's cursors, "all your drawings, in one
+      place". On the right, "Welcome to BanjoDraw", three things you get (your own
+      collection, on any device, AI with 10 a day for free), and the Google and GitHub
+      buttons with their own logos. On phones only the right half shows.
+- [x] Tested (Oct 30): light, dark, phone width, closing with Esc. No console errors.

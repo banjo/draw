@@ -461,6 +461,110 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
         text(448, 242, "5 tries", { size: 13 });
     },
 
+    /** Not a feature: the picture in the sign-in window */
+    "sign-in": ({ rc, add, options, group, text, box, line }) => {
+        const card = (x: number, y: number, w: number, h: number, rotation: number) => {
+            const node = group({ transform: `rotate(${rotation} ${x + w / 2} ${y + h / 2})` });
+            node.appendChild(box(x, y, w, h, "#ffffff", { roughness: 0.8 }));
+            return node;
+        };
+
+        const architecture = card(10, 20, 150, 104, -6);
+        architecture.appendChild(box(26, 40, 48, 30, COLORS.blue, { roughness: 0.6 }));
+        [
+            [76, 55, 100, 55],
+            [100, 55, 93, 50],
+            [100, 55, 93, 60],
+        ].forEach(([x1, y1, x2, y2]) =>
+            architecture.appendChild(line(x1!, y1!, x2!, y2!, { strokeWidth: 1.4 }))
+        );
+        architecture.appendChild(box(104, 40, 42, 30, COLORS.green, { roughness: 0.6 }));
+        architecture.appendChild(text(26, 100, "Architecture", { anchor: "start", size: 16 }));
+
+        const numbers = card(182, 40, 150, 110, 5);
+        numbers.appendChild(text(198, 62, "Q4 numbers", { anchor: "start", size: 16 }));
+        numbers.appendChild(line(198, 134, 316, 134, { strokeWidth: 1.4 }));
+        numbers.appendChild(line(198, 134, 198, 80, { strokeWidth: 1.4 }));
+        [
+            [210, 30, COLORS.orange],
+            [236, 46, COLORS.orange],
+            [262, 38, COLORS.orange],
+            [288, 54, "#de9239"],
+        ].forEach(([x, h, fill]) =>
+            numbers.appendChild(
+                box(x as number, 134 - (h as number), 16, h as number, fill as string, {
+                    roughness: 0.6,
+                    strokeWidth: 1.3,
+                })
+            )
+        );
+
+        const sprint = card(86, 184, 170, 116, -2);
+        sprint.appendChild(text(104, 206, "Sprint 13", { anchor: "start", size: 16 }));
+        sprint.appendChild(
+            add(
+                rc.curve(
+                    [
+                        [106, 262],
+                        [134, 230],
+                        [162, 262],
+                        [192, 286],
+                        [234, 248],
+                    ],
+                    options({ stroke: "#de9239", strokeWidth: 2.6, roughness: 0.6 })
+                )
+            )
+        );
+
+        const sparkle = (x: number, y: number, r: number) =>
+            add(
+                rc.polygon(
+                    [
+                        [x, y - r],
+                        [x + r * 0.3, y - r * 0.3],
+                        [x + r, y],
+                        [x + r * 0.3, y + r * 0.3],
+                        [x, y + r],
+                        [x - r * 0.3, y + r * 0.3],
+                        [x - r, y],
+                        [x - r * 0.3, y - r * 0.3],
+                    ],
+                    options({
+                        fill: "#de9239",
+                        fillStyle: "solid",
+                        stroke: "#de9239",
+                        roughness: 0.4,
+                    })
+                )
+            );
+        sparkle(292, 210, 11);
+        sparkle(316, 188, 6);
+
+        // Two people drawing along
+        const cursor = (x: number, y: number, name: string, color: string) => {
+            add(
+                rc.polygon(
+                    [
+                        [x, y],
+                        [x + 8, y + 26],
+                        [x + 12, y + 15],
+                        [x + 23, y + 11],
+                    ],
+                    options({ fill: color, fillStyle: "solid", stroke: color, roughness: 0.3 })
+                )
+            );
+            box(x + 16, y + 20, name.length * 8 + 16, 20, color, { stroke: color, roughness: 0.3 });
+            text(x + 24, y + 31, name, {
+                anchor: "start",
+                size: 11.5,
+                fill: "#ffffff",
+                font: "system-ui, sans-serif",
+            });
+        };
+        cursor(34, 292, "Sara", "#6965db");
+        cursor(276, 304, "Leo", "#2f9e44");
+    },
+
     collection: ({ rc, add, options, group, text, box, line, arrow }) => {
         const cards: [string, string, number][] = [
             ["Roadmap", COLORS.yellow, -6],
