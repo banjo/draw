@@ -88,12 +88,9 @@
     display: none;
 }
 
-/* Our dock replaces Excalidraw's toolbar, except on phones, and its hints stay */
+/* Our dock replaces Excalidraw's toolbar, and the hints under it, except on phones */
 .excalidraw:not(.excalidraw--mobile) .App-menu_top .App-toolbar {
     visibility: hidden;
-}
-.excalidraw:not(.excalidraw--mobile) .App-menu_top .App-toolbar .HintViewer {
-    visibility: visible;
 }
 
 /* Over the footer, without taking a place in its row */

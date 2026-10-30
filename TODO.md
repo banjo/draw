@@ -1006,7 +1006,7 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       follows them. Below 1280 px only the icons show, and it moves right of the zoom
       buttons when there's no room. Phones keep Excalidraw's toolbar.
 - [x] A sticky note or block added from the dock follows the pointer until a click puts it
-      down (then its editor opens), with a hint to say so; Esc takes it away. The tool goes
+      down (then its editor opens); Esc takes it away. The tool goes
       back to Select, e.g. from the rectangle picked to open the shapes. It's one undo
       step, where it was put down, and it goes into a frame it's put down in.
 - [x] Every block's settings moved from the bottom into Excalidraw's sidebar, above its own:
@@ -1020,3 +1020,5 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       Esc, undo), the palette, every setting of every
       block with undo, the editors from the sidebar, dark mode, 1100 and 800 px wide, and a
       phone-sized window. No console errors.
+- [x] Excalidraw's hints at the top ("To move canvas, …") are hidden with its toolbar, so
+      nothing shows up at the top while drawing (phones still have them).

@@ -55,12 +55,7 @@ export const useAddItem = () => {
         try {
             const added = await insert(item, placement, { isPending: Boolean(pointer) });
             if (!added) return;
-            if (pointer) {
-                const hint = toast("Click to put it down, Esc to cancel", { duration: Infinity });
-                const isPlaced = await placeWithPointer(excalidrawApi, added.ids, pointer);
-                toast.dismiss(hint);
-                if (!isPlaced) return;
-            }
+            if (pointer && !(await placeWithPointer(excalidrawApi, added.ids, pointer))) return;
             startEditing(added);
         } catch {
             toast.error(`Couldn't add ${getItemTitle(item)}`);
