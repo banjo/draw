@@ -6,7 +6,7 @@ import { Feature, FEATURES } from "@/features/features-intro/models/features";
 import { drawIllustration } from "@/features/features-intro/models/illustrations";
 import { SeenFeatures } from "@/features/features-intro/models/seen-features";
 import { FeaturesModalMode } from "@/features/features-intro/stores/use-features-modal-store";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "ui";
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
     onClose: () => void;
 };
 
-/** "few": one to three cards, side by side with their full description */
+/** "few": one to four cards, side by side with their full description */
 type CardSize = "hero" | "wide" | "single" | "few";
 
 // Written out, so Tailwind finds the classes
@@ -23,7 +23,10 @@ const FEW_WIDTHS: Record<number, string> = {
     2: "max-w-[820px]",
     3: "max-w-[1040px]",
 };
-const FEW_COLUMNS: Record<number, string> = { 2: "sm:grid-cols-2", 3: "sm:grid-cols-3" };
+const FEW_COLUMNS: Record<number, string> = {
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-3",
+};
 
 const DISPLAY_FONT = "font-['Bricolage_Grotesque_Variable',sans-serif]";
 
@@ -44,17 +47,48 @@ const getHeading = (mode: FeaturesModalMode, isFirstVisit: boolean) => {
 const COLUMNS = 5;
 
 const CELLS: Record<Exclude<CardSize, "few">, number> = { hero: 4, wide: 2, single: 1 };
+// Three rows a page, so a page fits on screen
+const PAGE_CELLS = COLUMNS * 3;
+
+/** A few cards, or only big ones, share the space equally, with their full description */
+const isFewCards = (features: Feature[]) =>
+    features.length < 4 || features.every(feature => feature.size === "hero");
+
+const chunk = <T,>(items: T[], size: number) =>
+    Array.from({ length: Math.ceil(items.length / size) }, (_, i) =>
+        items.slice(i * size, (i + 1) * size)
+    );
 
 /**
- * Each card's size: the important ones big, the others single. The last single cards widen
- * to fill the last row. A few cards share the space equally.
+ * All on one page when they fit in three rows. Else the most important ones first, side by
+ * side, and the others on the pages after.
+ */
+const getPages = (features: Feature[]): Feature[][] => {
+    const cells = features.reduce((sum, feature) => sum + CELLS[feature.size ?? "single"], 0);
+    if (cells <= PAGE_CELLS) return [features];
+
+    const big = features.filter(feature => feature.size === "hero");
+    const others = features.filter(feature => feature.size !== "hero");
+    return [...chunk(big, 3), ...chunk(others, PAGE_CELLS - COLUMNS)].filter(
+        page => page.length > 0
+    );
+};
+
+/**
+ * Each card's size: the important ones big, the others single. Some single cards widen to
+ * fill the last row. A few cards share the space equally.
  */
 const getSizes = (features: Feature[]): CardSize[] => {
-    if (features.length < 4) return features.map(() => "few");
+    if (isFewCards(features)) return features.map(() => "few");
     const sizes = features.map(feature => feature.size ?? "single");
     const cells = sizes.reduce((sum, size) => sum + CELLS[size], 0);
     let emptyCells = (COLUMNS - (cells % COLUMNS)) % COLUMNS;
-    for (let i = sizes.length - 1; i >= 0 && emptyCells > 0; i--) {
+    // After big cards, the last ones widen to fill the last row. Without, the first ones do,
+    // as wide cards first leave no gaps.
+    const order = sizes.map((_, i) => i);
+    if (sizes.some(size => size !== "single")) order.reverse();
+    for (const i of order) {
+        if (emptyCells === 0) break;
         if (sizes[i] !== "single") continue;
         sizes[i] = "wide";
         emptyCells--;
@@ -154,14 +188,69 @@ const FeatureCard = ({
     );
 };
 
+const PageNav = ({
+    count,
+    index,
+    onChange,
+}: {
+    count: number;
+    index: number;
+    onChange: (index: number) => void;
+}) => (
+    <nav
+        aria-label="Pages"
+        className="flex items-center justify-between gap-3 px-4 pb-4 sm:px-[22px] sm:pb-[22px]"
+    >
+        <button
+            type="button"
+            onClick={() => onChange(index - 1)}
+            disabled={index === 0}
+            className="rounded-[12px] px-4 py-2 text-[14px] font-semibold text-[#9a5512] transition hover:bg-[#de9239]/10 disabled:invisible dark:text-[#f0a650]"
+        >
+            ← Back
+        </button>
+        <div className="flex gap-2">
+            {Array.from({ length: count }, (_, i) => (
+                <button
+                    key={i}
+                    type="button"
+                    aria-label={`Page ${i + 1}`}
+                    aria-current={i === index ? "page" : undefined}
+                    onClick={() => onChange(i)}
+                    className={cn(
+                        "h-2.5 rounded-full transition-all",
+                        i === index
+                            ? "w-7 bg-[#de9239]"
+                            : "w-2.5 bg-black/15 hover:bg-black/25 dark:bg-white/20"
+                    )}
+                />
+            ))}
+        </div>
+        <button
+            type="button"
+            onClick={() => onChange(index + 1)}
+            disabled={index === count - 1}
+            className="rounded-[12px] bg-[#de9239] px-4 py-2 text-[14px] font-semibold text-white transition active:scale-[0.97] disabled:invisible"
+        >
+            More →
+        </button>
+    </nav>
+);
+
 /** The features BanjoDraw adds, shown once to new visitors and when new ones are added */
 export const FeaturesModal = ({ mode, onClose }: Props) => {
     // Read when it opens, as closing marks them as seen
     const features = useMemo(() => (mode === "all" ? FEATURES : SeenFeatures.getUnseen()), [mode]);
     const isFirstVisit = useMemo(() => SeenFeatures.getSeenIds().length === 0, []);
     const { lead, accent, sub } = getHeading(mode, isFirstVisit);
-    const isFew = features.length < 4;
-    const sizes = useMemo(() => getSizes(features), [features]);
+    const pages = useMemo(() => getPages(features), [features]);
+    const [pageIndex, setPageIndex] = useState(0);
+    const page = pages[pageIndex] ?? [];
+    const isPaged = pages.length > 1;
+    const isFew = isFewCards(page);
+    const sizes = useMemo(() => getSizes(page), [page]);
+
+    const goTo = (index: number) => setPageIndex(Math.min(Math.max(index, 0), pages.length - 1));
 
     const close = () => {
         SeenFeatures.markSeen(features);
@@ -171,14 +260,22 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
     };
 
     return (
-        <Modal.Container show setShow={close} backgroundClassName="backdrop-blur-[3px] p-4">
+        <Modal.Container
+            show
+            setShow={close}
+            backgroundClassName="backdrop-blur-[3px] p-4"
+            onKeyDown={event => {
+                if (event.key === "ArrowRight") goTo(pageIndex + 1);
+                if (event.key === "ArrowLeft") goTo(pageIndex - 1);
+            }}
+        >
             <div
                 className={cn(
                     "max-h-[calc(100dvh-32px)] w-full overflow-y-auto rounded-[26px] bg-[#fbfbfd]",
                     "font-['Hanken_Grotesk_Variable',sans-serif] text-[#1b1b1f] dark:bg-[#141418] dark:text-[#ececf1]",
                     "shadow-[0_50px_120px_-30px_rgba(25,25,60,0.45),0_0_0_1px_rgba(20,20,40,0.06)] dark:shadow-[0_50px_120px_-30px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.06)]",
                     "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-500",
-                    FEW_WIDTHS[features.length] ?? "max-w-[1180px]"
+                    (!isPaged && FEW_WIDTHS[features.length]) || "max-w-[1180px]"
                 )}
                 role="dialog"
                 aria-modal
@@ -226,14 +323,15 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                     </button>
                 </header>
                 <div
+                    key={pageIndex}
                     className={cn(
                         "grid gap-3 p-4 sm:p-[22px] sm:pt-5",
                         isFew
-                            ? cn("auto-rows-[360px] grid-cols-1", FEW_COLUMNS[features.length])
+                            ? cn("auto-rows-[360px] grid-cols-1", FEW_COLUMNS[page.length])
                             : "auto-rows-[176px] grid-flow-row-dense grid-cols-1 sm:grid-cols-2 lg:grid-cols-5"
                     )}
                 >
-                    {features.map((feature, index) => (
+                    {page.map((feature, index) => (
                         <FeatureCard
                             key={feature.id}
                             feature={feature}
@@ -242,6 +340,9 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                         />
                     ))}
                 </div>
+                {isPaged ? (
+                    <PageNav count={pages.length} index={pageIndex} onChange={goTo} />
+                ) : null}
             </div>
         </Modal.Container>
     );

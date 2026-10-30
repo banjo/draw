@@ -1050,3 +1050,13 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       item, undo. No console errors.
 - [x] "Create with AI" in What's new and What's in BanjoDraw, as a big card after Blocks,
       with a request turning into a flow.
+
+## 31. Pages in the features window
+
+- [x] When the features don't fit in three rows, "What's in BanjoDraw" (and a first visit's
+      welcome) has pages: the big ones side by side with their whole description first,
+      then the others. Back and More buttons, dots, and the arrow keys. Each page is about
+      as tall as the other. On a page without big cards, the first cards widen instead of
+      the last, so there are no gaps.
+- [x] Tested (Oct 30): both pages, the buttons, the arrow keys, and What's new with only the
+      AI card. No console errors.
