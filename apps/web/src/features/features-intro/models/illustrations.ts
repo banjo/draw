@@ -461,6 +461,24 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
         text(448, 242, "5 tries", { size: 13 });
     },
 
+    /** Not a feature: a few pastel shapes for the What's new header and the account menu */
+    doodles: ({ rc, add, options, box, line }) => {
+        box(0, 40, 110, 64, COLORS.blue);
+        add(
+            rc.polygon(
+                [
+                    [180, 0],
+                    [226, 40],
+                    [180, 80],
+                    [134, 40],
+                ],
+                options({ fill: COLORS.yellow, fillStyle: "solid" })
+            )
+        );
+        add(rc.ellipse(190, 128, 116, 70, options({ fill: COLORS.green, fillStyle: "solid" })));
+        line(110, 78, 140, 104);
+    },
+
     /** Not a feature: the picture in the sign-in window */
     "sign-in": ({ rc, add, options, group, text, box, line }) => {
         const card = (x: number, y: number, w: number, h: number, rotation: number) => {

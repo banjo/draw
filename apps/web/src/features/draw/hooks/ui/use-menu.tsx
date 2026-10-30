@@ -24,15 +24,15 @@ type In = {
 };
 
 /**
- * On phones there's no account menu at the top right, so its items are at the end of the
- * main menu
+ * The account menu's items, at the end of the main menu when there's no account menu: on
+ * phones, and when signed out
  */
-const PhoneItems = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
+const AccountItems = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
     const { editor } = useDevice();
     const { isAuthenticated } = useAuth();
     const showFeatures = useFeaturesModalStore(s => s.show);
     const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
-    if (!editor.isMobile) return null;
+    if (isAuthenticated && !editor.isMobile) return null;
 
     return (
         <>
@@ -50,22 +50,29 @@ const PhoneItems = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
                 Features
             </MainMenu.Item>
             <MainMenu.DefaultItems.Help />
-            <MainMenu.Separator />
             {isAuthenticated ? (
-                <MainMenu.Item
-                    onSelect={async () => await authService.signOut()}
-                    icon={<ResponsiveIcon Icon={Icons.signOut} />}
-                >
-                    Sign out
-                </MainMenu.Item>
-            ) : (
-                <MainMenu.Item
-                    onSelect={() => setShowSignInModal(true)}
-                    icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
-                >
-                    Sign in
-                </MainMenu.Item>
-            )}
+                <>
+                    <MainMenu.Separator />
+                    <MainMenu.Item
+                        onSelect={async () => await authService.signOut()}
+                        icon={<ResponsiveIcon Icon={Icons.signOut} />}
+                    >
+                        Sign out
+                    </MainMenu.Item>
+                </>
+            ) : null}
+            {/* On wider screens, Sign in is at the top right */}
+            {!isAuthenticated && editor.isMobile ? (
+                <>
+                    <MainMenu.Separator />
+                    <MainMenu.Item
+                        onSelect={() => setShowSignInModal(true)}
+                        icon={<ResponsiveIcon Icon={Icons.arrowRight} />}
+                    >
+                        Sign in
+                    </MainMenu.Item>
+                </>
+            ) : null}
         </>
     );
 };
@@ -208,7 +215,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                     </>
                 ) : null}
 
-                <PhoneItems toggleSidebar={onToggleSidebar} />
+                <AccountItems toggleSidebar={onToggleSidebar} />
             </MainMenu>
         ),
         [isAuthenticated, slug]

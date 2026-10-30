@@ -1084,3 +1084,18 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       collection, on any device, AI with 10 a day for free), and the Google and GitHub
       buttons with their own logos. On phones only the right half shows.
 - [x] Tested (Oct 30): light, dark, phone width, closing with Esc. No console errors.
+
+## 34. Shorter feature texts and a hand-drawn look
+
+- [x] Every feature's text in the features window is one or two short sentences.
+- [x] The orange gradient is gone. What's ours (the logo and favicon, the What's new
+      header, the account menu, the Pro badge, the AI window's buttons, tabs and your
+      messages, the sign-in icons) is drawn like the feature pictures: Excalidraw's pastel
+      orange with rough ink outlines (`SketchFrame`), and a peach background with a few
+      pastel shapes. The Pro badge is a stronger orange and a little tilted, so it stands
+      out. In dark mode they turn dark like the canvas.
+- [x] Signed out, "Sign in" at the top right opens the sign-in window straight away. Dark
+      mode, Features and Help are at the end of ☰ then.
+- [x] Tested (Oct 30): the features window (both pages and What's new), the account menu,
+      the AI window with a request, and sign-in, in light and dark; signed out, Sign in and
+      ☰. No console errors.

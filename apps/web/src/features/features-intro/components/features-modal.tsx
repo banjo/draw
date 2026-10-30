@@ -1,12 +1,14 @@
 import "@fontsource-variable/bricolage-grotesque";
 import "@fontsource-variable/hanken-grotesk";
 import { Modal } from "@/components/modal";
+import { SketchFrame } from "@/components/sketch-frame";
+import { PEACH_BACKGROUND, SKETCH, SKETCH_TEXT } from "@/models/brand";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
 import { Feature, FEATURES } from "@/features/features-intro/models/features";
-import { drawIllustration } from "@/features/features-intro/models/illustrations";
+import { SketchIllustration } from "@/features/features-intro/components/sketch-illustration";
 import { SeenFeatures } from "@/features/features-intro/models/seen-features";
 import { FeaturesModalMode } from "@/features/features-intro/stores/use-features-modal-store";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "ui";
 
 type Props = {
@@ -29,9 +31,6 @@ const FEW_COLUMNS: Record<number, string> = {
 };
 
 const DISPLAY_FONT = "font-['Bricolage_Grotesque_Variable',sans-serif]";
-
-// The stroke in the logo, public/banjodraw.svg
-const LOGO_STROKE = "M26 84 C34 54 50 38 60 48 C70 58 46 80 58 88 C68 94 84 70 94 40";
 
 const getHeading = (mode: FeaturesModalMode, isFirstVisit: boolean) => {
     if (mode === "all") {
@@ -109,24 +108,6 @@ const Keys = ({ keys }: { keys: string[] }) => (
     </span>
 );
 
-const Illustration = ({ id, seed }: { id: string; seed: number }) => {
-    const ref = useRef<SVGSVGElement>(null);
-
-    useEffect(() => {
-        if (ref.current) drawIllustration(id, ref.current, seed);
-    }, [id, seed]);
-
-    return (
-        <svg
-            ref={ref}
-            aria-hidden
-            preserveAspectRatio="xMidYMid meet"
-            // Excalidraw's dark mode filter, like the canvas
-            className="h-full w-full dark:[filter:invert(93%)_hue-rotate(180deg)]"
-        />
-    );
-};
-
 const FeatureCard = ({
     feature,
     size,
@@ -155,7 +136,7 @@ const FeatureCard = ({
             <div
                 className={cn("min-h-0 flex-1 p-3", isHero && "p-6", isWide && "order-2 basis-1/2")}
             >
-                <Illustration id={feature.id} seed={index + 3} />
+                <SketchIllustration id={feature.id} seed={index + 3} />
             </div>
             <div
                 className={cn(
@@ -205,7 +186,7 @@ const PageNav = ({
             type="button"
             onClick={() => onChange(index - 1)}
             disabled={index === 0}
-            className="rounded-[12px] px-4 py-2 text-[14px] font-semibold text-[#9a5512] transition hover:bg-[#de9239]/10 disabled:invisible dark:text-[#f0a650]"
+            className="rounded-[12px] px-4 py-2 text-[14px] font-semibold text-zinc-600 transition hover:bg-black/5 disabled:invisible dark:text-zinc-300 dark:hover:bg-white/10"
         >
             ← Back
         </button>
@@ -220,7 +201,7 @@ const PageNav = ({
                     className={cn(
                         "h-2.5 rounded-full transition-all",
                         i === index
-                            ? "w-7 bg-[#de9239]"
+                            ? "w-7 bg-[#ffa94d] ring-1 ring-inset ring-black/40 dark:bg-[#c2702a] dark:ring-white/30"
                             : "w-2.5 bg-black/15 hover:bg-black/25 dark:bg-white/20"
                     )}
                 />
@@ -230,8 +211,12 @@ const PageNav = ({
             type="button"
             onClick={() => onChange(index + 1)}
             disabled={index === count - 1}
-            className="rounded-[12px] bg-[#de9239] px-4 py-2 text-[14px] font-semibold text-white transition active:scale-[0.97] disabled:invisible"
+            className={cn(
+                "relative isolate px-4 py-2 text-[14px] font-semibold transition active:scale-[0.97] disabled:invisible",
+                SKETCH_TEXT
+            )}
         >
+            <SketchFrame fill={SKETCH.pastel} radius={10} seed={index + 11} />
             More →
         </button>
     </nav>
@@ -249,6 +234,8 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
     const isPaged = pages.length > 1;
     const isFew = isFewCards(page);
     const sizes = useMemo(() => getSizes(page), [page]);
+
+    const hasDoodles = isPaged || features.length > 1;
 
     const goTo = (index: number) => setPageIndex(Math.min(Math.max(index, 0), pages.length - 1));
 
@@ -281,25 +268,26 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                 aria-modal
                 aria-labelledby="features-title"
             >
-                <header className="relative flex flex-wrap items-center justify-between gap-5 overflow-hidden bg-[#de9239] px-5 py-6 text-white sm:px-[30px] dark:bg-[#b8701f]">
-                    <svg
-                        aria-hidden
-                        viewBox="0 0 120 120"
-                        className="pointer-events-none absolute -right-1.5 -top-6 h-[190px] w-[190px] opacity-30"
-                    >
-                        <path
-                            d={LOGO_STROKE}
-                            fill="none"
-                            stroke="white"
-                            strokeWidth={9}
-                            strokeLinecap="round"
+                <header
+                    className={cn(
+                        "relative isolate flex flex-wrap items-center justify-between gap-5 overflow-hidden px-5 py-6 sm:px-[30px]",
+                        // Room for the doodles, when it is wide enough
+                        hasDoodles && "lg:pr-[290px]",
+                        PEACH_BACKGROUND
+                    )}
+                >
+                    {hasDoodles ? (
+                        <SketchIllustration
+                            id="doodles"
+                            seed={5}
+                            className="pointer-events-none absolute -bottom-6 right-6 -z-10 hidden !h-[150px] !w-[230px] lg:block"
                         />
-                    </svg>
-                    <div className="relative flex items-center gap-4">
+                    ) : null}
+                    <div className="flex items-center gap-4">
                         <img
                             src="/banjodraw.svg"
                             alt=""
-                            className="hidden h-14 w-14 shrink-0 rounded-[15px] ring-[3px] ring-white/55 sm:block"
+                            className="hidden h-14 w-14 shrink-0 -rotate-3 sm:block"
                         />
                         <div>
                             <h2
@@ -309,16 +297,25 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                                     "text-[34px] font-extrabold leading-[0.95] tracking-[-0.035em] sm:text-[44px]"
                                 )}
                             >
-                                {lead} {accent}
+                                {lead}{" "}
+                                <span className="font-['Excalifont',cursive] font-normal tracking-normal text-[#c2603a] dark:text-[#f0a650]">
+                                    {accent}
+                                </span>
                             </h2>
-                            <p className="mt-2.5 text-base text-white/85">{sub}</p>
+                            <p className="mt-2.5 text-base text-zinc-600 dark:text-zinc-400">
+                                {sub}
+                            </p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={close}
-                        className="relative whitespace-nowrap rounded-[14px] bg-white px-5 py-3 text-[15px] font-semibold text-[#9a5512] transition active:scale-[0.97]"
+                        className={cn(
+                            "relative isolate whitespace-nowrap px-5 py-3 text-[15px] font-semibold transition active:scale-[0.97]",
+                            SKETCH_TEXT
+                        )}
                     >
+                        <SketchFrame fill={SKETCH.pastel} radius={12} strokeWidth={1.6} seed={4} />
                         {isFirstVisit && mode === "new" ? "Start drawing" : "Got it"}
                     </button>
                 </header>

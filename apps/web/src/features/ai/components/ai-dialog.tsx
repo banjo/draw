@@ -1,4 +1,6 @@
-import { BRAND_BUTTON, BRAND_GRADIENT, BRAND_SOFT, BRAND_TEXT } from "@/models/brand";
+import { PlanBadge } from "@/components/plan-badge";
+import { SketchFrame } from "@/components/sketch-frame";
+import { BRAND_TEXT, SKETCH, SKETCH_TEXT } from "@/models/brand";
 import { Modal } from "@/components/modal";
 import { useAuth } from "@/contexts/auth-context";
 import { useGlobal } from "@/contexts/global-context";
@@ -78,12 +80,13 @@ const Segment = ({
         type="button"
         onClick={onClick}
         className={cn(
-            "h-7 rounded-md px-2.5 text-[12.5px] font-medium transition-colors",
+            "relative isolate h-7 px-2.5 text-[12.5px] font-medium transition-colors",
             isActive
-                ? cn("font-semibold", BRAND_SOFT)
+                ? cn("font-semibold", SKETCH_TEXT)
                 : "text-zinc-500 hover:text-[#1b1b1f] dark:text-zinc-400 dark:hover:text-white"
         )}
     >
+        {isActive ? <SketchFrame fill={SKETCH.pastel} radius={6} strokeWidth={1.2} /> : null}
         {children}
     </button>
 );
@@ -94,14 +97,7 @@ const Quota = ({ status }: { status: AiStatus | undefined }) => {
     if (status.limit === null) {
         return (
             <span className="flex items-center gap-2">
-                <span
-                    className={cn(
-                        "rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider text-white",
-                        BRAND_GRADIENT
-                    )}
-                >
-                    Pro
-                </span>
+                <PlanBadge plan="pro" />
                 Unlimited
             </span>
         );
@@ -117,7 +113,7 @@ const Quota = ({ status }: { status: AiStatus | undefined }) => {
                             "h-[7px] w-[7px] rounded-full",
                             i < status.used
                                 ? "bg-black/10 dark:bg-white/15"
-                                : "bg-[#de9239] dark:bg-[#f0a650]"
+                                : "bg-[#ffc078] ring-1 ring-inset ring-black/50 dark:bg-[#8a5a24] dark:ring-white/40"
                         )}
                     />
                 ))}
@@ -423,10 +419,11 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                         setShowSignIn(true);
                                     }}
                                     className={cn(
-                                        "flex h-8 items-center rounded-lg px-3.5 text-[13px] font-semibold",
-                                        BRAND_BUTTON
+                                        "relative isolate flex h-8 items-center px-3.5 text-[13px] font-semibold",
+                                        SKETCH_TEXT
                                     )}
                                 >
+                                    <SketchFrame fill={SKETCH.pastel} />
                                     Sign in
                                 </button>
                             </div>
@@ -435,14 +432,23 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                             <div
                                 key={i}
                                 className={cn(
-                                    "rounded-xl px-3 py-2 text-[13px] leading-relaxed",
-                                    message.role === "user" && cn("ml-8", BRAND_SOFT),
+                                    "relative isolate rounded-xl px-3 py-2 text-[13px] leading-relaxed",
+                                    message.role === "user" && cn("ml-8", SKETCH_TEXT),
                                     message.role === "ai" &&
                                         "mr-4 bg-black/[0.04] dark:bg-white/[0.05]",
                                     message.role === "error" &&
                                         "mr-4 bg-[#fff5f5] text-[#c92a2a] dark:bg-[#2c1a1a] dark:text-[#ffa8a8]"
                                 )}
                             >
+                                {message.role === "user" ? (
+                                    <SketchFrame
+                                        fill={SKETCH.peach}
+                                        radius={10}
+                                        strokeWidth={1.1}
+                                        roughness={0.6}
+                                        seed={i + 1}
+                                    />
+                                ) : null}
                                 {message.text}
                             </div>
                         ))}
@@ -480,10 +486,11 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                     disabled={isBusy || !prompt.trim() || isOutOfRequests}
                                     aria-label="Send"
                                     className={cn(
-                                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-opacity disabled:opacity-40",
-                                        BRAND_BUTTON
+                                        "relative isolate grid h-8 w-8 shrink-0 place-items-center transition-opacity disabled:opacity-40",
+                                        SKETCH_TEXT
                                     )}
                                 >
+                                    <SketchFrame fill={SKETCH.pastel} seed={2} />
                                     <ArrowUp className="h-4 w-4" />
                                 </button>
                             </div>
@@ -554,10 +561,11 @@ const AiDialog = ({ onClose }: { onClose: () => void }) => {
                                 onClick={insert}
                                 disabled={isBusy}
                                 className={cn(
-                                    "flex h-8 items-center gap-2 rounded-lg px-3.5 text-[13px] font-semibold transition-opacity disabled:opacity-40",
-                                    BRAND_BUTTON
+                                    "relative isolate flex h-8 items-center gap-2 px-3.5 text-[13px] font-semibold transition-opacity disabled:opacity-40",
+                                    SKETCH_TEXT
                                 )}
                             >
+                                <SketchFrame fill={SKETCH.pastel} seed={3} />
                                 {selection ? "Replace" : "Insert"}
                                 <span className="text-[11px] opacity-70">
                                     {formatShortcut("↵")}

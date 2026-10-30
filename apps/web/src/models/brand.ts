@@ -1,10 +1,20 @@
 /**
- * BanjoDraw's own colour, the logo's orange, for what's ours rather than Excalidraw's: Pro,
- * AI and the account menu. Written out, so Tailwind finds the classes.
+ * BanjoDraw's own look, for what's ours rather than Excalidraw's: Pro, AI, the account menu
+ * and the features window. Excalidraw's pastel orange with ink outlines, like the feature
+ * pictures. Written out, so Tailwind finds the classes.
  */
-export const BRAND_GRADIENT = "bg-gradient-to-r from-[#f2b25c] via-[#de9239] to-[#c2603a]";
+export const SKETCH = {
+    /** Buttons, tabs and icon tiles */
+    pastel: "#ffd8a8",
+    /** The Pro badge, so it stands out */
+    strong: "#ffa94d",
+    /** Backgrounds, like the What's new header */
+    peach: "#fff4e6",
+};
+
+/** Icons in the logo's orange */
 export const BRAND_TEXT = "text-[#de9239] dark:text-[#f0a650]";
-/** A filled button */
-export const BRAND_BUTTON = "bg-[#de9239] text-white dark:bg-[#f0a650] dark:text-[#121212]";
-/** Something picked, like a tab or your own message */
-export const BRAND_SOFT = "bg-[#de9239]/15 text-[#9a5512] dark:bg-[#f0a650]/15 dark:text-[#f5c48a]";
+/** Ink on a sketched fill, light in dark mode like the canvas */
+export const SKETCH_TEXT = "text-[#1e1e1e] dark:text-[#e3e3e8]";
+/** A peach background that turns dark brown in dark mode */
+export const PEACH_BACKGROUND = "bg-[#fff4e6] dark:bg-[#2a221a]";

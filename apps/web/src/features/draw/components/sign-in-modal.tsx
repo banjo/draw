@@ -1,11 +1,13 @@
 import "@fontsource-variable/bricolage-grotesque";
 import { Modal } from "@/components/modal";
-import { drawIllustration } from "@/features/features-intro/models/illustrations";
+import { SketchFrame } from "@/components/sketch-frame";
+import { SketchIllustration } from "@/features/features-intro/components/sketch-illustration";
+import { SKETCH, SKETCH_TEXT } from "@/models/brand";
 import { authService } from "@/services/auth-service";
 import { isLocalDevelopment } from "@/utils/runtime";
 import { AI_FREE_DAILY_LIMIT } from "common";
 import { FolderIcon, Laptop, LucideIcon, MonitorSmartphone, Sparkles, X } from "lucide-react";
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode } from "react";
 import { cn } from "ui";
 import { NativeContainer } from "../models/native/native-container";
 
@@ -79,28 +81,18 @@ const ProviderButton = ({
 );
 
 /** Drawings, an AI sparkle and two people drawing along, hand-drawn like the canvas */
-const Picture = () => {
-    const ref = useRef<SVGSVGElement>(null);
-
-    useEffect(() => {
-        if (ref.current) drawIllustration("sign-in", ref.current, 3);
-    }, []);
-
-    return (
-        <div className="relative hidden bg-[#fbf3e7] bg-[radial-gradient(rgba(150,100,40,0.13)_1.2px,transparent_1.2px)] bg-[length:20px_20px] sm:block dark:bg-[#2a221a] dark:bg-[radial-gradient(rgba(240,166,80,0.12)_1.2px,transparent_1.2px)]">
-            <svg
-                ref={ref}
-                aria-hidden
-                preserveAspectRatio="xMidYMid meet"
-                // Excalidraw's dark mode filter, like the canvas
-                className="absolute inset-x-6 bottom-14 top-8 h-[calc(100%-88px)] w-[calc(100%-48px)] dark:[filter:invert(93%)_hue-rotate(180deg)]"
-            />
-            <span className="absolute bottom-5 left-6 font-['Excalifont',cursive] text-[17px] text-[#9a5512] dark:text-[#f0a650]">
-                all your drawings, in one place
-            </span>
-        </div>
-    );
-};
+const Picture = () => (
+    <div className="relative hidden bg-[#fbf3e7] bg-[radial-gradient(rgba(150,100,40,0.13)_1.2px,transparent_1.2px)] bg-[length:20px_20px] sm:block dark:bg-[#2a221a] dark:bg-[radial-gradient(rgba(240,166,80,0.12)_1.2px,transparent_1.2px)]">
+        <SketchIllustration
+            id="sign-in"
+            seed={3}
+            className="absolute inset-x-6 bottom-14 top-8 !h-[calc(100%-88px)] !w-[calc(100%-48px)]"
+        />
+        <span className="absolute bottom-5 left-6 font-['Excalifont',cursive] text-[17px] text-[#9a5512] dark:text-[#f0a650]">
+            all your drawings, in one place
+        </span>
+    </div>
+);
 
 export const SignInModal = ({ setShow, show }: SignInModalProps) => {
     const onClose = () => {
@@ -134,7 +126,7 @@ export const SignInModal = ({ setShow, show }: SignInModalProps) => {
                 </button>
                 <Picture />
                 <div className="flex flex-col px-7 pb-7 pt-9 sm:px-9 sm:pt-11">
-                    <img src="/banjodraw.svg" alt="" className="h-11 w-11 rounded-xl" />
+                    <img src="/banjodraw.svg" alt="" className="h-12 w-12 -rotate-3" />
                     <h2
                         id="sign-in-title"
                         className="mt-4 font-['Bricolage_Grotesque_Variable',sans-serif] text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em]"
@@ -144,7 +136,17 @@ export const SignInModal = ({ setShow, show }: SignInModalProps) => {
                     <ul className="mb-6 mt-5 grid gap-3">
                         {PERKS.map(({ Icon, title, text }) => (
                             <li key={title} className="flex items-center gap-3 text-[13.5px]">
-                                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#de9239]/15 text-[#b8681c] dark:text-[#f0a650]">
+                                <span
+                                    className={cn(
+                                        "relative isolate grid h-8 w-8 shrink-0 place-items-center",
+                                        SKETCH_TEXT
+                                    )}
+                                >
+                                    <SketchFrame
+                                        fill={SKETCH.pastel}
+                                        strokeWidth={1.2}
+                                        seed={title.length}
+                                    />
                                     <Icon className="h-4 w-4" />
                                 </span>
                                 <span className="leading-snug">

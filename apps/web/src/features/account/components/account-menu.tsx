@@ -1,4 +1,7 @@
-import { BRAND_GRADIENT, BRAND_TEXT } from "@/models/brand";
+import { PlanBadge } from "@/components/plan-badge";
+import { SketchFrame } from "@/components/sketch-frame";
+import { SketchIllustration } from "@/features/features-intro/components/sketch-illustration";
+import { BRAND_TEXT, PEACH_BACKGROUND, SKETCH, SKETCH_TEXT } from "@/models/brand";
 import "@fontsource-variable/bricolage-grotesque";
 import { useAuth } from "@/contexts/auth-context";
 import { useGlobal } from "@/contexts/global-context";
@@ -37,8 +40,6 @@ type Props = {
     toggleSidebar: () => void;
 };
 
-// The stroke in the logo, public/banjodraw.svg
-const LOGO_STROKE = "M26 84 C34 54 50 38 60 48 C70 58 46 80 58 88 C68 94 84 70 94 40";
 // Excalidraw closes an undocked sidebar on clicks outside it, which includes this menu
 const PREVENT_OUTSIDE_CLICK = { "data-prevent-outside-click": true };
 
@@ -60,17 +61,18 @@ const Avatar = ({ className }: { className?: string }) => {
     return (
         <span
             className={cn(
-                "grid shrink-0 place-items-center overflow-hidden rounded-full font-semibold text-white",
-                BRAND_GRADIENT,
+                "relative isolate grid shrink-0 place-items-center rounded-full font-semibold",
+                SKETCH_TEXT,
                 className
             )}
         >
+            <SketchFrame shape="ellipse" fill={SKETCH.pastel} strokeWidth={1.3} seed={3} />
             {avatarUrl && !hasError ? (
                 <img
                     src={avatarUrl}
                     alt=""
                     referrerPolicy="no-referrer"
-                    className="h-full w-full object-cover"
+                    className="h-[calc(100%-6px)] w-[calc(100%-6px)] rounded-full object-cover"
                     onError={() => setHasError(true)}
                 />
             ) : (
@@ -79,19 +81,6 @@ const Avatar = ({ className }: { className?: string }) => {
         </span>
     );
 };
-
-const PlanBadge = ({ plan }: { plan: AiStatus["plan"] }) => (
-    <span
-        className={cn(
-            "inline-flex h-[18px] items-center rounded-[5px] px-1.5 font-sans text-[9.5px] font-extrabold uppercase tracking-[0.08em]",
-            plan === "pro"
-                ? cn(BRAND_GRADIENT, "text-white")
-                : "text-zinc-500 ring-1 ring-inset ring-black/10 dark:text-zinc-400 dark:ring-white/15"
-        )}
-    >
-        {plan === "pro" ? "Pro" : "Free"}
-    </span>
-);
 
 const formatTime = (date: string) =>
     new Date(date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -125,10 +114,11 @@ const AiUsage = ({ status }: { status: AiStatus }) => {
                 aria-valuemin={0}
                 aria-valuemax={isPro ? 1 : status.limit!}
                 aria-valuenow={isPro ? 1 : left}
-                className="block h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10"
+                className="relative isolate block h-3 p-[3px]"
             >
+                <SketchFrame fill="#ffffff" radius={3} strokeWidth={1.2} seed={9} />
                 <span
-                    className={cn("block h-full rounded-full transition-all", BRAND_GRADIENT)}
+                    className="block h-full rounded-[2px] bg-[#ffc078] transition-all dark:bg-[#8a5a24]"
                     style={{ width: `${share * 100}%` }}
                 />
             </span>
@@ -214,20 +204,12 @@ const AppItems = () => {
 };
 
 const Cover = () => (
-    <div className={cn("relative -mx-1.5 -mt-1.5 h-[74px] overflow-hidden", BRAND_GRADIENT)}>
-        <svg
-            viewBox="0 0 300 74"
-            preserveAspectRatio="xMidYMid slice"
-            className="absolute inset-0 h-full w-full opacity-30"
-            fill="none"
-            stroke="#fff"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            aria-hidden
-        >
-            <path d={LOGO_STROKE} transform="translate(150 -24) scale(1.1)" />
-            <path d={LOGO_STROKE} transform="translate(210 -6) scale(0.7)" opacity={0.6} />
-        </svg>
+    <div className={cn("relative -mx-1.5 -mt-1.5 h-[74px] overflow-hidden", PEACH_BACKGROUND)}>
+        <SketchIllustration
+            id="doodles"
+            seed={2}
+            className="absolute -top-2 right-2 !h-[90px] !w-[140px]"
+        />
     </div>
 );
 
@@ -240,7 +222,7 @@ const SignedIn = ({ toggleSidebar }: Props) => {
         <>
             <Cover />
             <div className="relative -mt-8 px-3 pb-3">
-                <Avatar className="h-16 w-16 text-[22px] ring-4 ring-white dark:ring-[#232329]" />
+                <Avatar className="h-16 w-16 bg-white text-[22px] ring-4 ring-white dark:bg-[#232329] dark:ring-[#232329]" />
                 <div className="mt-2 flex items-center gap-2">
                     <span className="truncate font-['Bricolage_Grotesque_Variable',sans-serif] text-[19px] font-extrabold tracking-[-0.01em]">
                         {name || email.split("@")[0]}
@@ -278,64 +260,45 @@ const SignedIn = ({ toggleSidebar }: Props) => {
     );
 };
 
-const SignedOut = () => {
-    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
-
-    return (
-        <>
-            <div className="px-2.5 pb-2 pt-2">
-                <div className="font-['Bricolage_Grotesque_Variable',sans-serif] text-[17px] font-extrabold">
-                    Sign in to BanjoDraw
-                </div>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    Save drawings to your collection, open them anywhere, and create with AI.
-                </p>
-            </div>
-            <DropdownMenuItem
-                onSelect={() => setShowSignInModal(true)}
-                className={cn(
-                    ITEM,
-                    "mx-1 mb-1.5 justify-center font-semibold text-white focus:text-white [&>svg]:opacity-100",
-                    BRAND_GRADIENT
-                )}
-            >
-                <LogIn />
-                Sign in
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="mx-1" />
-            <AppItems />
-        </>
-    );
-};
-
-/** Your avatar at the top right, with your account, plan and AI requests left */
+/**
+ * Your avatar at the top right, with your account, plan and AI requests left. Signed out,
+ * a "Sign in" button that opens the sign-in window; the theme, features and help are in the
+ * main menu then.
+ */
 export const AccountMenu = ({ toggleSidebar }: Props) => {
     const { isAuthenticated } = useAuth();
     const utils = trpc.useUtils();
+    const setShowSignInModal = useSignInModalStore(s => s.setShowSignInModal);
+
+    if (!isAuthenticated) {
+        return (
+            <button
+                type="button"
+                className="sidebar-trigger order-last"
+                onClick={() => setShowSignInModal(true)}
+            >
+                <LogIn className="h-4 w-4" />
+                <span>Sign in</span>
+            </button>
+        );
+    }
 
     return (
         <DropdownMenu
             modal={false}
             onOpenChange={isOpen => {
-                if (isOpen && isAuthenticated) void utils.ai.status.invalidate();
+                if (isOpen) void utils.ai.status.invalidate();
             }}
         >
             <DropdownMenuTrigger asChild>
-                {isAuthenticated ? (
-                    <button
-                        type="button"
-                        aria-label="Account"
-                        // After Excalidraw's Library button
-                        className="order-last grid h-9 w-9 place-items-center rounded-full outline-none ring-[#de9239] ring-offset-2 ring-offset-[var(--color-surface-lowest,#fff)] transition hover:ring-2 focus-visible:ring-2 data-[state=open]:ring-2"
-                    >
-                        <Avatar className="h-8 w-8 text-[12px]" />
-                    </button>
-                ) : (
-                    <button type="button" className="sidebar-trigger order-last">
-                        <LogIn className="h-4 w-4" />
-                        <span>Sign in</span>
-                    </button>
-                )}
+                <button
+                    type="button"
+                    aria-label="Account"
+                    // After Excalidraw's Library button
+                    className="order-last grid h-9 w-9 place-items-center rounded-full outline-none ring-[#ffa94d] ring-offset-2 ring-offset-[var(--color-surface-lowest,#fff)] transition hover:ring-2 focus-visible:ring-2 data-[state=open]:ring-2"
+                >
+                    <Avatar className="h-8 w-8 text-[12px]" />
+                </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 {...PREVENT_OUTSIDE_CLICK}
@@ -343,7 +306,7 @@ export const AccountMenu = ({ toggleSidebar }: Props) => {
                 sideOffset={8}
                 className="w-[300px] rounded-[14px] border-0 bg-white p-1.5 text-zinc-900 shadow-[0_20px_50px_-18px_rgba(25,25,60,.35),0_0_0_1px_rgba(20,20,40,.07)] dark:bg-[#232329] dark:text-zinc-100 dark:shadow-[0_24px_60px_-20px_rgba(0,0,0,.9),0_0_0_1px_rgba(255,255,255,.08)]"
             >
-                {isAuthenticated ? <SignedIn toggleSidebar={toggleSidebar} /> : <SignedOut />}
+                <SignedIn toggleSidebar={toggleSidebar} />
             </DropdownMenuContent>
         </DropdownMenu>
     );
