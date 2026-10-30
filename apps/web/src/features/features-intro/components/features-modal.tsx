@@ -2,6 +2,7 @@ import "@fontsource-variable/bricolage-grotesque";
 import "@fontsource-variable/hanken-grotesk";
 import { Modal } from "@/components/modal";
 import { SketchFrame } from "@/components/sketch-frame";
+import { Wordmark } from "@/components/wordmark";
 import { PEACH_BACKGROUND, SKETCH, SKETCH_TEXT } from "@/models/brand";
 import { NativeContainer } from "@/features/draw/models/native/native-container";
 import { Feature, FEATURES } from "@/features/features-intro/models/features";
@@ -280,7 +281,7 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                         <SketchIllustration
                             id="doodles"
                             seed={5}
-                            className="pointer-events-none absolute -bottom-6 right-6 -z-10 hidden !h-[150px] !w-[230px] lg:block"
+                            className="pointer-events-none absolute right-8 top-4 -z-10 hidden !h-[calc(100%-32px)] !w-[220px] lg:block"
                         />
                     ) : null}
                     <div className="flex items-center gap-4">
@@ -298,9 +299,17 @@ export const FeaturesModal = ({ mode, onClose }: Props) => {
                                 )}
                             >
                                 {lead}{" "}
-                                <span className="font-['Excalifont',cursive] font-normal tracking-normal text-[#c2603a] dark:text-[#f0a650]">
-                                    {accent}
-                                </span>
+                                {accent === "BanjoDraw" ? (
+                                    <Wordmark
+                                        variant="name"
+                                        // Its baseline is 65% down, so the rest hangs below the line
+                                        className="h-[38px] align-[-13px] sm:h-[50px] sm:align-[-17px]"
+                                    />
+                                ) : (
+                                    <span className="font-['Excalifont',cursive] font-normal tracking-normal text-[#c2603a] dark:text-[#f0a650]">
+                                        {accent}
+                                    </span>
+                                )}
                             </h2>
                             <p className="mt-2.5 text-base text-zinc-600 dark:text-zinc-400">
                                 {sub}

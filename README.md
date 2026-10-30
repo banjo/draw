@@ -1,8 +1,9 @@
-<p align="center">
-  <img src="apps/web/public/banjodraw.svg" width="96" height="96" alt="BanjoDraw logo">
-</p>
-
-<h1 align="center">BanjoDraw</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/banjodraw-logo-dark.svg">
+    <img src="apps/web/public/banjodraw-logo.svg" height="80" alt="banjodraw">
+  </picture>
+</h1>
 
 <p align="center">
   A drawing board built on <a href="https://excalidraw.com">Excalidraw</a>, with collaboration, saved boards, and a few extras.

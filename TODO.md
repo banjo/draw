@@ -1099,3 +1099,13 @@ used. `lucide-react` ships twice (0.368 and 0.279).
 - [x] Tested (Oct 30): the features window (both pages and What's new), the account menu,
       the AI window with a request, and sign-in, in light and dark; signed out, Sign in and
       ☰. No console errors.
+
+## 35. Logo with the name
+
+- [x] "banjodraw" in lowercase Excalifont next to the icon, with an orange pencil line under
+      "draw". Made from the font as SVG paths, so it looks the same as a plain image: with
+      and without the icon, for light and dark (`public/banjodraw-logo*.svg`,
+      `banjodraw-name*.svg`, the `Wordmark` component).
+- [x] Used in the README, the features window's "What's in banjodraw", and the sign-in
+      window (now "Welcome" under the logo). The favicon stays the icon.
+- [x] Tested (Oct 30): features window and sign-in in light and dark. No console errors.

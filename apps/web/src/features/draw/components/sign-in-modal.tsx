@@ -1,6 +1,7 @@
 import "@fontsource-variable/bricolage-grotesque";
 import { Modal } from "@/components/modal";
 import { SketchFrame } from "@/components/sketch-frame";
+import { Wordmark } from "@/components/wordmark";
 import { SketchIllustration } from "@/features/features-intro/components/sketch-illustration";
 import { SKETCH, SKETCH_TEXT } from "@/models/brand";
 import { authService } from "@/services/auth-service";
@@ -126,12 +127,12 @@ export const SignInModal = ({ setShow, show }: SignInModalProps) => {
                 </button>
                 <Picture />
                 <div className="flex flex-col px-7 pb-7 pt-9 sm:px-9 sm:pt-11">
-                    <img src="/banjodraw.svg" alt="" className="h-12 w-12 -rotate-3" />
+                    <Wordmark className="h-11 self-start" />
                     <h2
                         id="sign-in-title"
                         className="mt-4 font-['Bricolage_Grotesque_Variable',sans-serif] text-[28px] font-extrabold leading-[1.1] tracking-[-0.02em]"
                     >
-                        Welcome to BanjoDraw
+                        Welcome
                     </h2>
                     <ul className="mb-6 mt-5 grid gap-3">
                         {PERKS.map(({ Icon, title, text }) => (
