@@ -26,7 +26,9 @@ export type MoreItem = {
     count?: number;
     keepQuery: boolean;
 };
-export type Item = ElementItem | IconItem | BrowseItem | MoreItem;
+/** Opens the AI dialog with what was typed */
+export type AiItem = { kind: "ai"; mode: "diagram" | "mermaid"; prompt: string };
+export type Item = ElementItem | IconItem | BrowseItem | MoreItem | AiItem;
 
 /** Opens a part of the palette, rather than adding something */
 export const isOpener = (item: Item): item is BrowseItem | MoreItem =>
@@ -70,6 +72,7 @@ export const getScopeLabel = (scope: Scope) => getScopePath(scope).at(-1)?.label
 export const getItemKey = (item: Item): string => {
     if (item.kind === "element") return `element:${item.shape.type}`;
     if (item.kind === "icon") return `icon:${item.set}:${item.name}`;
+    if (item.kind === "ai") return `ai:${item.mode}`;
     const path = getScopePath(item.scope)
         .map(step => step.label)
         .join("/");
@@ -94,6 +97,9 @@ export const parseItemKey = (key: string): ElementItem | IconItem | undefined =>
 export const getItemTitle = (item: Item) => {
     if (item.kind === "element") return item.shape.title ?? item.shape.type;
     if (item.kind === "browse") return item.title;
+    if (item.kind === "ai") {
+        return item.mode === "diagram" ? "Create a diagram" : "Create a Mermaid diagram";
+    }
     if (item.kind === "more")
         return item.count ? `${item.count.toLocaleString()} more` : "Show all";
     const set = getIconSet(item.set);
@@ -104,6 +110,7 @@ export const getItemTitle = (item: Item) => {
 export const getItemDescription = (item: Item) => {
     if (item.kind === "element") return item.shape.description ?? "";
     if (item.kind === "browse") return item.description;
+    if (item.kind === "ai") return `“${item.prompt}”`;
     if (item.kind === "more") return `in ${getScopeLabel(item.scope)}`;
     return getIconSet(item.set).label;
 };

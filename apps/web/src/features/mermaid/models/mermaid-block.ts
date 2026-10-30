@@ -130,4 +130,4 @@ const update = async (api: ExcalidrawApi, { id, definition, mode }: Diagram & { 
     });
 };
 
-export const MermaidBlock = { getDefinition, insert, update };
+export const MermaidBlock = { getDefinition, create, insert, update };

@@ -21,6 +21,7 @@
   swimlanes, Markdown notes, tables, charts, link cards, and smart copy and extend
 - 🖼️ Upload, share, and manage images right on the board
 - ⚡️ Add shapes, logos, emojis, flags, and thousands of icons from one search (⌘K)
+- ✨ Create or change diagrams with AI, as shapes and blocks or as Mermaid (10 a day for free)
 - ✏️ Everything else is plain Excalidraw, so it works the way you already know
 
 ## Getting started
@@ -41,6 +42,9 @@ pnpm dev               # Run the web app and the API.
 
 Open [localhost:3005](http://localhost:3005) and use "Sign in locally" to sign in without
 OAuth.
+
+The AI features need `DEEPSEEK_API_KEY` in `apps/api/.env`. Pro accounts (`plan` on the user)
+have no daily limit.
 
 ## Development
 

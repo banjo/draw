@@ -29,6 +29,13 @@ export const FEATURES: Feature[] = [
         size: "hero",
     },
     {
+        id: "ai",
+        title: "Create with AI",
+        short: "Describe a diagram, get one you can edit.",
+        description: `Describe what you want and get a diagram of shapes, arrows, frames, notes, tables, and charts, or a Mermaid diagram. See it first, ask for changes, then insert it. Select part of a drawing to have it changed instead. Open it with AI at the bottom or ${MODIFIER_LABEL} K. Sign in to get 10 a day for free.`,
+        size: "hero",
+    },
+    {
         id: "collection",
         title: "Your collection",
         short: "Many drawings, synced across devices.",

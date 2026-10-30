@@ -1,4 +1,5 @@
 import { useGlobal } from "@/contexts/global-context";
+import { useAiDialogStore } from "@/features/ai/stores/use-ai-dialog-store";
 import { useAddItem } from "@/features/add-element/hooks/use-add-item";
 import { ElementSketch } from "@/features/add-element/components/element-sketch";
 import { NativeDock } from "@/features/draw/models/native/native-dock";
@@ -23,6 +24,7 @@ import {
     Plus,
     Slash,
     Sparkle,
+    Sparkles,
     Square,
     StickyNote,
     Type,
@@ -389,6 +391,15 @@ const Dock = () => {
                 ) : null}
             </div>
             {tile(IMAGE)}
+            <Tile
+                icon={Sparkles}
+                label="AI"
+                title="Create or change a diagram with AI"
+                onClick={() => {
+                    setMenu(undefined);
+                    useAiDialogStore.getState().open();
+                }}
+            />
             <Divider />
             <button
                 type="button"

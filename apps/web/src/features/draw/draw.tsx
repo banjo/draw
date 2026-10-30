@@ -19,6 +19,7 @@ import { useMarkdownNotes } from "@/features/markdown-note/hooks/use-markdown-no
 import { useTables } from "@/features/table/hooks/use-tables";
 import { useLinkCards } from "@/features/link-card/hooks/use-link-cards";
 import { useCharts } from "@/features/chart/hooks/use-charts";
+import { AiDialogContainer } from "@/features/ai/components/ai-dialog";
 import { DockContainer } from "@/features/dock/components/dock";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
@@ -232,6 +233,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 {links.linkCards}
                 {charts}
                 {excalidrawApi ? <DockContainer /> : null}
+                {excalidrawApi ? <AiDialogContainer /> : null}
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}

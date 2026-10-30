@@ -17,7 +17,7 @@ const isMermaid = (item: Item) => item.kind === "element" && item.shape.type ===
 const isLinkCard = (item: Item) => item.kind === "element" && item.shape.type === "link";
 
 /** Written in their own dialog first, so they're added one at a time */
-export const hasDialog = (item: Item) => isMermaid(item) || isLinkCard(item);
+export const hasDialog = (item: Item) => isMermaid(item) || isLinkCard(item) || item.kind === "ai";
 
 /** Opens the dialog a Mermaid diagram or a link card is written in, to add it at the placement */
 export const openAddDialog = (item: Item, placement: Placement) => {

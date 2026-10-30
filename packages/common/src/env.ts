@@ -53,6 +53,10 @@ const ServerEnvSchema = z.object({
     CLOUDFLARE_BUCKET_NAME: z.string(),
     // Local S3 stand-in instead of R2, e.g. http://localhost:9000 (see docker/docker-compose.yml)
     CLOUDFLARE_ENDPOINT: z.string().url().optional(),
+    // AI. Without a key the AI features are turned off.
+    DEEPSEEK_API_KEY: z.string().optional(),
+    // A DeepSeek model, deepseek-flash by default
+    AI_MODEL: z.string().optional(),
     // AXIOM_DATASET: z.string(),
     // AXIOM_TOKEN: z.string(),
 });

@@ -8,6 +8,11 @@ generator client {
 }
 
 // USER AND AUTH
+enum Plan {
+  free
+  pro
+}
+
 model User {
   id           Int               @id @default(autoincrement())
   createdAt    DateTime          @default(now())
@@ -15,11 +20,14 @@ model User {
   email        String            @unique
   name         String?
   avatarUrl    String?
+  /// Pro has unlimited AI requests
+  plan         Plan              @default(free)
   drawings     Drawing[]         @relation("OwnerDrawings")
   collection   CollectionEntry[]
   folders      Folder[]
   sessions     Session[]
   OauthAccount OauthAccount[]
+  aiRequests   AiRequest[]
 }
 
 model Session {
@@ -124,4 +132,18 @@ model BucketFile {
   bucket    String
   key       String
   mimeType  String
+}
+
+/// An AI request, counted for the daily limit
+model AiRequest {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// mermaid or diagram
+  kind      String
+  /// A fix of a Mermaid diagram that couldn't be read, which isn't counted
+  isFix     Boolean  @default(false)
+
+  @@index([userId, createdAt])
 }

@@ -6,6 +6,7 @@ import { useLatestCallback } from "@/hooks/use-latest-callback";
 import { trpc } from "@/lib/trpc";
 import { authService } from "@/services/auth-service";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
+import { useAiDialogStore } from "@/features/ai/stores/use-ai-dialog-store";
 import { usePaletteStore } from "@/features/collection/stores/use-palette-store";
 import { useFeaturesModalStore } from "@/features/features-intro/stores/use-features-modal-store";
 import { copyToClipboard } from "@/utils/clipboard";
@@ -20,6 +21,7 @@ import {
     SaveIcon,
     SearchIcon,
     Sparkles,
+    WandSparkles,
 } from "lucide-react";
 import { useMemo } from "react";
 import toast from "react-hot-toast";
@@ -45,6 +47,11 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
     const { handleError } = useError();
 
     const utils = trpc.useUtils();
+    const { data: aiStatus } = trpc.ai.status.useQuery(undefined, { enabled: isAuthenticated });
+    // The plan, and for free accounts what's left today
+    const aiPlan =
+        aiStatus &&
+        (aiStatus.limit === null ? "Pro" : `${Math.max(aiStatus.limit - aiStatus.used, 0)} left`);
 
     /** Create a new drawing from what's on the canvas, and return its slug. */
     const createDrawingFromCanvas = useLatestCallback(async () => {
@@ -211,6 +218,14 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                             Save to my collection
                         </MainMenu.Item>
 
+                        <MainMenu.Item
+                            onSelect={() => useAiDialogStore.getState().open()}
+                            icon={<ResponsiveIcon Icon={WandSparkles} />}
+                            shortcut={aiPlan}
+                        >
+                            Create with AI
+                        </MainMenu.Item>
+
                         <MainMenu.Separator />
                     </>
                 ) : null}
@@ -228,7 +243,7 @@ export const useMenu = ({ slug, createDrawing, toggleSidebar, uploadImagesOnCanv
                 <MainMenu.DefaultItems.Help />
             </MainMenu>
         ),
-        [isAuthenticated, slug]
+        [isAuthenticated, slug, aiPlan]
     );
 
     return {

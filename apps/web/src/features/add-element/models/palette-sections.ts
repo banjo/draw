@@ -189,6 +189,10 @@ const getAllSections = (input: SectionInput): Section[] => {
             scope: { kind: "block" },
             keepQuery: true,
         }),
+        rows("Create with AI", [
+            { kind: "ai", mode: "diagram", prompt: query },
+            { kind: "ai", mode: "mermaid", prompt: query },
+        ]),
         rows("Browse", ICON_SETS.filter(set => setMatches(set, query)).map(browseSet)),
         grid("Icons", items, {
             scope: { kind: "icons" },

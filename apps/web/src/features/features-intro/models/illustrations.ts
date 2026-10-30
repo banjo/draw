@@ -400,6 +400,67 @@ const ILLUSTRATIONS: Record<string, (pen: Pen) => void> = {
         cursor(40, 95, "#1971c2", "Sam");
     },
 
+    ai: ({ rc, add, options, text, box, line, arrow }) => {
+        // The request, with a sparkle and a caret
+        box(0, 70, 190, 92, "#ffffff", { roughness: 0.6 });
+        const sparkle = (x: number, y: number, r: number) =>
+            add(
+                rc.polygon(
+                    [
+                        [x, y - r],
+                        [x + r * 0.3, y - r * 0.3],
+                        [x + r, y],
+                        [x + r * 0.3, y + r * 0.3],
+                        [x, y + r],
+                        [x - r * 0.3, y + r * 0.3],
+                        [x - r, y],
+                        [x - r * 0.3, y - r * 0.3],
+                    ],
+                    options({
+                        fill: "#b4529c",
+                        fillStyle: "solid",
+                        stroke: "#b4529c",
+                        roughness: 0.4,
+                    })
+                )
+            );
+        sparkle(20, 92, 9);
+        sparkle(34, 80, 5);
+        text(14, 120, "Login flow with", { anchor: "start", size: 16 });
+        text(14, 142, "2FA, and errors", { anchor: "start", size: 16 });
+        line(130, 132, 130, 152, { stroke: COLORS.accent, strokeWidth: 1.5, roughness: 0.2 });
+
+        arrow(204, 116, 250, 116, { stroke: COLORS.accent });
+
+        // What comes back: a flow of shapes you can edit
+        add(rc.ellipse(300, 60, 84, 44, options({ fill: COLORS.green, fillStyle: "solid" })));
+        text(300, 61, "Start", { size: 15 });
+        arrow(300, 84, 300, 108);
+        add(
+            rc.polygon(
+                [
+                    [300, 112],
+                    [350, 146],
+                    [300, 180],
+                    [250, 146],
+                ],
+                options({ fill: COLORS.yellow, fillStyle: "solid" })
+            )
+        );
+        text(300, 147, "Valid?", { size: 15 });
+        arrow(352, 146, 396, 146);
+        text(374, 134, "yes", { size: 13, fill: COLORS.gray });
+        box(400, 124, 92, 44, COLORS.blue);
+        text(446, 147, "2FA code", { size: 15 });
+        arrow(300, 182, 300, 212);
+        text(312, 198, "no", { size: 13, fill: COLORS.gray, anchor: "start" });
+        box(254, 216, 92, 40, COLORS.red);
+        text(300, 237, "Error", { size: 15 });
+        box(398, 206, 100, 50, COLORS.yellow, { stroke: "transparent", roughness: 0.4 });
+        text(448, 224, "Lock after", { size: 13 });
+        text(448, 242, "5 tries", { size: 13 });
+    },
+
     collection: ({ rc, add, options, group, text, box, line, arrow }) => {
         const cards: [string, string, number][] = [
             ["Roadmap", COLORS.yellow, -6],

@@ -1022,3 +1022,31 @@ used. `lucide-react` ships twice (0.368 and 0.279).
       phone-sized window. No console errors.
 - [x] Excalidraw's hints at the top ("To move canvas, …") are hidden with its toolbar, so
       nothing shows up at the top while drawing (phones still have them).
+
+## 30. AI: diagrams and Mermaid, with a Pro plan
+
+- [x] Chosen from mockups (`~/Downloads/banjodraw-ai-designs/`): a dialog with the request on
+      the left and a preview on the right, to ask for changes before inserting. It opens
+      from an AI button in the dock, the main menu, and two rows in ⌘K ("Create a diagram",
+      "Create a Mermaid diagram") that send what was typed.
+- [x] Diagram: the AI (DeepSeek through the AI SDK, on the API) answers with a diagram
+      description (shapes incl. our own, sticky notes, text, notes, tables, charts, code,
+      link cards, arrows with labels and styles, groups as frames, colors, direction). The
+      app builds it and lays it out with dagre, with loose titles above and blocks below.
+- [x] Mermaid: the AI writes the definition; if Mermaid can't read it, it's sent back once
+      to be fixed, which isn't counted. The code can be shown under the preview.
+- [x] With something selected, it's sent along and the result replaces it: things that
+      stay keep their place, new ones go next to what they're connected to, arrows from
+      outside connect to the new shapes, and it stays in its frame. A selected Mermaid
+      block can be changed, or turned into shapes, and shapes into Mermaid. Drawings and
+      images aren't sent and stay. Insert or Replace is one undo step.
+- [x] Plans: `plan` on the user (free or pro, the owner's account is pro in the
+      migration) and an `AiRequest` per request. Free accounts get 10 a day (UTC), Pro has
+      no limit; failed requests aren't counted, and one request at a time per user. The
+      dialog shows what's left and when it's back; signed out, it asks you to sign in.
+- [x] Tested (Oct 30): new diagrams, changes, keeping places, replacing a selection in a
+      frame with arrows from outside, Mermaid from ⌘K, changing a Mermaid block and turning
+      it into shapes, the code view, the limit (429 and the message), signed out, the menu
+      item, undo. No console errors.
+- [x] "Create with AI" in What's new and What's in BanjoDraw, as a big card after Blocks,
+      with a request turning into a flow.
