@@ -1,4 +1,5 @@
 import { MODIFIER_LABEL } from "@/utils/platform";
+import { AI_FREE_DAILY_LIMIT } from "common";
 
 export type Feature = {
     /** Saved once it's been shown. Never change it, or the feature shows again. */
@@ -25,72 +26,69 @@ export const FEATURES: Feature[] = [
         id: "blocks",
         title: "Blocks",
         short: "Code, Markdown, tables, charts, diagrams, and more.",
-        description: `Code blocks, database models, Markdown notes, tables, charts, Mermaid diagrams, swimlanes, and link cards. Add one from Blocks at the bottom or with ${MODIFIER_LABEL} K, double-click or press Enter to edit it, and change its settings in the sidebar. Paste a link or rows from a spreadsheet to make one.`,
+        description: `Code, database models, notes, tables, charts, Mermaid, swimlanes, and link cards. Add one from Blocks or ${MODIFIER_LABEL} K, and double-click to edit it.`,
         size: "hero",
     },
     {
         id: "ai",
         title: "Create with AI",
         short: "Describe a diagram, get one you can edit.",
-        description: `Describe what you want and get a diagram of shapes, arrows, frames, notes, tables, and charts, or a Mermaid diagram. See it first, ask for changes, then insert it. Select part of a drawing to have it changed instead. Open it with AI at the bottom or ${MODIFIER_LABEL} K. Sign in to get 10 a day for free.`,
+        description: `Describe a diagram and get shapes and blocks you can edit, or Mermaid. Ask for changes before inserting it, or select something to change it. ${AI_FREE_DAILY_LIMIT} a day for free.`,
         size: "hero",
     },
     {
         id: "collection",
         title: "Your collection",
         short: "Many drawings, synced across devices.",
-        description:
-            "Keep as many drawings as you like. Sign in and they're saved to your collection and synced between your devices, so you can start on your laptop and carry on from your phone. The drawing on the start page stays in this browser.",
+        description: "Sign in to keep as many drawings as you like, synced between your devices.",
         size: "hero",
     },
     {
         id: "add-element",
         title: "Add shapes and icons",
         short: "Shapes, blocks, and thousands of icons.",
-        description: `Search shapes, blocks, and thousands of logos, emojis, flags, and icons, or browse one set. ${MODIFIER_LABEL} K adds it where the mouse is. It's also the Add button at the bottom.`,
+        description:
+            "Search shapes, blocks, and thousands of icons, emojis, and logos. It goes where the mouse is.",
         keys: [MODIFIER_LABEL, "K"],
     },
     {
         id: "collaboration",
         title: "Draw together",
         short: "Share a link, see each other.",
-        description:
-            "Share gives you a link. Everyone with it can draw with you, and you see each other's cursors.",
+        description: "Share a link and draw together, with everyone's cursors.",
     },
     {
         id: "extend",
         title: "Add a connected shape",
         short: "Grow a diagram from the keyboard.",
-        description: `With a shape selected, hold ${MODIFIER_LABEL} and press an arrow to see where a connected shape goes. Let go to add it. Or drag one of the dots around the shape.`,
+        description: `Hold ${MODIFIER_LABEL} and press an arrow to add a connected shape, or drag a dot around it.`,
         keys: [MODIFIER_LABEL, "→"],
     },
     {
         id: "change-shape",
         title: "Change a shape",
         short: "Swap a shape, keep its place.",
-        description:
-            "With one shape selected, turn it into another shape, a code block, a model, a note, or a table.",
+        description: "Turn the selected shape into another shape, a block, or a note.",
         keys: ["Tab"],
     },
     {
         id: "smart-copy",
         title: "Smart copy",
         short: "Duplicate right next to it.",
-        description: "Copies the selection right next to it, with its text and groups.",
+        description: "Copies the selection right next to it.",
         keys: [MODIFIER_LABEL, "Enter"],
     },
     {
         id: "find-drawing",
         title: "Find a drawing",
         short: "Jump to any drawing by name.",
-        description: `Press ${MODIFIER_LABEL} O to search your collection and jump to any drawing. Tab searches inside a folder.`,
+        description: "Search your collection and jump to any drawing.",
         keys: [MODIFIER_LABEL, "O"],
     },
     {
         id: "folders",
         title: "Folders",
         short: "Sort your collection.",
-        description:
-            "Sort the drawings in your collection into folders, pin the ones you use most, and drag them where they belong.",
+        description: "Sort drawings into folders, and pin the ones you use most.",
     },
 ];
