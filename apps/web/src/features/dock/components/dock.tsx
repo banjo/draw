@@ -145,12 +145,12 @@ const Divider = () => (
     />
 );
 
-/** Above its button: a list, or the blocks' grid */
+/** Above its button: a list, or the blocks' grid. On phones, centred over the whole dock */
 const Popover = ({ children, label }: { children: ReactNode; label: string }) => (
     <div
         role="menu"
         aria-label={label}
-        className="absolute bottom-[calc(100%+10px)] left-1/2 z-10 -translate-x-1/2 rounded-xl bg-[var(--island-bg-color)] p-1.5 text-[0.8125rem] text-[var(--text-primary-color)] shadow-[0_12px_32px_-12px_rgba(25,25,60,0.4),0_0_0_1px_rgba(20,20,40,0.08)] duration-150 dark:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.08)] animate-in fade-in-0 slide-in-from-bottom-1"
+        className="dock-popover absolute bottom-[calc(100%+10px)] left-1/2 z-10 -translate-x-1/2 rounded-xl bg-[var(--island-bg-color)] p-1.5 text-[0.8125rem] text-[var(--text-primary-color)] shadow-[0_12px_32px_-12px_rgba(25,25,60,0.4),0_0_0_1px_rgba(20,20,40,0.08)] dark:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.08)]"
     >
         {children}
     </div>
@@ -201,11 +201,11 @@ const Dock = () => {
         pens: "freedraw",
     });
     const [menu, setMenu] = useState<MenuId>();
-    const [left, setLeft] = useState<number>();
-    const [footer, setFooter] = useState<HTMLElement | null>(null);
+    const [placement, setPlacement] = useState<{ left: number; bottom: number }>();
+    const [host, setHost] = useState<HTMLElement | null>(null);
     const dock = useRef<HTMLDivElement>(null);
 
-    useEffect(() => NativeDock.onAttach(setFooter), []);
+    useEffect(() => NativeDock.onAttach(setHost), []);
 
     // Follows the tool, also when it's changed with a key
     useEffect(() => {
@@ -251,23 +251,58 @@ const Dock = () => {
         };
     }, [menu]);
 
-    // In the middle, unless that would cover the zoom and undo buttons on the left. The names
-    // under the tools are hidden on smaller screens, to make room.
+    // In the middle, unless that would cover the zoom and undo buttons on the left; on a phone,
+    // in the middle of the width and just above the menu and undo bar. The names under the tools
+    // are hidden on smaller screens, to make room.
     useLayoutEffect(() => {
-        const footerLeft = footer?.querySelector(".layer-ui__wrapper__footer-left");
-        if (!footer || !footerLeft || !dock.current) return;
+        if (!host || !dock.current) return;
         const place = () => {
             if (!dock.current) return;
-            const footerBox = footer.getBoundingClientRect();
-            const leftEnd = footerLeft.getBoundingClientRect().right - footerBox.left;
+            const box = host.getBoundingClientRect();
             const half = dock.current.offsetWidth / 2;
-            setLeft(Math.max(footerBox.width / 2, leftEnd + GAP + half));
+            if (host.classList.contains("excalidraw--mobile")) {
+                const bar = host.querySelector(".App-bottom-bar > .Island");
+                const barBox = bar?.getBoundingClientRect();
+                const bottom = barBox ? Math.max(0, box.bottom - barBox.top + GAP) : GAP;
+                dock.current.style.setProperty(
+                    "--dock-menu-max-height",
+                    `${Math.max(44, box.height - bottom - dock.current.offsetHeight - 24)}px`
+                );
+                setPlacement(previous =>
+                    previous?.left === box.width / 2 && previous.bottom === bottom
+                        ? previous
+                        : { left: box.width / 2, bottom }
+                );
+                return;
+            }
+            const footer = host.querySelector(".layer-ui__wrapper__footer");
+            const footerBox = footer?.getBoundingClientRect();
+            const footerLeft = footer?.querySelector(".layer-ui__wrapper__footer-left");
+            const leftEnd = footerLeft ? footerLeft.getBoundingClientRect().right - box.left : 0;
+            const left = Math.max(box.width / 2, leftEnd + GAP + half);
+            const bottom = footerBox ? Math.max(0, box.bottom - footerBox.bottom) : 0;
+            setPlacement(previous =>
+                previous?.left === left && previous.bottom === bottom ? previous : { left, bottom }
+            );
         };
         place();
-        const observer = new ResizeObserver(place);
-        [footer, footerLeft, dock.current].forEach(element => observer.observe(element));
-        return () => observer.disconnect();
-    }, [footer, status.isHidden]);
+        const resize = new ResizeObserver(place);
+        [host, dock.current, host.querySelector(".App-bottom-bar > .Island")].forEach(element => {
+            if (element) resize.observe(element);
+        });
+        // Excalidraw mounts and unmounts its footer and bottom bar, and switches device mode
+        const structure = new MutationObserver(place);
+        structure.observe(host, { childList: true, subtree: true });
+        const device = new MutationObserver(place);
+        device.observe(host, { attributes: true, attributeFilter: ["class"] });
+        window.addEventListener("resize", place);
+        return () => {
+            resize.disconnect();
+            structure.disconnect();
+            device.disconnect();
+            window.removeEventListener("resize", place);
+        };
+    }, [host, status.isHidden]);
 
     if (status.isHidden || !excalidrawApi) return null;
 
@@ -348,10 +383,10 @@ const Dock = () => {
             ref={dock}
             role="toolbar"
             aria-label="Tools"
-            style={{ left }}
+            style={placement}
             className={cn(
-                "pointer-events-auto absolute bottom-0 flex -translate-x-1/2 items-center gap-1 rounded-2xl bg-[var(--island-bg-color)] p-1.5 shadow-[0_10px_30px_-12px_rgba(25,25,60,0.3),0_0_0_1px_rgba(20,20,40,0.07)] dark:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.08)]",
-                left === undefined && "invisible"
+                "pointer-events-auto absolute flex -translate-x-1/2 items-center gap-1 rounded-2xl bg-[var(--island-bg-color)] p-1.5 shadow-[0_10px_30px_-12px_rgba(25,25,60,0.3),0_0_0_1px_rgba(20,20,40,0.07)] dark:shadow-[0_12px_32px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.08)]",
+                !placement && "invisible"
             )}
         >
             {tile(SELECT)}
@@ -403,6 +438,7 @@ const Dock = () => {
             <Divider />
             <button
                 type="button"
+                aria-label="Add"
                 title={`Add a shape, block or icon — ${formatShortcut("K")}`}
                 onClick={() => {
                     setMenu(undefined);
@@ -428,5 +464,5 @@ const Dock = () => {
     );
 };
 
-/** In Excalidraw's footer, on computers; phones keep Excalidraw's toolbar */
+/** In Excalidraw's UI, on computers and phones: at the bottom, in two rows on a phone */
 export const DockContainer = () => createPortal(<Dock />, NativeDock.container);
