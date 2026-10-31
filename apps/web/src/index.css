@@ -88,17 +88,67 @@
     display: none;
 }
 
-/* Our dock replaces Excalidraw's toolbar, and the hints under it, except on phones */
-.excalidraw:not(.excalidraw--mobile) .App-menu_top .App-toolbar {
+/* Our dock replaces Excalidraw's toolbar, and the hints under it, on computers and phones */
+.excalidraw .App-menu_top .App-toolbar {
     visibility: hidden;
 }
+/* Taken out of the layout, unlike the toolbar above, as it is wider than the screen */
+.excalidraw .App-toolbar--mobile {
+    display: none;
+}
 
-/* Over the footer, without taking a place in its row */
+/* Over the whole editor, without taking a place in a row, above the canvas but under dialogs */
 .excalidraw #custom-dock {
     position: absolute;
     inset: 0;
+    z-index: 3;
     justify-self: stretch;
     pointer-events: none;
+}
+
+/* Two rows of five on a phone, with full-size touch targets. Excalidraw's device mode decides,
+   so a small desktop window keeps the one row */
+.excalidraw--mobile #custom-dock [role="toolbar"] {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(44px, 1fr));
+    width: min(336px, calc(100% - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+    box-sizing: border-box;
+    gap: 4px;
+}
+.excalidraw--mobile #custom-dock [role="toolbar"] > [aria-hidden] {
+    display: none;
+}
+/* The menus open over the whole dock, so they stay inside the viewport */
+.excalidraw--mobile #custom-dock [role="toolbar"] > .relative {
+    position: static;
+}
+.excalidraw--mobile #custom-dock [role="toolbar"] > button,
+.excalidraw--mobile #custom-dock [role="toolbar"] > div > button {
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+}
+.excalidraw--mobile #custom-dock [role="toolbar"] > button span,
+.excalidraw--mobile #custom-dock [role="toolbar"] > button kbd,
+.excalidraw--mobile #custom-dock [role="toolbar"] > div > button span,
+.excalidraw--mobile #custom-dock [role="toolbar"] > div > button kbd {
+    display: none;
+}
+.excalidraw--mobile #custom-dock .dock-popover {
+    max-width: calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right));
+    max-height: var(--dock-menu-max-height, calc(100dvh - 200px - env(safe-area-inset-bottom)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.excalidraw--mobile #custom-dock .dock-popover > .grid {
+    width: 304px;
+    max-width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.excalidraw--mobile #custom-dock .dock-popover > button {
+    min-height: 44px;
 }
 
 /* Blocks are images, but cropping them makes no sense */

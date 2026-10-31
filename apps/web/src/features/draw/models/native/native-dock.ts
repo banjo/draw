@@ -1,4 +1,5 @@
 import { NativeSlot } from "./native-slot";
 
-/** Our toolbar, in the middle of Excalidraw's footer */
-export const NativeDock = new NativeSlot("custom-dock", ".layer-ui__wrapper__footer", "last");
+/** Phones render neither the desktop footer nor its UI wrapper, so the dock lives in the
+ * editor root and is placed with CSS on a computer, above the bottom bar on a phone. */
+export const NativeDock = new NativeSlot("custom-dock", ".excalidraw", "last");
