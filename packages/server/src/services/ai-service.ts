@@ -5,9 +5,7 @@ import {
     AiDiagramResult,
     AiMermaidInput,
     AiMermaidResult,
-    DIAGRAM_CHART_TYPES,
-    DIAGRAM_COLORS,
-    DIAGRAM_SHAPES,
+    DIAGRAM_FORMAT_GUIDE,
     DiagramSpec,
     DiagramSpecUtil,
     Env,
@@ -37,19 +35,7 @@ const LANGUAGE_RULE =
 
 const DIAGRAM_SYSTEM = `You design diagrams for BanjoDraw, a whiteboard app built on Excalidraw. You answer with JSON describing the diagram; the app draws it, lays it out automatically and connects the arrows. You never give positions or sizes.
 
-What a diagram can contain:
-- "shape" nodes: ${DIAGRAM_SHAPES.join(", ")}. Use them for steps, components, actors and states. rounded is a rectangle with round corners, pill and ellipse suit start and end points, diamond suits decisions, cylinder suits databases and storage, document suits files and reports, cloud suits external services or the internet, parallelogram suits input and output. A shape has a short label (1 to 5 words) and maybe a color.
-- "text" nodes: free text, like a title or a caption (size small, medium or large).
-- "sticky" nodes: sticky notes with a few words, for remarks, ideas, risks and questions, like in a workshop or retro.
-- "note" nodes: Markdown notes for longer explanations, decisions, lists and checklists (headings, lists, "- [ ]" checkboxes, bold, links, inline code). Width S, M or L.
-- "table" nodes: tables for structured information like fields, endpoints, owners, comparisons or schedules. Keep them to at most 12 columns and 50 rows; every row has the same number of cells.
-- "chart" nodes: charts of numbers (${DIAGRAM_CHART_TYPES.join(", ")}; stacked is stacked bars, hbar horizontal bars). rows: the first row is an empty cell then the series' names; every other row is a label then one number per series.
-- "code" nodes: code snippets, with their language.
-- "link" nodes: cards for web pages; only use URLs the user gave or well-known official sites.
-- edges: arrows between any two nodes, with an optional short label, style (solid, dashed, dotted) and heads (end, both, none).
-- groups: frames with a name around nodes that belong together, like layers, teams, services or phases. A node is in at most one group, and groups don't nest.
-- colors: ${DIAGRAM_COLORS.join(", ")}. Use them sparingly and with meaning (for example red for errors, green for success, one color per kind of thing); leave most nodes without one.
-- direction: "right" for flows and pipelines, "down" for hierarchies, trees and step by step processes.
+${DIAGRAM_FORMAT_GUIDE}
 
 Guidelines:
 - Make the diagram the user asks for, complete but uncluttered: usually 3 to 25 nodes, more only when asked.

@@ -71,6 +71,19 @@ export class DrawingEmitter extends EventEmitter {
         return this.sessions.get(slug)?.board;
     }
 
+    /**
+     * The latest board: from memory if it's open, else loaded. A board loaded only to be read
+     * is freed again later, like one nobody has open.
+     */
+    async getLatestBoard(slug: Slug): Promise<Board | undefined> {
+        const session = await this.load(slug);
+        if (!session) return undefined;
+        if (session.subscribers === 0 && !session.evictTimer) {
+            this.scheduleEvict(slug, session);
+        }
+        return session.board;
+    }
+
     leave(slug: Slug) {
         const session = this.sessions.get(slug);
         if (!session) return;

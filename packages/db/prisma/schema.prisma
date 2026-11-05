@@ -28,6 +28,7 @@ model User {
   sessions     Session[]
   OauthAccount OauthAccount[]
   aiRequests   AiRequest[]
+  mcpTokens    McpToken[]
 }
 
 model Session {
@@ -148,4 +149,18 @@ model AiRequest {
   isFix     Boolean  @default(false)
 
   @@index([userId, createdAt])
+}
+
+/// A token an MCP client signs in with. Only its hash is kept; Pro users can make them.
+model McpToken {
+  id         String    @id @default(uuid())
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  name       String
+  tokenHash  String    @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  @@index([userId])
 }

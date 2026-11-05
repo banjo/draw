@@ -1,15 +1,20 @@
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { hashString } from "@excalidraw/excalidraw";
 import { FileId } from "@excalidraw/excalidraw/element/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
-import { CustomDataMarkdown, ExcalidrawElement, ExcalidrawImageElement } from "common";
+import {
+    BlockContent,
+    BlockFileId,
+    CustomDataMarkdown,
+    ExcalidrawElement,
+    ExcalidrawImageElement,
+    NOTE_WIDTHS,
+} from "common";
 import { toSvgFile } from "@/features/draw/models/block-image";
 import { loadBlockFonts } from "@/features/draw/models/block-fonts";
 import type { NoteContent, NoteLook } from "./note-render";
 
-/** The widths a note can have, narrow to wide */
-export const NOTE_WIDTHS = { S: 260, M: 340, L: 460 } as const;
+export { NOTE_WIDTHS } from "common";
 export const NOTE_LOOKS: { look: NoteLook; label: string }[] = [
     { look: "paper", label: "Paper" },
     { look: "hand", label: "Handwritten" },
@@ -26,21 +31,10 @@ Double-click to write in **Markdown**: lists, \`code\`, [links](https://draw.ban
     width: NOTE_WIDTHS.M,
 };
 
-// Bumped when the drawing changes, so notes get new images
-const IMAGE_VERSION = 1;
-
-const getContent = (element: ExcalidrawElement): NoteContent => {
-    const data = element.customData as Partial<CustomDataMarkdown> | undefined;
-    return {
-        markdown: data?.markdown ?? "",
-        look: data?.look === "hand" ? "hand" : "paper",
-        width: data?.width ?? NOTE_WIDTHS.M,
-    };
-};
+const getContent = (element: ExcalidrawElement): NoteContent => BlockContent.note(element);
 
 /** The same content always gets the same id, so every browser can make the file itself */
-const getFileId = ({ markdown, look, width }: NoteContent) =>
-    `markdown-${IMAGE_VERSION}-${hashString(`${look}\n${width}\n${markdown}`)}-${markdown.length}` as FileId;
+const getFileId = (content: NoteContent) => BlockFileId.note(content) as FileId;
 
 /** The note drawn, with its file and size at scale 1 */
 const render = async (content: NoteContent) => {

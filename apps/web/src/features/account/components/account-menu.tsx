@@ -8,6 +8,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { useAiDialogStore } from "@/features/ai/stores/use-ai-dialog-store";
 import { usePaletteStore } from "@/features/collection/stores/use-palette-store";
 import { useFeaturesModalStore } from "@/features/features-intro/stores/use-features-modal-store";
+import { useMcpDialogStore } from "@/features/mcp/stores/use-mcp-dialog-store";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/providers/theme-provider";
 import { authService } from "@/services/auth-service";
@@ -22,6 +23,7 @@ import {
     LucideIcon,
     Monitor,
     Moon,
+    Plug,
     SearchIcon,
     Sparkles,
     Sun,
@@ -245,6 +247,11 @@ const SignedIn = ({ toggleSidebar }: Props) => {
                 <SearchIcon />
                 Find a drawing
                 <Shortcut>{formatShortcut("O")}</Shortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem className={ITEM} onSelect={() => useMcpDialogStore.getState().open()}>
+                <Plug />
+                Connect an AI agent
+                {status?.plan === "pro" ? null : <Shortcut>Pro</Shortcut>}
             </DropdownMenuItem>
             <DropdownMenuSeparator className="mx-1" />
             <AppItems />

@@ -2,10 +2,16 @@ import { loadBlockFonts } from "@/features/draw/models/block-fonts";
 import { toSvgFile } from "@/features/draw/models/block-image";
 import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
-import { hashString } from "@excalidraw/excalidraw";
 import { FileId } from "@excalidraw/excalidraw/element/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
-import { CustomDataTable, ExcalidrawElement, ExcalidrawImageElement } from "common";
+import {
+    BlockContent,
+    BlockFileId,
+    CustomDataTable,
+    ExcalidrawElement,
+    ExcalidrawImageElement,
+    TABLE_DEFAULT_CONTENT,
+} from "common";
 import type { TableContent, TableLook } from "./table-render";
 
 export const TABLE_LOOKS: { look: TableLook; label: string }[] = [
@@ -16,42 +22,14 @@ export const TABLE_LOOKS: { look: TableLook; label: string }[] = [
 export const MAX_ROWS = 50;
 export const MAX_COLUMNS = 12;
 
-const DEFAULT_CONTENT: TableContent = {
-    rows: [
-        ["Name", "Owner", "Status"],
-        ["", "", ""],
-        ["", "", ""],
-    ],
-    look: "sketchy",
-    headerRow: true,
-    headerColumn: false,
-};
+const DEFAULT_CONTENT: TableContent = TABLE_DEFAULT_CONTENT;
 
-// Bumped when the drawing changes, so tables get new images
-const IMAGE_VERSION = 1;
+const normalize = BlockContent.normalizeRows;
 
-/** Every row as long as the longest, and at least one cell */
-const normalize = (rows: string[][]) => {
-    const columns = Math.max(1, ...rows.map(row => row.length));
-    const filled = rows.length > 0 ? rows : [[""]];
-    return filled.map(row => Array.from({ length: columns }, (_, i) => row[i] ?? ""));
-};
-
-const getContent = (element: ExcalidrawElement): TableContent => {
-    const data = element.customData as Partial<CustomDataTable> | undefined;
-    return {
-        rows: normalize(Array.isArray(data?.rows) ? data.rows : DEFAULT_CONTENT.rows),
-        look: data?.look === "clean" ? "clean" : "sketchy",
-        headerRow: data?.headerRow ?? true,
-        headerColumn: data?.headerColumn ?? false,
-    };
-};
+const getContent = (element: ExcalidrawElement): TableContent => BlockContent.table(element);
 
 /** The same content always gets the same id, so every browser can make the file itself */
-const getFileId = (content: TableContent) => {
-    const key = JSON.stringify(content);
-    return `table-${IMAGE_VERSION}-${hashString(key)}-${key.length}` as FileId;
-};
+const getFileId = (content: TableContent) => BlockFileId.table(content) as FileId;
 
 /** The table drawn, with its file, size at scale 1, and where its cells are */
 const render = async (content: TableContent) => {

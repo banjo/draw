@@ -28,7 +28,9 @@ export type MoreItem = {
 };
 /** Opens the AI dialog with what was typed */
 export type AiItem = { kind: "ai"; mode: "diagram" | "mermaid"; prompt: string };
-export type Item = ElementItem | IconItem | BrowseItem | MoreItem | AiItem;
+/** Opens the MCP setup, to connect an AI agent */
+export type McpItem = { kind: "mcp" };
+export type Item = ElementItem | IconItem | BrowseItem | MoreItem | AiItem | McpItem;
 
 /** Opens a part of the palette, rather than adding something */
 export const isOpener = (item: Item): item is BrowseItem | MoreItem =>
@@ -73,6 +75,7 @@ export const getItemKey = (item: Item): string => {
     if (item.kind === "element") return `element:${item.shape.type}`;
     if (item.kind === "icon") return `icon:${item.set}:${item.name}`;
     if (item.kind === "ai") return `ai:${item.mode}`;
+    if (item.kind === "mcp") return "mcp";
     const path = getScopePath(item.scope)
         .map(step => step.label)
         .join("/");
@@ -100,6 +103,7 @@ export const getItemTitle = (item: Item) => {
     if (item.kind === "ai") {
         return item.mode === "diagram" ? "Create a diagram" : "Create a Mermaid diagram";
     }
+    if (item.kind === "mcp") return "Open MCP setup";
     if (item.kind === "more")
         return item.count ? `${item.count.toLocaleString()} more` : "Show all";
     const set = getIconSet(item.set);
@@ -111,6 +115,7 @@ export const getItemDescription = (item: Item) => {
     if (item.kind === "element") return item.shape.description ?? "";
     if (item.kind === "browse") return item.description;
     if (item.kind === "ai") return `“${item.prompt}”`;
+    if (item.kind === "mcp") return "Connect Claude Code, opencode or Codex to your drawings";
     if (item.kind === "more") return `in ${getScopeLabel(item.scope)}`;
     return getIconSet(item.set).label;
 };

@@ -5,6 +5,7 @@ import { collectionRouter } from "./router/collection";
 import { drawRouter } from "./router/draw";
 import { fileRouter } from "./router/file";
 import { linkRouter } from "./router/link";
+import { mcpRouter } from "./router/mcp";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
     collaboration: collaborationRouter,
     link: linkRouter,
     ai: aiRouter,
+    mcp: mcpRouter,
 });
 
 export type AppRouter = typeof appRouter;

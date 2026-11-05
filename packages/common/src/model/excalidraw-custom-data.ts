@@ -43,6 +43,11 @@ type BaseCustomData = {
      * The type of the custom element.
      */
     type: CustomElementType;
+    /**
+     * Made where text and blocks can't be measured, like the API: the first browser that shows
+     * it fixes its size, and takes this away.
+     */
+    unmeasured?: boolean;
 };
 
 export type CustomDataDefault = BaseCustomData;

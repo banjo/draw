@@ -1,28 +1,12 @@
-import {
-    CodeEditorLanguage,
-    getCodeBlockSettings,
-} from "@/features/selected-element-visuals/models/code-editor-langauges";
+import { CodeEditorLanguage } from "@/features/selected-element-visuals/models/code-editor-langauges";
 import { highlightCode } from "@/features/selected-element-visuals/models/code-highlighting";
-import { hashString } from "@excalidraw/excalidraw";
 import { BinaryFileData, DataURL } from "@excalidraw/excalidraw/types";
 import { FileId } from "@excalidraw/excalidraw/element/types";
-import { CustomDataCodeblock, ExcalidrawElement } from "common";
+import { BlockContent, BlockFileId, BlockSize, CodeBlockContent, ExcalidrawElement } from "common";
 
-/** What a code block's image is drawn from */
-export type CodeBlockContent = {
-    code: string;
-    language: CodeEditorLanguage;
-    fontSize: number;
-};
+export type { CodeBlockContent } from "common";
 
-// A fixed character width, so the layout is the same whatever monospace font a browser has
-const CHAR_WIDTH = 0.6;
-const LINE_HEIGHT = 1.5;
-const MIN_COLUMNS = 30;
-const TAB = "    ";
 const PLACEHOLDER = "Double-click to add code";
-// Bumped when the drawing changes, so code blocks get new images
-const IMAGE_VERSION = 1;
 
 export const CODE_BLOCK_FONT_FAMILY =
     "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace";
@@ -71,7 +55,7 @@ const TOKEN_COLORS: Record<string, string> = {
 
 type Token = { text: string; color: string };
 
-const normalize = (code: string) => code.replace(/\r\n?/g, "\n").replace(/\t/g, TAB);
+const normalize = BlockSize.normalizeCode;
 
 /** The code split into lines of colored tokens */
 const toLines = (code: string, language: CodeEditorLanguage): Token[][] => {
@@ -95,23 +79,10 @@ const escapeXml = (text: string) =>
         char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char]!
     );
 
-const getMetrics = (fontSize: number) => ({
-    charWidth: fontSize * CHAR_WIDTH,
-    lineHeight: fontSize * LINE_HEIGHT,
-    padding: fontSize,
-});
+const getMetrics = BlockSize.getCodeMetrics;
 
 /** The size of the image at scale 1 */
-const getNaturalSize = ({ code, fontSize }: CodeBlockContent) => {
-    const lines = normalize(code).split("\n");
-    const columns = Math.max(MIN_COLUMNS, ...lines.map(line => line.length));
-    const { charWidth, lineHeight, padding } = getMetrics(fontSize);
-
-    return {
-        width: padding * 2 + columns * charWidth,
-        height: padding * 2 + lines.length * lineHeight,
-    };
-};
+const getNaturalSize = BlockSize.code;
 
 const renderSvg = (content: CodeBlockContent) => {
     const { fontSize, language } = content;
@@ -162,15 +133,10 @@ const toBase64 = (text: string) => {
     return btoa(binary);
 };
 
-const getContent = (element: ExcalidrawElement): CodeBlockContent => {
-    const { language, fontSize } = getCodeBlockSettings(element.customData);
-    const code = (element.customData as CustomDataCodeblock | undefined)?.code ?? "";
-    return { code, language, fontSize };
-};
+const getContent = (element: ExcalidrawElement): CodeBlockContent => BlockContent.code(element);
 
 /** The same content always gets the same id, so every browser can make the file itself */
-const getFileId = ({ code, language, fontSize }: CodeBlockContent) =>
-    `codeblock-${IMAGE_VERSION}-${hashString(`${language}\n${fontSize}\n${code}`)}-${code.length}` as FileId;
+const getFileId = (content: CodeBlockContent) => BlockFileId.code(content) as FileId;
 
 /** The image file for a code block element, under the element's file id */
 const createFile = (element: ExcalidrawElement & { fileId: FileId | null }): BinaryFileData => ({

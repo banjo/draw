@@ -21,11 +21,13 @@ import { useTables } from "@/features/table/hooks/use-tables";
 import { useLinkCards } from "@/features/link-card/hooks/use-link-cards";
 import { useCharts } from "@/features/chart/hooks/use-charts";
 import { AiDialogContainer } from "@/features/ai/components/ai-dialog";
+import { McpDialogContainer } from "@/features/mcp/components/mcp-dialog";
 import { DockContainer } from "@/features/dock/components/dock";
 import { ShareDialogContainer } from "@/features/share/components/share-dialog";
 import { ViewOnlyBadge } from "@/features/share/components/view-only-badge";
 import { useDrawingAccess } from "@/features/share/hooks/use-drawing-access";
 import { canEditDrawing } from "@/features/share/stores/use-drawing-access-store";
+import { useMeasureElements } from "@/features/draw/hooks/utils/use-measure-elements";
 import { useTheme } from "@/providers/theme-provider";
 import { useSignInModalStore } from "@/stores/use-sign-in-modal-store";
 import { Maybe } from "@banjoanton/utils";
@@ -123,6 +125,7 @@ export const Draw = ({ slug }: DrawProps) => {
     });
 
     const { cleanup } = useCleanup();
+    const { measureElements } = useMeasureElements();
     const { handleOnPaste } = useOnPaste();
 
     const { setTheme, resolvedTheme } = useTheme();
@@ -158,6 +161,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 onElementsChange();
                 checkImages(elements);
                 cleanup(elements, appState, files);
+                measureElements(elements);
             }
             updateCodeBlockElements(elements, appState, files);
             mermaid.updateMermaidBlocks(elements, appState, files);
@@ -249,6 +253,7 @@ export const Draw = ({ slug }: DrawProps) => {
                 {charts}
                 {excalidrawApi ? <DockContainer /> : null}
                 {excalidrawApi && canEdit ? <AiDialogContainer /> : null}
+                <McpDialogContainer />
                 {renderSelectedElementVisuals()}
                 <Excalidraw
                     excalidrawAPI={excalidrawAPI}

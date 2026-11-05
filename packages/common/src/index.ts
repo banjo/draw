@@ -18,5 +18,7 @@ export * from "./model/image";
 export * from "./model/core-response-model";
 export * from "./model/auth-info";
 export * from "./model/ai";
+export * from "./model/mcp";
+export * from "./diagram";
 export * from "./utils/delta-update-util";
 export * from "./utils/element-state-util";

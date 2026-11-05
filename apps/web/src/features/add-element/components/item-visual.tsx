@@ -1,5 +1,5 @@
 import { BRAND_TEXT } from "@/models/brand";
-import { Sparkles } from "lucide-react";
+import { Plug, Sparkles } from "lucide-react";
 import { cn } from "ui";
 import { useIconImage } from "../hooks/use-icon-image";
 import { Item } from "../models/add-element-item";
@@ -53,5 +53,6 @@ export const ItemThumb = ({ item }: { item: Item }) => (
             <Sparkles className={cn("h-[18px] w-[18px]", BRAND_TEXT)} />
         ) : null}
         {item.kind === "ai" && item.mode === "mermaid" ? <ElementSketch type="mermaid" /> : null}
+        {item.kind === "mcp" ? <Plug className={cn("h-[18px] w-[18px]", BRAND_TEXT)} /> : null}
     </span>
 );

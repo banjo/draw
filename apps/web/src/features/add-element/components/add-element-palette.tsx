@@ -1,4 +1,5 @@
 import { useAiDialogStore } from "@/features/ai/stores/use-ai-dialog-store";
+import { useMcpDialogStore } from "@/features/mcp/stores/use-mcp-dialog-store";
 import { Hint, Keys } from "@/components/keys";
 import { Modal } from "@/components/modal";
 import { Highlight } from "@/features/collection/components/highlight";
@@ -412,6 +413,11 @@ export const AddElementPalette = ({ pointer, onClose }: Props) => {
         if (item.kind === "ai") {
             onClose();
             useAiDialogStore.getState().open({ mode: item.mode, prompt: item.prompt });
+            return;
+        }
+        if (item.kind === "mcp") {
+            onClose();
+            useMcpDialogStore.getState().open();
             return;
         }
 

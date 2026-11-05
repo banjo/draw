@@ -12,3 +12,4 @@ export * from "./auth/core";
 export { drawingEmitter } from "./model/emitters";
 export { errorMiddleware, handleErrors } from "./lib/express";
 export { isLocalDevelopment } from "./lib/runtime";
+export { handleMcpRequest } from "./mcp/mcp-server";

@@ -7,8 +7,15 @@ import { Mutable } from "@excalidraw/excalidraw/utility-types";
 import { placeElements, Placement } from "@/features/add-element/hooks/use-insert-element";
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { FrameUtil } from "@/features/draw/utils/frame-util";
-import { CaptureUpdateAction, hashString } from "@excalidraw/excalidraw";
-import { CustomDataLink, ExcalidrawApi, ExcalidrawElement, ExcalidrawImageElement } from "common";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
+import {
+    BlockContent,
+    BlockFileId,
+    CustomDataLink,
+    ExcalidrawApi,
+    ExcalidrawElement,
+    ExcalidrawImageElement,
+} from "common";
 import type { LinkContent, LinkLook } from "./link-card-render";
 
 export const LINK_LOOKS: { look: LinkLook; label: string }[] = [
@@ -20,29 +27,12 @@ export const LINK_LOOKS: { look: LinkLook; label: string }[] = [
 /** What the API says about a page */
 export type LinkPreview = Pick<LinkContent, "url" | "title" | "description" | "siteName" | "icon">;
 
-// Bumped when the drawing changes, so cards get new images
-const IMAGE_VERSION = 1;
 const ICON_SIZE = 64;
 
-const LOOKS = new Set<LinkLook>(["compact", "chip", "sketchy"]);
-
-const getContent = (element: ExcalidrawElement): LinkContent => {
-    const data = element.customData as Partial<CustomDataLink> | undefined;
-    return {
-        url: data?.url ?? "",
-        title: data?.title,
-        description: data?.description,
-        siteName: data?.siteName,
-        icon: data?.icon,
-        look: data?.look && LOOKS.has(data.look) ? data.look : "compact",
-    };
-};
+const getContent = (element: ExcalidrawElement): LinkContent => BlockContent.link(element);
 
 /** The same content always gets the same id, so every browser can make the file itself */
-const getFileId = (content: LinkContent) => {
-    const key = JSON.stringify(content);
-    return `link-${IMAGE_VERSION}-${hashString(key)}-${key.length}` as FileId;
-};
+const getFileId = (content: LinkContent) => BlockFileId.link(content) as FileId;
 
 /** The card drawn, with its file and size at scale 1 */
 const render = async (content: LinkContent) => {

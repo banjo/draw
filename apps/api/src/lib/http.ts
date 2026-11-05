@@ -12,6 +12,7 @@ import {
     GithubAuthProvider,
     GoogleAuthProvider,
     handleErrors,
+    handleMcpRequest,
     isLocalDevelopment,
     NodeContext,
     OauthCoreProvider,
@@ -44,6 +45,9 @@ app.use(
         createContext: opts => createTRPCContext(opts),
     })
 );
+
+// For MCP clients, signed in with a bearer token rather than the session cookie
+app.all("/mcp", express.json({ limit: MAX_BODY_SIZE }), handleErrors(handleMcpRequest));
 
 app.get("/login/google/callback", handleErrors(GoogleAuthProvider.callback));
 app.get("/login/google", handleErrors(GoogleAuthProvider.login));

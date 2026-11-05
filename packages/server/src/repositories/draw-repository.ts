@@ -199,6 +199,21 @@ const getDrawingName = async (slug: string) => {
     }
 };
 
+/** The drawings a user owns, last changed first */
+const getOwnedDrawings = async (ownerId: number) => {
+    try {
+        const drawings = await prisma.drawing.findMany({
+            where: { ownerId },
+            select: { slug: true, name: true, updatedAt: true },
+            orderBy: { updatedAt: "desc" },
+        });
+        return Result.ok(drawings);
+    } catch (error) {
+        logger.error({ error, ownerId }, "Error getting owned drawings");
+        return Result.error("Error getting drawings");
+    }
+};
+
 type CopyOptions = {
     elements: ExcalidrawSimpleElement[];
     name: string;
@@ -249,4 +264,5 @@ export const DrawRepository = {
     updateLinkAccess,
     getDrawingName,
     createCopy,
+    getOwnedDrawings,
 };

@@ -166,6 +166,13 @@ const mixSets = (icons: IconItem[], query: string) => {
     return mixed.flat().sort((a, b) => rankName(a, query) - rankName(b, query));
 };
 
+const MCP_WORDS = ["mcp", "agent", "claude", "opencode", "codex", "connect", "token"];
+
+const isMcpQuery = (query: string) => {
+    const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+    return words.some(word => MCP_WORDS.some(mcp => mcp.startsWith(word) && word.length >= 3));
+};
+
 const getAllSections = (input: SectionInput): Section[] => {
     const { query, recents } = input;
 
@@ -192,6 +199,7 @@ const getAllSections = (input: SectionInput): Section[] => {
         rows("Create with AI", [
             { kind: "ai", mode: "diagram", prompt: query },
             { kind: "ai", mode: "mermaid", prompt: query },
+            ...(isMcpQuery(query) ? [{ kind: "mcp" } as const] : []),
         ]),
         rows("Browse", ICON_SETS.filter(set => setMatches(set, query)).map(browseSet)),
         grid("Icons", items, {

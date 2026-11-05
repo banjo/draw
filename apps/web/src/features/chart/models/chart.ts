@@ -4,10 +4,18 @@ import { ElementCreationUtil } from "@/features/draw/utils/element-creation-util
 import { ElementUtil } from "@/features/draw/utils/element-util";
 import { UpdateElementUtil } from "@/features/draw/utils/update-element-util";
 import { Table } from "@/features/table/models/table";
-import { CaptureUpdateAction, hashString } from "@excalidraw/excalidraw";
+import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { FileId } from "@excalidraw/excalidraw/element/types";
 import { Mutable } from "@excalidraw/excalidraw/utility-types";
-import { CustomDataChart, ExcalidrawApi, ExcalidrawElement, ExcalidrawImageElement } from "common";
+import {
+    BlockContent,
+    BlockFileId,
+    CHART_DEFAULT_CONTENT,
+    CustomDataChart,
+    ExcalidrawApi,
+    ExcalidrawElement,
+    ExcalidrawImageElement,
+} from "common";
 import { isNumeric } from "./chart-data";
 import type { ChartContent, ChartLook, ChartPalette, ChartType } from "./chart-render";
 
@@ -34,58 +42,15 @@ export const CHART_PALETTES: { palette: ChartPalette; label: string }[] = [
 export const MAX_CHART_ROWS = 50;
 export const MAX_CHART_COLUMNS = 12;
 
-const DEFAULT_CONTENT: ChartContent = {
-    rows: [
-        ["", "Web", "Mobile"],
-        ["Q1", "42", "18"],
-        ["Q2", "58", "30"],
-        ["Q3", "71", "52"],
-        ["Q4", "90", "66"],
-    ],
-    look: "sketchy",
-    chartType: "bar",
-    title: "Signups per quarter",
-    legend: true,
-    values: true,
-    palette: "default",
-};
+const DEFAULT_CONTENT: ChartContent = CHART_DEFAULT_CONTENT;
 
-// Bumped when the drawing changes, so charts get new images
-const IMAGE_VERSION = 1;
-
-const TYPES = new Set(CHART_TYPES.map(option => option.type));
-const PALETTES = new Set(CHART_PALETTES.map(option => option.palette));
-
-/** Every row as long as the longest, and at least one cell */
-const normalize = (rows: string[][]) => {
-    const columns = Math.max(1, ...rows.map(row => row.length));
-    const filled = rows.length > 0 ? rows : [[""]];
-    return filled.map(row => Array.from({ length: columns }, (_, i) => row[i] ?? ""));
-};
+const normalize = BlockContent.normalizeRows;
 
 /** A chart's content, or a table's as a chart, with what it had as a chart before */
-/** The value if it's one of the allowed ones, else the fallback */
-const oneOf = <T>(allowed: Set<T>, value: T | undefined, fallback: T) =>
-    value !== undefined && allowed.has(value) ? value : fallback;
-
-const getContent = (element: ExcalidrawElement): ChartContent => {
-    const data = (element.customData ?? {}) as Partial<CustomDataChart>;
-    return {
-        rows: normalize(Array.isArray(data.rows) ? data.rows : DEFAULT_CONTENT.rows),
-        look: data.look === "clean" ? "clean" : "sketchy",
-        chartType: oneOf(TYPES, data.chartType, "bar"),
-        title: String(data.title ?? ""),
-        legend: data.legend ?? true,
-        values: data.values ?? true,
-        palette: oneOf(PALETTES, data.palette, "default"),
-    };
-};
+const getContent = (element: ExcalidrawElement): ChartContent => BlockContent.chart(element);
 
 /** The same content always gets the same id, so every browser can make the file itself */
-const getFileId = (content: ChartContent) => {
-    const key = JSON.stringify(content);
-    return `chart-${IMAGE_VERSION}-${hashString(key)}-${key.length}` as FileId;
-};
+const getFileId = (content: ChartContent) => BlockFileId.chart(content) as FileId;
 
 /** The chart drawn, with its file and size at scale 1 */
 const render = async (content: ChartContent) => {
